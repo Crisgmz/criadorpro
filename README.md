@@ -227,3 +227,4 @@ curl -s -o /dev/null -w '%{content_type}\n' https://<dominio>/sqlite3.wasm    # 
 
 Si `sqlite3.wasm` sale como `application/octet-stream`, la base local no
 arranca y la app queda sin datos.
+# criadorpro
