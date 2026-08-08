@@ -1,0 +1,15 @@
+Inter — Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
+
+Licencia SIL Open Font License, versión 1.1. Texto completo:
+https://openfontlicense.org
+
+Permite usar, incrustar y redistribuir la fuente, incluso en software
+comercial, siempre que no se venda por sí sola y que los archivos derivados no
+usen «Inter» como nombre reservado.
+
+Archivos: Inter-Regular.ttf (400), Inter-SemiBold.ttf (600), Inter-Bold.ttf (700).
+Descargados de fonts.gstatic.com (Google Fonts, v20).
+
+Los tres pesos son los que usa la escala del PRD §6: cuerpo y secundario en 400,
+títulos y etiquetas en 600, dato numérico en 700. No se empaquetan cursivas ni
+otros pesos porque el sistema de diseño no los emplea, y cada uno suma ~320 KB.

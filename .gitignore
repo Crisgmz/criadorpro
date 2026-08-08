@@ -1,0 +1,64 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Código generado: se regenera con
+#   dart run build_runner build && flutter gen-l10n
+*.g.dart
+lib/l10n/generated/
+
+# Credenciales de Supabase. Se pasan con --dart-define-from-file=env.json;
+# copia env.example.json y rellénalo. La carpeta .vscode/ SÍ se versiona, así
+# que las claves nunca deben escribirse en launch.json.
+env.json
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Documentación de requisitos (BRD, PRD, FRD, SRS, DDT).
+#
+# Fuera del repositorio por dos motivos: son 32 MB de PDF que penalizan cada
+# clonado, y el BRD contiene objetivos comerciales, riesgos y estrategia de
+# precios que no tienen por qué ser públicos. Se distribuyen aparte — pídelos
+# a quien lleve el proyecto y déjalos en esta misma ruta para que funcionen los
+# enlaces de CLAUDE.md.
+Documentación de Requisitos de Software/

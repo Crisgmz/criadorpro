@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Igual que drawable/launch_background.xml. El navy es fijo y no sigue al
+     tema del sistema: la marca se ve idéntica en claro y en oscuro. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/brand_navy" />
+</layer-list>

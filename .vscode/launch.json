@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // El flag `--dart-define-from-file=env.json` no se repite aquí: lo aplica
+      // `dart.flutterRunAdditionalArgs` en settings.json, que vale para
+      // cualquier forma de lanzar.
+      "name": "Criador Pro",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "Criador Pro (release)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "program": "lib/main.dart"
+    }
+  ]
+}

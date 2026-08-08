@@ -1,0 +1,34 @@
+# Lo que no debe viajar al contexto de construcción.
+#
+# Todo lo que se copie aquí se envía al demonio de Docker antes de empezar:
+# los PDFs de requisitos solos pesan más que el código.
+
+.git
+.github
+.dart_tool
+.idea
+.vscode
+build
+coverage
+
+# Plataformas móviles: la imagen solo construye web.
+android
+ios
+linux
+macos
+windows
+
+# Generados: el Dockerfile los vuelve a crear dentro (están en .gitignore).
+**/*.g.dart
+lib/l10n/generated
+
+# Credenciales locales. Las de producción entran como argumentos de
+# construcción, nunca copiadas al contexto.
+env.json
+
+Documentación de Requisitos de Software
+*.md
+!README.md
+.DS_Store
+*.iml
+*.log

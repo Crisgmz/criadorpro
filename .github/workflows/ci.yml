@@ -1,0 +1,46 @@
+name: CI
+
+# La compuerta antes de desplegar. Coolify construye desde GitHub, así que lo
+# que no se compruebe aquí llega al servidor sin que nadie lo mire.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          # La misma versión que fija el Dockerfile: si divergen, CI aprueba
+          # algo que el despliegue no puede construir.
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # Los generados no se versionan: sin esto no compila nada.
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - run: flutter gen-l10n
+
+      - run: flutter analyze
+      - run: dart format --set-exit-if-changed lib test
+      - run: flutter test
+
+      # Terminología zootécnica — BRD §8. Un término de riña o apuesta en la
+      # interfaz es motivo de rechazo en App Store y Google Play, así que la
+      # compuerta corta el despliegue antes de que llegue a una captura.
+      #
+      # Compara palabras completas (`\b`): «trabajando» contiene «traba» y no
+      # tiene nada que ver.
+      - name: Terminología prohibida
+        run: |
+          if grep -rniE '\b(traba|trabas|gallo|gallos|gallera|galleras|pelea|peleas|riña|riñas|apuesta|apuestas|cockfight|rooster)\b' lib/l10n/*.arb; then
+            echo "::error::Vocabulario prohibido en los .arb — BRD §8"
+            exit 1
+          fi
+          echo "Sin vocabulario prohibido."

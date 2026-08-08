@@ -1,0 +1,10 @@
+{
+  // Se aplica a TODA ejecución de Flutter en este workspace: el botón ▶, F5,
+  // «Run without debugging» y cualquier configuración de launch.json. Así las
+  // credenciales entran siempre, sin depender de qué opción esté seleccionada
+  // en el desplegable de Run and Debug.
+  //
+  // Para arrancar deliberadamente sin backend (modo solo Drift), comenta esta
+  // línea y recarga la ventana.
+  "dart.flutterRunAdditionalArgs": ["--dart-define-from-file=env.json"]
+}

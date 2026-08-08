@@ -1,0 +1,394 @@
+{
+  "@@locale": "es",
+
+  "appName": "Criador Pro",
+
+  "commonSave": "Guardar",
+  "commonCancel": "Cancelar",
+  "commonDelete": "Eliminar",
+  "commonEdit": "Editar",
+  "commonRetry": "Reintentar",
+  "commonSearch": "Buscar",
+  "commonClose": "Cerrar",
+  "commonAll": "Todos",
+  "commonNone": "Ninguno",
+  "commonOptional": "Opcional",
+  "commonNext": "Siguiente",
+  "commonSkip": "Saltar",
+
+  "errorNetwork": "Sin conexión con el servidor. Tus cambios se guardaron en el dispositivo.",
+  "errorDatabase": "No se pudo acceder a los datos del dispositivo.",
+  "errorAuthInvalidCredentials": "Correo o contraseña incorrectos.",
+  "errorAuthEmailTaken": "Ya existe una cuenta con ese correo.",
+  "errorAuthNotAuthenticated": "Tu sesión expiró. Inicia sesión de nuevo.",
+  "errorAuthNotConfigured": "La app no tiene configurado el servidor. Falta SUPABASE_URL y SUPABASE_ANON_KEY.",
+  "errorAuthCodeExpired": "El código venció. Te enviamos uno nuevo.",
+  "@errorAuthCodeExpired": { "description": "E-AUTH-02" },
+  "errorAuthCodeInvalid": "El código no es correcto. Revísalo o pide uno nuevo.",
+  "errorAuthTooManyAttempts": "Demasiados intentos. Espera unos minutos.",
+  "@errorAuthTooManyAttempts": { "description": "E-AUTH-03" },
+  "errorAuthSamePassword": "La contraseña nueva debe ser distinta de la anterior.",
+  "errorAuthProviderUnavailable": "Este acceso todavía no está disponible. Entra con tu correo.",
+  "errorNotFound": "No encontramos ese registro.",
+  "errorValidation": "Revisa los datos del formulario.",
+  "errorUnknown": "Algo salió mal. Inténtalo de nuevo.",
+  "errorPlanLimit": "Tu plan permite {limit} ejemplares y ya tienes {current}. Mejora tu plan para seguir registrando.",
+  "@errorPlanLimit": {
+    "placeholders": {
+      "limit": { "type": "int" },
+      "current": { "type": "int" }
+    }
+  },
+
+  "validationRequired": "Este campo es obligatorio.",
+  "validationEmail": "Escribe un correo válido.",
+  "validationPasswordShort": "La contraseña debe tener al menos {min} caracteres.",
+  "@validationPasswordShort": {
+    "placeholders": { "min": { "type": "int" } }
+  },
+  "validationNumber": "Escribe un número válido.",
+  "validationEmailTooLong": "El correo es demasiado largo.",
+  "validationPasswordNeedsLetterAndNumber": "Combina al menos una letra y un número.",
+  "validationPasswordMismatch": "Las contraseñas no coinciden.",
+  "validationNameLength": "Escribe entre 2 y 80 caracteres.",
+  "validationCodeIncomplete": "El código tiene 6 dígitos.",
+  "validationPhone": "Escribe un teléfono válido.",
+  "validationFarmNameLength": "Escribe entre 2 y 60 caracteres.",
+  "validationPlateRange": "Escribe un número entre 1 y {max}.",
+  "@validationPlateRange": {
+    "description": "RV-07",
+    "placeholders": { "max": { "type": "int" } }
+  },
+
+  "authSignInTitle": "Entrar",
+  "authSignUpTitle": "Crear cuenta",
+  "authSubtitle": "Gestiona tu criadero desde el móvil, con o sin internet.",
+  "authEmail": "Correo electrónico",
+  "authPassword": "Contraseña",
+  "authPasswordConfirmation": "Confirmar contraseña",
+  "authPasswordRule": "Mínimo {min} caracteres, con letras y números.",
+  "@authPasswordRule": {
+    "description": "RV-02",
+    "placeholders": { "min": { "type": "int" } }
+  },
+  "authPasswordStrengthWeak": "Débil",
+  "authPasswordStrengthMedium": "Media",
+  "authPasswordStrengthStrong": "Fuerte",
+  "authFullName": "Nombre completo",
+  "authPhone": "Teléfono",
+  "authCountry": "País",
+  "authSignIn": "Entrar",
+  "authSignUp": "Crear cuenta",
+  "authToggleToSignUp": "¿No tienes cuenta? Crear una",
+  "authToggleToSignIn": "¿Ya tienes cuenta? Entrar",
+  "authSignOut": "Cerrar sesión",
+  "authSignUpConfirmEmail": "Te enviamos un correo para confirmar tu cuenta.",
+  "authSignOutConfirmTitle": "¿Cerrar sesión?",
+  "authSignOutConfirmMessage": "Los cambios sin sincronizar se conservan en este dispositivo.",
+
+  "onboardingBatchTitle": "Registra camadas completas en segundos",
+  "onboardingBatchBody": "Ocho crías con sus placas correlativas en una sola operación, sin escribir renglón por renglón.",
+  "onboardingGenealogyTitle": "Genealogía siempre a mano",
+  "onboardingGenealogyBody": "El pedigrí completo de cualquier ejemplar en dos toques, para respaldar su valor ante un comprador.",
+  "onboardingBackupTitle": "Tu registro, en tu bolsillo",
+  "onboardingBackupBody": "Funciona sin señal dentro del galpón y se respalda solo cuando vuelve la conexión.",
+  "onboardingStart": "Comenzar",
+
+  "welcomeTitle": "Bienvenido a Criador Pro",
+  "welcomeSubtitle": "Gestiona la cría y genealogía de tus aves como un profesional.",
+  "welcomeCreateAccount": "Crear cuenta",
+  "welcomeSignIn": "Iniciar sesión",
+  "welcomeOr": "o",
+  "welcomeContinueWithGoogle": "Continuar con Google",
+  "welcomeContinueWithApple": "Continuar con Apple",
+
+  "signUpTitle": "Crear cuenta",
+  "signUpSubtitle": "Empieza a registrar tu criadero hoy.",
+  "signUpAcceptTerms": "Acepto los términos de uso y la política de privacidad.",
+  "signUpAlreadyHaveAccount": "Si ya tienes cuenta, vuelve atrás e inicia sesión.",
+
+  "verifyTitle": "Verifica tu correo",
+  "verifySubtitle": "Enviamos un código de 6 dígitos a",
+  "verifyCodeFieldLabel": "Código de verificación de 6 dígitos",
+  "verifyAction": "Verificar",
+  "verifyResend": "Reenviar código",
+  "verifyResendIn": "¿No recibiste el código? Reenviar en {seconds} s",
+  "@verifyResendIn": {
+    "description": "RF-AUT-08",
+    "placeholders": { "seconds": { "type": "int" } }
+  },
+  "verifyCodeResent": "Te enviamos un código nuevo.",
+
+  "loginTitle": "Iniciar sesión",
+  "loginSubtitle": "Entra para seguir con tu registro.",
+  "loginRememberMe": "Recordarme",
+  "loginForgotPassword": "¿Olvidaste tu contraseña?",
+
+  "recoverTitle": "Recupera tu contraseña",
+  "recoverSubtitle": "Ingresa tu correo y te enviaremos un código de verificación.",
+  "recoverSendCode": "Enviar código",
+  "recoverAlwaysFree": "La recuperación es gratis, siempre.",
+
+  "newPasswordTitle": "Nueva contraseña",
+  "newPasswordSubtitle": "Crea una contraseña segura para tu cuenta.",
+  "newPasswordLabel": "Nueva contraseña",
+  "newPasswordSave": "Guardar contraseña",
+  "newPasswordSuccessTitle": "Contraseña actualizada",
+  "newPasswordSuccessBody": "Ya puedes entrar con tu contraseña nueva.",
+
+  "setupStepOf": "Paso {current} de {total}",
+  "@setupStepOf": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "setupProfileTitle": "Tu criadero",
+  "setupProfileSubtitle": "Cuéntanos un poco sobre tu criadero.",
+  "setupFarmName": "Nombre del criadero",
+  "setupLocation": "Ubicación",
+
+  "setupNumberingTitle": "Tu numeración",
+  "setupNumberingSubtitle": "¿En qué número vas con tus placas?",
+  "setupCurrentPlate": "Placa actual",
+  "setupNumberingHint": "La app seguirá desde el número siguiente al registrar nuevos ejemplares. No hace falta que retranscribas tu libro.",
+  "setupFinish": "Finalizar",
+
+  "setupPlanTitle": "Elige tu plan",
+  "setupPlanSubtitle": "Empieza gratis, mejora cuando quieras.",
+  "setupPlanRecommended": "RECOMENDADO",
+  "setupPlanChoose": "Elegir plan",
+  "setupPlanStartFree": "Comenzar gratis",
+  "setupPlanLater": "Puedes cambiar de plan cuando quieras desde Mi cuenta.",
+  "setupPlanPriceFree": "Gratis",
+  "setupPlanPricePro": "US$4.99 / mes",
+  "setupPlanPriceElite": "US$19.99 / mes",
+  "setupPlanFeatureBirds": "Hasta {count} ejemplares",
+  "@setupPlanFeatureBirds": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "setupPlanFeatureBirdsUnlimited": "Ejemplares ilimitados",
+  "setupPlanFeatureClutches": "Registro de camadas",
+  "setupPlanFeaturePedigree": "Pedigrí de {generations} generaciones",
+  "@setupPlanFeaturePedigree": {
+    "placeholders": { "generations": { "type": "int" } }
+  },
+  "setupPlanFeatureTests": "Pruebas de campo",
+  "setupPlanFeatureAccounting": "Contabilidad y exportación a PDF",
+  "setupPlanFeatureEverythingPro": "Todo lo de Pro",
+  "setupPlanFeaturePayroll": "Empleomanía y recibos",
+
+  "setupDoneTitle": "¡Todo listo, Criador!",
+  "setupDoneBody": "Tu criadero {farmName} está listo. Registra tu primera camada.",
+  "@setupDoneBody": {
+    "placeholders": { "farmName": { "type": "String" } }
+  },
+  "setupDoneBodyFallback": "Tu criadero está listo. Registra tu primera camada.",
+  "setupDoneAction": "Comenzar",
+
+  "countryDO": "República Dominicana",
+  "countryUS": "Estados Unidos",
+  "countryPR": "Puerto Rico",
+  "countryCU": "Cuba",
+  "countryMX": "México",
+  "countryGT": "Guatemala",
+  "countrySV": "El Salvador",
+  "countryHN": "Honduras",
+  "countryNI": "Nicaragua",
+  "countryCR": "Costa Rica",
+  "countryPA": "Panamá",
+  "countryCO": "Colombia",
+  "countryVE": "Venezuela",
+  "countryEC": "Ecuador",
+  "countryPE": "Perú",
+  "countryES": "España",
+
+  "drawerGroupAccount": "MI CUENTA",
+  "drawerGroupApp": "INFO DE LA APP",
+  "drawerFarmData": "Datos del criadero",
+  "drawerMembership": "MEMBRESÍA",
+  "drawerPlanLimit": "Hasta {limit} ejemplares",
+  "@drawerPlanLimit": {
+    "placeholders": { "limit": { "type": "int" } }
+  },
+  "drawerPlanUnlimited": "Ejemplares ilimitados",
+  "drawerOpen": "Abrir menú",
+
+  "navHome": "Inicio",
+  "navBirds": "Ejemplares",
+  "navSettings": "Ajustes",
+
+  "dashboardTitle": "Resumen",
+  "dashboardClutches": "Camadas",
+  "dashboardQuickActions": "ACCESOS RÁPIDOS",
+  "dashboardPlanLimitNear": "Llevas {current} de {limit} ejemplares. Cuando llegues al tope no podrás registrar más.",
+  "@dashboardPlanLimitNear": {
+    "description": "RF-REG-02",
+    "placeholders": {
+      "current": { "type": "int" },
+      "limit": { "type": "int" }
+    }
+  },
+  "dashboardPlanLimitReached": "Tu plan permite {limit} ejemplares. Puedes seguir consultando y exportando.",
+  "@dashboardPlanLimitReached": {
+    "description": "RF-REG-16 · E-PLAN-01",
+    "placeholders": { "limit": { "type": "int" } }
+  },
+  "dashboardSeePlans": "Ver planes",
+  "dashboardTotalBirds": "Ejemplares",
+  "dashboardMales": "Machos",
+  "dashboardFemales": "Hembras",
+  "dashboardUnsexed": "Sin definir",
+  "dashboardQuickAdd": "Registrar ejemplar",
+
+  "birdsTitle": "Ejemplares",
+  "birdsSearchHint": "Buscar por nombre o placa",
+  "birdsEmptyTitle": "Aún no hay ejemplares",
+  "birdsEmptyMessage": "Registra tu primer ejemplar para empezar a construir su genealogía.",
+  "birdsEmptySearchTitle": "Sin resultados",
+  "birdsEmptySearchMessage": "Prueba con otro nombre o número de placa.",
+  "birdsFilterByStatus": "Filtrar por estado",
+  "birdsAdd": "Registrar ejemplar",
+  "birdsCount": "{count, plural, =0{Sin ejemplares} =1{1 ejemplar} other{{count} ejemplares}}",
+  "@birdsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "birdNew": "Nuevo ejemplar",
+  "birdEdit": "Editar ejemplar",
+  "birdSaved": "Ejemplar guardado",
+  "birdDeleted": "Ejemplar eliminado",
+  "birdDeleteTitle": "¿Eliminar ejemplar?",
+  "birdDeleteMessage": "Se eliminará de tus listas. Esta acción no se puede deshacer.",
+  "birdNoRing": "Sin placa",
+  "birdUnknownParent": "Sin registrar",
+  "birdSectionIdentity": "Identificación",
+  "birdSectionOrigin": "Origen",
+  "birdSectionExtra": "Datos adicionales",
+
+  "clutchNew": "Registrar camada",
+  "clutchTitle": "Nueva camada",
+  "clutchSectionBirth": "Nacimiento",
+  "clutchSectionParents": "Progenitores",
+  "clutchSectionExtra": "Datos adicionales",
+  "clutchHatched": "Crías nacidas",
+  "clutchEggs": "Huevos puestos",
+  "clutchDecrement": "Una cría menos",
+  "clutchIncrement": "Una cría más",
+  "clutchPlatePreview": "Se asignarán las placas #{first} a #{last}",
+  "@clutchPlatePreview": {
+    "description": "RF-REG-10 · rango de placas que reservará la camada",
+    "placeholders": {
+      "first": { "type": "int" },
+      "last": { "type": "int" }
+    }
+  },
+  "clutchPlatePreviewSingle": "Se asignará la placa #{plate}",
+  "@clutchPlatePreviewSingle": {
+    "placeholders": { "plate": { "type": "int" } }
+  },
+  "clutchSexNote": "Las crías se registran sin sexo definir. Podrás indicarlo en cada ficha cuando lo sepas.",
+  "clutchDateFuture": "La fecha no puede ser posterior a hoy.",
+  "@clutchDateFuture": { "description": "RV-09" },
+  "clutchHatchedOverEggs": "No pueden nacer más crías que huevos puestos.",
+  "clutchRegistered": "{count, plural, =1{1 cría registrada} other{{count} crías registradas}}",
+  "@clutchRegistered": {
+    "description": "RF-REG-11",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "clutchDoneTitle": "Camada registrada",
+  "clutchDoneBody": "{count, plural, =1{Se registró 1 cría con la placa #{first}.} other{Se registraron {count} crías con las placas #{first} a #{last}.}}",
+  "@clutchDoneBody": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "first": { "type": "int" },
+      "last": { "type": "int" }
+    }
+  },
+  "clutchViewChicks": "Ver las crías",
+  "clutchRegisterAnother": "Registrar otra",
+  "dashboardQuickClutch": "Registrar camada",
+
+  "fieldName": "Nombre",
+  "fieldPlate": "Placa",
+  "birdPlateTaken": "Ya tienes un ejemplar con esa placa. Puedes continuar igualmente.",
+  "@birdPlateTaken": { "description": "RV-08 · E-DATA-01" },
+  "birdWeightOutOfRange": "Un peso fuera de 100 g a 8 kg es poco habitual. Puedes guardarlo igualmente.",
+  "@birdWeightOutOfRange": { "description": "RV-12" },
+  "fieldSex": "Sexo",
+  "fieldBirthDate": "Fecha de nacimiento",
+  "fieldColor": "Color / plumaje",
+  "fieldLine": "Línea o raza",
+  "fieldStatus": "Estado",
+  "fieldWeight": "Peso (g)",
+  "fieldNotes": "Notas",
+  "fieldFather": "Padre",
+  "fieldMother": "Madre",
+  "fieldAge": "Edad",
+
+  "sexMale": "Macho",
+  "sexFemale": "Hembra",
+  "sexUnknown": "Sin definir",
+
+  "statusActive": "En criadero",
+  "statusSold": "Vendido",
+  "statusDeceased": "Baja",
+  "statusLoaned": "Prestado",
+
+  "ageYearsMonths": "{years} a · {months} m",
+  "@ageYearsMonths": {
+    "placeholders": {
+      "years": { "type": "int" },
+      "months": { "type": "int" }
+    }
+  },
+  "ageMonths": "{months} m",
+  "@ageMonths": {
+    "placeholders": { "months": { "type": "int" } }
+  },
+  "ageDays": "{days} d",
+  "@ageDays": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "ageUnknown": "Edad sin definir",
+
+  "offlineBanner": "Sin conexión · trabajando en local",
+  "syncAllSynced": "Todo sincronizado",
+  "syncPending": "{count, plural, =1{1 cambio pendiente} other{{count} cambios pendientes}}",
+  "@syncPending": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "syncNow": "Sincronizar ahora",
+  "syncInProgress": "Sincronizando…",
+  "syncDone": "Sincronización completada",
+  "syncFailed": "No se pudo sincronizar. Lo reintentaremos.",
+
+  "settingsTitle": "Ajustes",
+  "settingsAppearance": "Apariencia",
+  "settingsTheme": "Tema",
+  "settingsThemeSystem": "Del sistema",
+  "settingsThemeLight": "Claro",
+  "settingsThemeDark": "Oscuro",
+  "settingsLanguage": "Idioma",
+  "settingsLanguageSystem": "Del sistema",
+  "settingsLanguageEs": "Español",
+  "settingsLanguageEn": "English",
+  "settingsAccount": "Cuenta",
+  "settingsSync": "Sincronización",
+  "settingsPlan": "Plan",
+
+  "planFree": "Gratis",
+  "planPro": "Pro",
+  "planElite": "Élite",
+  "planUsage": "{current} de {limit} ejemplares",
+  "@planUsage": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "limit": { "type": "int" }
+    }
+  },
+  "planUsageUnlimited": "{current} ejemplares · sin límite",
+  "@planUsageUnlimited": {
+    "placeholders": { "current": { "type": "int" } }
+  }
+}

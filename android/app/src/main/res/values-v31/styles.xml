@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 en adelante.
+     Desde API 31 el sistema dibuja su propia pantalla de lanzamiento con el
+     icono de la app e ignora `windowBackground`, así que el navy hay que
+     declararlo con `windowSplashScreenBackground` o el arranque saldría blanco
+     pese a los drawables. -->
+<resources>
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/brand_navy</item>
+    </style>
+
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@color/brand_navy</item>
+    </style>
+</resources>

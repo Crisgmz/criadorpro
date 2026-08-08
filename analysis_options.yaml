@@ -1,0 +1,32 @@
+# Configuración del analizador. Ejecuta `flutter analyze` antes de cada commit.
+include: package:flutter_lints/flutter.yaml
+
+# El DDT §12 exige `dart format --set-exit-if-changed` en cada solicitud de
+# cambio. Sin fijar el ancho aquí, cada máquina formatearía a 80 y la
+# comprobación fallaría o produciría diffs de ida y vuelta.
+formatter:
+  page_width: 100
+
+analyzer:
+  exclude:
+    # Código generado por build_runner (Drift) y por gen-l10n.
+    - "**/*.g.dart"
+    - "lib/l10n/generated/**"
+  errors:
+    # Un TODO sin resolver no debe romper el análisis.
+    todo: ignore
+
+linter:
+  rules:
+    # Los servicios y repositorios reciben sus dependencias como parámetros con
+    # nombre y las guardan en campos privados. Un parámetro con nombre no puede
+    # ser privado, así que la corrección que sugiere esta regla es imposible.
+    prefer_initializing_formals: false
+
+    # Ayudan a mantener las reglas de arquitectura del proyecto.
+    always_declare_return_types: true
+    prefer_single_quotes: true
+    unawaited_futures: true
+    require_trailing_commas: true
+    directives_ordering: true
+    use_super_parameters: true

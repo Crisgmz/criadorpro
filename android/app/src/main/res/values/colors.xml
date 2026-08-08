@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navy de marca (PRD §6). Debe coincidir con AppColors.navy y con el
+         fondo de SplashView: si difieren, se ve un salto de color al ceder el
+         paso a Flutter. -->
+    <color name="brand_navy">#0E2A47</color>
+</resources>

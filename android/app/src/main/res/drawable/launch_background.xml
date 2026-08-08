@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pantalla de lanzamiento: navy sólido hasta que Flutter dibuja su primer
+     frame, que es SplashView con el mismo fondo. El logotipo no se pinta aquí a
+     propósito — el actual es provisional (ver BrandMark) y duplicarlo como
+     recurso nativo obligaría a regenerarlo en tres densidades cuando llegue el
+     definitivo. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/brand_navy" />
+</layer-list>

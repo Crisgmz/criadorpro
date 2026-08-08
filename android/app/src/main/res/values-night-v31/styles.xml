@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ en modo oscuro. Sin este archivo, el sistema resolvería
+     values-night/styles.xml, que no declara `windowSplashScreenBackground`, y
+     el arranque saldría con el color por omisión en vez del navy. -->
+<resources>
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/brand_navy</item>
+    </style>
+
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@color/brand_navy</item>
+    </style>
+</resources>
