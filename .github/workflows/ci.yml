@@ -28,7 +28,14 @@ jobs:
       - run: flutter gen-l10n
 
       - run: flutter analyze
-      - run: dart format --set-exit-if-changed lib test
+      # Solo el código escrito a mano. Los `*.g.dart` y las traducciones los
+      # produce una herramienta y aquí se generan recién: exigirles formato
+      # rompe la compilación por algo que nadie escribió y nadie puede
+      # corregir. En local no se notaba porque ya estaban formateados de antes.
+      - name: Formato
+        run: |
+          find lib test -name '*.dart' ! -name '*.g.dart' -not -path '*/generated/*' -print0 \
+            | xargs -0 dart format --set-exit-if-changed
       - run: flutter test
 
       # Terminología zootécnica — BRD §8. Un término de riña o apuesta en la

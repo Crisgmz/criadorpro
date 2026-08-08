@@ -135,7 +135,9 @@ Si el registro falla con *«Database error saving new user»*, el trigger
 
 ```bash
 flutter analyze
-dart format --set-exit-if-changed lib test
+# Solo el código escrito a mano: los generados no siguen esta convención.
+find lib test -name '*.dart' ! -name '*.g.dart' -not -path '*/generated/*' \
+  -print0 | xargs -0 dart format --set-exit-if-changed
 flutter test
 ```
 
