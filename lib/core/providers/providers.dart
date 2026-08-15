@@ -21,6 +21,9 @@ import '../../features/birds/viewmodel/birds_list_viewmodel.dart';
 import '../../features/birds/viewmodel/clutch_form_viewmodel.dart';
 import '../../features/birds/viewmodel/parent_picker_viewmodel.dart';
 import '../../features/dashboard/viewmodel/dashboard_viewmodel.dart';
+import '../../features/evaluations/repository/evaluations_repository.dart';
+import '../../features/evaluations/viewmodel/evaluation_form_viewmodel.dart';
+import '../../features/evaluations/viewmodel/evaluations_list_viewmodel.dart';
 import '../../features/onboarding/viewmodel/farm_setup_viewmodel.dart';
 import '../../features/pedigree/repository/pedigree_repository.dart';
 import '../../features/pedigree/viewmodel/pedigree_viewmodel.dart';
@@ -29,6 +32,7 @@ import '../../features/settings/viewmodel/settings_viewmodel.dart';
 import '../db/app_database.dart';
 import '../db/daos/birds_dao.dart';
 import '../db/daos/clutches_dao.dart';
+import '../db/daos/evaluations_dao.dart';
 import '../db/daos/profiles_dao.dart';
 import '../db/daos/sync_queue_dao.dart';
 import '../domain/sex.dart';
@@ -60,6 +64,9 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
 final birdsDaoProvider = Provider<BirdsDao>((ref) => ref.watch(appDatabaseProvider).birdsDao);
 final profilesDaoProvider = Provider<ProfilesDao>(
   (ref) => ref.watch(appDatabaseProvider).profilesDao,
+);
+final evaluationsDaoProvider = Provider<EvaluationsDao>(
+  (ref) => ref.watch(appDatabaseProvider).evaluationsDao,
 );
 final clutchesDaoProvider = Provider<ClutchesDao>(
   (ref) => ref.watch(appDatabaseProvider).clutchesDao,
@@ -130,6 +137,7 @@ final syncServiceProvider = Provider<SyncService>((ref) {
       ref.watch(profileRepositoryProvider),
       ref.watch(clutchesRepositoryProvider),
       ref.watch(birdsRepositoryProvider),
+      ref.watch(evaluationsRepositoryProvider),
     ],
   );
   ref.onDispose(service.dispose);
@@ -296,6 +304,36 @@ final birdDetailViewModelProvider = ChangeNotifierProvider.autoDispose
       (ref, birdId) => BirdDetailViewModel(
         repository: ref.watch(birdsRepositoryProvider),
         clutchesRepository: ref.watch(clutchesRepositoryProvider),
+        evaluationsRepository: ref.watch(evaluationsRepositoryProvider),
+        ownerId: ref.watch(currentOwnerIdProvider),
+        birdId: birdId,
+      ),
+    );
+
+final evaluationsRepositoryProvider = Provider<EvaluationsRepository>(
+  (ref) => EvaluationsRepository(
+    database: ref.watch(appDatabaseProvider),
+    evaluationsDao: ref.watch(evaluationsDaoProvider),
+    profilesDao: ref.watch(profilesDaoProvider),
+    syncQueue: ref.watch(syncQueueDaoProvider),
+    supabase: ref.watch(supabaseServiceProvider),
+  ),
+);
+
+final evaluationsListViewModelProvider =
+    ChangeNotifierProvider.autoDispose<EvaluationsListViewModel>(
+      (ref) => EvaluationsListViewModel(
+        repository: ref.watch(evaluationsRepositoryProvider),
+        ownerId: ref.watch(currentOwnerIdProvider),
+      ),
+    );
+
+/// `null` abre el selector de ejemplar; con id viene ya elegido desde la ficha.
+final evaluationFormViewModelProvider = ChangeNotifierProvider.autoDispose
+    .family<EvaluationFormViewModel, String?>(
+      (ref, birdId) => EvaluationFormViewModel(
+        repository: ref.watch(evaluationsRepositoryProvider),
+        ownerId: ref.watch(currentOwnerIdProvider),
         birdId: birdId,
       ),
     );

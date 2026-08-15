@@ -10,10 +10,13 @@ import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/cp_empty_state.dart';
 import '../../../core/widgets/sex_badge.dart';
 import '../../../l10n/generated/app_l10n.dart';
+import '../../evaluations/model/evaluation.dart';
+import '../../evaluations/view/evaluation_labels.dart';
 import '../model/bird.dart';
 import '../viewmodel/bird_detail_viewmodel.dart';
 import 'bird_labels.dart';
@@ -118,7 +121,12 @@ class BirdDetailView extends ConsumerWidget {
                     mother: viewModel.mother,
                     locale: locale,
                   ),
-                  const _TestsTab(),
+                  _TestsTab(
+                    birdId: birdId,
+                    evaluations: viewModel.evaluations,
+                    isAvailable: viewModel.areEvaluationsAvailable,
+                    locale: locale,
+                  ),
                   _OffspringTab(groups: viewModel.offspring, locale: locale),
                 ],
               ),
@@ -192,23 +200,95 @@ class _DataTab extends StatelessWidget {
   }
 }
 
-/// Pantalla 21 — historial de pruebas de campo.
-///
-/// La pestaña existe desde ya porque `RF-REG-12` la exige, pero el registro de
-/// pruebas es `RF-PRU` y llega en su propia fase: la tabla `evaluations` aún no
-/// existe. Hasta entonces muestra el estado vacío que pide el PRD, sin ofrecer
-/// una acción que no llevaría a ninguna parte.
+/// Pantalla 21 — historial de pruebas del ejemplar, `RF-PRU-05`.
 class _TestsTab extends StatelessWidget {
-  const _TestsTab();
+  const _TestsTab({
+    required this.birdId,
+    required this.evaluations,
+    required this.isAvailable,
+    required this.locale,
+  });
+
+  final String birdId;
+  final List<Evaluation> evaluations;
+  final bool isAvailable;
+  final String locale;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
 
-    return CpEmptyState(
-      icon: Icons.assignment_outlined,
-      title: l10n.birdTestsEmptyTitle,
-      message: '${l10n.birdTestsEmptyMessage}\n\n${l10n.birdTestsComingSoon}',
+    // `RF-PRU-06`: con plan gratuito se explica la restricción en lugar de
+    // mostrar un vacío que parecería un error del programa.
+    if (!isAvailable) {
+      return CpEmptyState(
+        icon: Icons.workspace_premium_outlined,
+        title: l10n.testsPlanTitle,
+        message: l10n.testsPlanMessage,
+        actionLabel: l10n.dashboardSeePlans,
+        onAction: () => context.push(Routes.settings),
+      );
+    }
+
+    // «Estado vacío accionable» es literal en `RF-PRU-05`: desde aquí se
+    // registra la primera prueba, con el ejemplar ya elegido.
+    if (evaluations.isEmpty) {
+      return CpEmptyState(
+        icon: Icons.assignment_outlined,
+        title: l10n.birdTestsEmptyTitle,
+        message: l10n.birdTestsEmptyMessage,
+        actionLabel: l10n.testsNew,
+        onAction: () => context.push(Routes.evaluationNewFor(birdId)),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.lg),
+      children: [
+        for (final evaluation in evaluations)
+          _EvaluationRow(evaluation: evaluation, locale: locale),
+        const SizedBox(height: AppSpacing.md),
+        OutlinedButton.icon(
+          onPressed: () => context.push(Routes.evaluationNewFor(birdId)),
+          icon: const Icon(Icons.add),
+          label: Text(l10n.testsNew),
+        ),
+      ],
+    );
+  }
+}
+
+class _EvaluationRow extends StatelessWidget {
+  const _EvaluationRow({required this.evaluation, required this.locale});
+
+  final Evaluation evaluation;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final theme = Theme.of(context);
+    final color = switch (evaluation.result) {
+      EvaluationResult.favorable => context.semantic.favorable,
+      EvaluationResult.unfavorable => context.semantic.unfavorable,
+      EvaluationResult.undefined => context.semantic.undefinedResult,
+    };
+
+    final details = [
+      Formatters.date(evaluation.date, locale),
+      if (evaluation.place != null) evaluation.place!,
+      if (evaluation.condition != null) '${l10n.testsFieldCondition} ${evaluation.condition}',
+    ].join(' · ');
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: CircleAvatar(
+        backgroundColor: color.withValues(alpha: 0.16),
+        child: Icon(Icons.assignment_outlined, color: color, size: 20),
+      ),
+      // `RNF-25` — el resultado se nombra además de colorearse.
+      title: Text(resultLabel(l10n, evaluation.result), style: theme.textTheme.titleSmall),
+      subtitle: Text(details, maxLines: 1, overflow: TextOverflow.ellipsis),
     );
   }
 }

@@ -29,6 +29,10 @@ abstract final class Routes {
   static const String birds = '/birds';
   static const String settings = '/settings';
 
+  /// Pruebas de campo — `RF-PRU`. Pestaña propia en la barra inferior: es una
+  /// de las cosas que el criador consulta a diario.
+  static const String evaluations = '/tests';
+
   // Pantallas a pantalla completa, fuera del shell.
   static const String birdNew = '/birds/new';
 
@@ -36,6 +40,12 @@ abstract final class Routes {
   /// son ejemplares, pero se abre a pantalla completa: es un formulario de
   /// captura rápida y la barra inferior solo distraería.
   static const String clutchNew = '/birds/clutch/new';
+
+  /// Pantalla 25. Con `birdId` la prueba se abre desde la ficha, con el
+  /// ejemplar ya elegido.
+  static const String evaluationNew = '/tests/new';
+
+  static String evaluationNewFor(String birdId) => '$evaluationNew?bird=$birdId';
 
   /// Pantalla 18 (`RF-REG-11`). Devuelve la elección por `pop`, no navega:
   /// el formulario que la abrió sigue vivo detrás con lo ya capturado.

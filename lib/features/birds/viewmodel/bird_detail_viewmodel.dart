@@ -2,6 +2,8 @@ import 'dart:async';
 
 import '../../../core/base/base_viewmodel.dart';
 import '../../../core/error/failure.dart';
+import '../../evaluations/model/evaluation.dart';
+import '../../evaluations/repository/evaluations_repository.dart';
 import '../model/bird.dart';
 import '../model/clutch.dart';
 import '../repository/birds_repository.dart';
@@ -26,24 +28,34 @@ class BirdDetailViewModel extends BaseViewModel {
   BirdDetailViewModel({
     required BirdsRepository repository,
     required ClutchesRepository clutchesRepository,
+    required EvaluationsRepository evaluationsRepository,
+    required String ownerId,
     required String birdId,
   }) : _repository = repository,
        _clutchesRepository = clutchesRepository,
+       _evaluationsRepository = evaluationsRepository,
+       _ownerId = ownerId,
        _birdId = birdId {
     _subscribe();
+    unawaited(_resolvePlan());
   }
 
   final BirdsRepository _repository;
   final ClutchesRepository _clutchesRepository;
+  final EvaluationsRepository _evaluationsRepository;
+  final String _ownerId;
   final String _birdId;
 
   StreamSubscription<Bird?>? _subscription;
   StreamSubscription<List<Bird>>? _childrenSubscription;
+  StreamSubscription<List<Evaluation>>? _evaluationsSubscription;
 
   Bird? _bird;
   Bird? _father;
   Bird? _mother;
   List<OffspringGroup> _offspring = const [];
+  List<Evaluation> _evaluations = const [];
+  bool _evaluationsAvailable = false;
 
   Bird? get bird => _bird;
   Bird? get father => _father;
@@ -53,6 +65,13 @@ class BirdDetailViewModel extends BaseViewModel {
   List<OffspringGroup> get offspring => _offspring;
 
   int get offspringCount => _offspring.fold(0, (total, group) => total + group.chicks.length);
+
+  /// `RF-PRU-05` — solo las pruebas de este ejemplar.
+  List<Evaluation> get evaluations => _evaluations;
+
+  /// `RF-PRU-06` — con plan gratuito la pestaña se ve pero explica la
+  /// restricción, en vez de mostrar un vacío que parecería un error.
+  bool get areEvaluationsAvailable => _evaluationsAvailable;
 
   Future<bool> delete() async {
     final result = await _repository.delete(_birdId);
@@ -85,6 +104,11 @@ class BirdDetailViewModel extends BaseViewModel {
     // pestaña sin que haga falta salir de la ficha y volver a entrar.
     _childrenSubscription = _repository.watchChildren(_birdId).listen((children) async {
       _offspring = await _groupByClutch(children);
+      safeNotify();
+    }, onError: (Object _) {});
+
+    _evaluationsSubscription = _evaluationsRepository.watchForBird(_birdId).listen((evaluations) {
+      _evaluations = evaluations;
       safeNotify();
     }, onError: (Object _) {});
   }
@@ -122,6 +146,11 @@ class BirdDetailViewModel extends BaseViewModel {
     return groups;
   }
 
+  Future<void> _resolvePlan() async {
+    _evaluationsAvailable = await _evaluationsRepository.isAvailableFor(_ownerId);
+    safeNotify();
+  }
+
   Future<void> _resolveParents(Bird bird) async {
     _father = await _findOrNull(bird.fatherId);
     _mother = await _findOrNull(bird.motherId);
@@ -137,6 +166,7 @@ class BirdDetailViewModel extends BaseViewModel {
   void dispose() {
     _subscription?.cancel();
     _childrenSubscription?.cancel();
+    _evaluationsSubscription?.cancel();
     super.dispose();
   }
 }

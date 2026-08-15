@@ -16,6 +16,7 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
     required this.female,
     required this.unknownSex,
     required this.warning,
+    required this.action,
     required this.brand,
   });
 
@@ -27,6 +28,9 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
   /// Ámbar de aviso: sin conexión, cerca del límite de plan.
   final Color warning;
 
+  /// Rojo de resultado desfavorable. Es el mismo rojo de acción del PRD.
+  final Color action;
+
   /// Navy de marca **como acento sobre contenido**. En oscuro no puede ser el
   /// navy literal: sería el color del fondo.
   final Color brand;
@@ -36,6 +40,7 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
     female: AppColors.female,
     unknownSex: AppColors.unknownSex,
     warning: AppColors.warning,
+    action: AppColors.action,
     brand: AppColors.navy,
   );
 
@@ -44,12 +49,16 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
     female: AppColors.femaleLight,
     unknownSex: AppColors.unknownSexLight,
     warning: AppColors.warningLight,
+    action: AppColors.actionLight,
     brand: Color(0xFFA9C3DE),
   );
 
-  /// Resultado de prueba de campo: reutiliza el verde y el rojo del sistema
-  /// para no abrir una segunda escala cromática.
+  /// Resultado de prueba de campo (`RF-PRU`): reutiliza el verde y el rojo del
+  /// sistema para no abrir una segunda escala cromática. El color nunca va
+  /// solo — siempre lo acompaña la etiqueta (`RNF-25`).
   Color get favorable => male;
+  Color get unfavorable => action;
+  Color get undefinedResult => unknownSex;
 
   @override
   SemanticColors copyWith({
@@ -57,12 +66,14 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
     Color? female,
     Color? unknownSex,
     Color? warning,
+    Color? action,
     Color? brand,
   }) => SemanticColors(
     male: male ?? this.male,
     female: female ?? this.female,
     unknownSex: unknownSex ?? this.unknownSex,
     warning: warning ?? this.warning,
+    action: action ?? this.action,
     brand: brand ?? this.brand,
   );
 
@@ -74,6 +85,7 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
       female: Color.lerp(female, other.female, t)!,
       unknownSex: Color.lerp(unknownSex, other.unknownSex, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
+      action: Color.lerp(action, other.action, t)!,
       brand: Color.lerp(brand, other.brand, t)!,
     );
   }

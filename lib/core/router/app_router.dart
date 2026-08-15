@@ -18,6 +18,8 @@ import '../../features/birds/view/clutch_form_view.dart';
 import '../../features/birds/view/parent_picker_view.dart';
 import '../../features/dashboard/view/dashboard_shell.dart';
 import '../../features/dashboard/view/dashboard_view.dart';
+import '../../features/evaluations/view/evaluation_form_view.dart';
+import '../../features/evaluations/view/evaluations_list_view.dart';
 import '../../features/onboarding/view/farm_setup_view.dart';
 import '../../features/onboarding/view/setup_done_view.dart';
 import '../../features/pedigree/view/pedigree_view.dart';
@@ -117,6 +119,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(path: Routes.home, builder: (context, state) => const DashboardView()),
           GoRoute(path: Routes.birds, builder: (context, state) => const BirdsListView()),
+          GoRoute(
+            path: Routes.evaluations,
+            builder: (context, state) => const EvaluationsListView(),
+          ),
           GoRoute(path: Routes.settings, builder: (context, state) => const SettingsView()),
         ],
       ),
@@ -126,6 +132,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.birdNew, builder: (context, state) => const BirdFormView()),
       // Antes que `/birds/:id`: si no, `clutch` se tomaría por un id.
       GoRoute(path: Routes.clutchNew, builder: (context, state) => const ClutchFormView()),
+      GoRoute(
+        path: Routes.evaluationNew,
+        builder: (context, state) => EvaluationFormView(birdId: state.uri.queryParameters['bird']),
+      ),
       GoRoute(
         path: '/birds/:id/pedigree',
         builder: (context, state) => PedigreeView(birdId: state.pathParameters['id']!),

@@ -19,7 +19,7 @@ class DashboardShell extends StatelessWidget {
   final Widget child;
   final String location;
 
-  static const _tabs = [Routes.home, Routes.birds, Routes.settings];
+  static const _tabs = [Routes.home, Routes.birds, Routes.evaluations, Routes.settings];
 
   int get _selectedIndex {
     final index = _tabs.indexWhere((tab) => location.startsWith(tab));
@@ -56,6 +56,11 @@ class DashboardShell extends StatelessWidget {
             icon: const BrandIcon(),
             selectedIcon: const BrandIcon(),
             label: l10n.navBirds,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.assignment_outlined),
+            selectedIcon: const Icon(Icons.assignment),
+            label: l10n.navTests,
           ),
           NavigationDestination(
             icon: const Icon(Icons.settings_outlined),

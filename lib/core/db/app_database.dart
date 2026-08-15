@@ -4,10 +4,12 @@ import 'package:drift_flutter/drift_flutter.dart';
 import '../config/app_config.dart';
 import 'daos/birds_dao.dart';
 import 'daos/clutches_dao.dart';
+import 'daos/evaluations_dao.dart';
 import 'daos/profiles_dao.dart';
 import 'daos/sync_queue_dao.dart';
 import 'tables/birds.dart';
 import 'tables/clutches.dart';
+import 'tables/evaluations.dart';
 import 'tables/profiles.dart';
 import 'tables/sync_queue_entries.dart';
 
@@ -16,8 +18,8 @@ part 'app_database.g.dart';
 /// Base local. Es la fuente de verdad de la UI: todo lo que se pinta sale de
 /// aquí, y la sincronización solo alimenta esta base.
 @DriftDatabase(
-  tables: [Profiles, Birds, Clutches, SyncQueueEntries],
-  daos: [ProfilesDao, BirdsDao, ClutchesDao, SyncQueueDao],
+  tables: [Profiles, Birds, Clutches, Evaluations, SyncQueueEntries],
+  daos: [ProfilesDao, BirdsDao, ClutchesDao, EvaluationsDao, SyncQueueDao],
 )
 class AppDatabase extends _$AppDatabase {
   /// En tests, pásale un executor en memoria:
@@ -40,7 +42,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -83,6 +85,12 @@ class AppDatabase extends _$AppDatabase {
         // la descarga completa que dispara `SyncService` al detectar que el
         // esquema cambió.
         await customStatement('DELETE FROM sync_queue_entries');
+      }
+
+      // v4 — pruebas de campo (`RF-PRU`). Tabla nueva: nada que migrar, y los
+      // datos existentes no se tocan.
+      if (from < 4) {
+        await m.createTable(evaluations);
       }
     },
     beforeOpen: (details) async {

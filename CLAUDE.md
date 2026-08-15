@@ -182,7 +182,7 @@ añaden `is_dirty`.
 | `profiles` | `id` (= auth uid), `full_name`, `email`, `phone`, `farm_name`, `location`, `country_code` (def. `DO`), `locale` (`es`/`en`), **`next_plate`** (≥1, estrictamente creciente), `plan` (`free`/`pro`/`elite`), `plan_expires_at`, `avatar_url` |
 | `birds` | `id`, **`plate`** (integer, ≥1, obligatorio), `name` (opcional), `sex` (`male`/`female`/`unknown`), `line`, `color`, `birth_date`, `father_id`, `mother_id`, `clutch_id`, `weight_g` (100–8000), `status` (`active`/`sold`/`deceased`/`loaned`), `photo_url`, `notes` |
 | `clutches` | `father_id`, `mother_id`, `date`, `eggs` (0–30), `hatched` (1–30, ≤ `eggs`) |
-| `evaluations` | `bird_id`, `date`, `place`, `result` (`favorable`/`unfavorable`/`undefined`), `condition` (1–10) |
+| `evaluations` | `bird_id`, `date`, `place`, `result` (`favorable`/`unfavorable`/`undefined`), `condition` (1–10), **`weight_g`**, **`notes`** |
 | `transactions` | `type` (`income`/`expense`), `category` (catálogo cerrado), `amount` `numeric(12,2)` >0, `date`, `description`, `bird_id`, `recurrence` (`none`/`weekly`/`biweekly`/`monthly`) |
 | `employees` | `name`, `role`, `phone`, `document`, `salary`, `frequency` (`weekly`/`biweekly`/`monthly`), `is_active` |
 | `payroll_payments` | `employee_id`, `period_start`, `period_end`, `base`, `bonus`, `deductions`, `net` (calculado, no editable), `method` (`cash`/`transfer`/`other`) |
@@ -426,6 +426,25 @@ Falta de `RF-REG`:
 | `RF-REG-14` | Editar cualquier campo y **registrar pesos sucesivos con su fecha**. Exige tabla nueva. | Esperado |
 | `RF-REG-15` | Subida de la foto a Storage (la captura ya está). | Esperado |
 
+### Pruebas de campo — implementado
+
+`RF-PRU-01` a `RF-PRU-06` en [lib/features/evaluations/](lib/features/evaluations/):
+pantalla 24 con las tres cifras del criadero y filtro por resultado, pantalla 25
+para registrar, y la pestaña de la ficha (`RF-PRU-05`) con su estado vacío
+accionable. `/tests` ya es pestaña de la barra inferior.
+
+El módulo es de Pro en adelante (`RF-PRU-06`) y la restricción **se informa sin
+ocultar la pantalla**: esconderla dejaría al criador sin saber que existe. El
+tope se comprueba también en el repositorio, no solo en la interfaz.
+
+Dos decisiones sobre las cifras de `RF-PRU-03`: las pruebas sin definir cuentan
+en el total —excluirlas inflaría el porcentaje favorable— y el promedio de
+condición **ignora** las pruebas que no la anotaron, porque contarlas como cero
+hundiría la media. Sin ninguna condición anotada se muestra un guion, no «0,0».
+
+Falta `RF-PRU-07` (Esperado): incorporar el peso de la prueba al historial de
+pesos del ejemplar. Va junto con `RF-REG-14`, que es quien crea ese historial.
+
 ### Genealogía — implementado
 
 `RF-PED-01` a `RF-PED-07` y `RF-PED-09` en
@@ -462,7 +481,8 @@ primer trabajo de F1, porque todo lo demás cuelga de la placa:
 | `birds.line` | ✅ renombrado | — |
 | `birds.is_dirty` | ✅ añadido | — |
 | `clutches`: `date`, `eggs`, `hatched` | ✅ alineado | ✅ UI de camadas completa |
-| Tablas `evaluations`, `transactions`, `employees`, `payroll_payments` | No existen | Crear con su feature |
+| Tabla `evaluations` | ✅ creada (esquema v4 + migración de Supabase) | — |
+| Tablas `transactions`, `employees`, `payroll_payments` | No existen | Crear con su feature |
 | Triggers y RPC del servidor | ✅ `handle_new_user()`, `touch_updated_at()`, `next_plate()`, `active_bird_count()`; falta `delete_account()` y `verify_receipt()` | Implementar los dos restantes |
 | Cifrado local (`RNF-15`) | ✅ SQLite3MultipleCiphers vía `hooks.user_defines` | — |
 | Tokens en Keychain/Keystore (`RNF-14`) | ✅ `SecureSessionStorage` | — |

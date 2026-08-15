@@ -8,6 +8,7 @@ import 'package:criadorpro/features/birds/model/clutch.dart';
 import 'package:criadorpro/features/birds/repository/birds_repository.dart';
 import 'package:criadorpro/features/birds/repository/clutches_repository.dart';
 import 'package:criadorpro/features/birds/viewmodel/bird_detail_viewmodel.dart';
+import 'package:criadorpro/features/evaluations/repository/evaluations_repository.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,8 +77,20 @@ void main() {
     ),
   );
 
-  BirdDetailViewModel viewModelFor(String id) =>
-      BirdDetailViewModel(repository: birds, clutchesRepository: clutches, birdId: id);
+  BirdDetailViewModel viewModelFor(String id) => BirdDetailViewModel(
+    repository: birds,
+    clutchesRepository: clutches,
+    evaluationsRepository: EvaluationsRepository(
+      database: database,
+      evaluationsDao: database.evaluationsDao,
+      profilesDao: database.profilesDao,
+      syncQueue: database.syncQueueDao,
+      supabase: SupabaseService(null),
+      clock: () => now,
+    ),
+    ownerId: ownerId,
+    birdId: id,
+  );
 
   /// El ViewModel se alimenta de streams: hay que dejar correr el bucle de
   /// eventos para que lleguen antes de mirar el estado.

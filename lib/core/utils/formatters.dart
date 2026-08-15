@@ -29,6 +29,10 @@ abstract final class Formatters {
   static String number(num value, String locale) =>
       NumberFormat.decimalPattern(locale).format(value);
 
+  /// Un solo decimal, para promedios como la condición del criadero
+  /// (`RF-PRU-03`): «7,4» dice lo suficiente y «7,3999» no dice más.
+  static String decimal(num value, String locale) => NumberFormat('0.0', locale).format(value);
+
   /// Edad a partir de la fecha de nacimiento. [now] se inyecta para poder
   /// testearlo sin depender del reloj.
   static Age age(DateTime birthDate, {DateTime? now}) {
