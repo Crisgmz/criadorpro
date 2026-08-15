@@ -2,15 +2,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Preferencias locales del flujo de entrada.
 ///
-/// Nada de esto es secreto —el correo recordado es una comodidad, no una
-/// credencial— así que vive en `SharedPreferences`. Los tokens de sesión los
-/// guarda Supabase y, según `RNF-14`, deben acabar en el almacén seguro del
-/// sistema: eso está pendiente y no pasa por aquí.
+/// Nada de esto es secreto —ni el correo recordado ni el identificador del
+/// último criadero son credenciales— así que vive en `SharedPreferences`. Los
+/// tokens de sesión sí son secretos y van al almacén seguro del sistema
+/// (`RNF-14`, `SecureSessionStorage`); no pasan por aquí.
 class AuthPreferences {
   AuthPreferences(this._preferences);
 
   static const String _onboardingKey = 'onboarding.completed';
   static const String _rememberedEmailKey = 'auth.remembered_email';
+  static const String _lastOwnerKey = 'auth.last_owner_id';
 
   final SharedPreferences _preferences;
 
@@ -34,4 +35,16 @@ class AuthPreferences {
   Future<void> rememberEmail(String email) => _preferences.setString(_rememberedEmailKey, email);
 
   Future<void> forgetEmail() => _preferences.remove(_rememberedEmailKey);
+
+  // --- Último criadero en este dispositivo (RF-AUT-15) --------------------
+
+  /// Quién usó por última vez esta instalación.
+  ///
+  /// Desde que los datos locales sobreviven al cierre de sesión, hace falta
+  /// saber si quien entra es el mismo de antes: en un teléfono compartido, dos
+  /// criadores no pueden heredar la base del otro. No es secreto —es un uuid
+  /// sin valor por sí solo— y por eso no ocupa sitio en el almacén seguro.
+  String? get lastOwnerId => _preferences.getString(_lastOwnerKey);
+
+  Future<void> rememberOwner(String ownerId) => _preferences.setString(_lastOwnerKey, ownerId);
 }

@@ -349,9 +349,11 @@ Dos dependencias externas pendientes:
   ID de Google Cloud, «Sign in with Apple» en el perfil de aprovisionamiento y
   los proveedores activados en Supabase.
 
-`RF-AUT-15` (conservar los datos locales al cerrar sesión) queda pendiente a
-propósito: depende de `RNF-15`. Mientras la base no esté cifrada, cerrar sesión
-borra los datos locales, que es lo seguro en un dispositivo compartido.
+`RF-AUT-15` ya está: cerrar sesión **conserva los datos locales**, porque la
+base va cifrada (`RNF-15`). Lo que sí se limpia son las marcas de
+sincronización. Si en el mismo teléfono entra **otro** criadero, se borra todo
+lo del anterior: las consultas ya filtran por `owner_id`, pero el requisito
+conserva el libro de su dueño, no el de quien pasara por ahí.
 
 ### Configuración inicial — implementado
 
@@ -462,8 +464,8 @@ primer trabajo de F1, porque todo lo demás cuelga de la placa:
 | `clutches`: `date`, `eggs`, `hatched` | ✅ alineado | ✅ UI de camadas completa |
 | Tablas `evaluations`, `transactions`, `employees`, `payroll_payments` | No existen | Crear con su feature |
 | Triggers y RPC del servidor | ✅ `handle_new_user()`, `touch_updated_at()`, `next_plate()`, `active_bird_count()`; falta `delete_account()` y `verify_receipt()` | Implementar los dos restantes |
-| Cifrado local con SQLCipher (`RNF-15`) | Sin cifrar | Añadir `sqlcipher_flutter_libs` |
-| Tokens en Keychain/Keystore (`RNF-14`) | `SharedPreferences` | Añadir `flutter_secure_storage` |
+| Cifrado local (`RNF-15`) | ✅ SQLite3MultipleCiphers vía `hooks.user_defines` | — |
+| Tokens en Keychain/Keystore (`RNF-14`) | ✅ `SecureSessionStorage` | — |
 | Rutas `/tests`, `/community`, `/account`, `/accounting`, `/payroll` | Faltan (las de `RF-AUT` ya están) | Completar con su feature |
 
 ---
@@ -579,6 +581,35 @@ El arranque del backend paso a paso —migraciones, plantillas de correo con
 `{{ .Token }}`, credenciales— está en [README.md](README.md#conectar-con-supabase).
 
 ---
+
+## 11 bis. Seguridad del dispositivo
+
+**La base local va cifrada** (`RNF-15`). El cifrado no lo aporta un paquete de
+Flutter sino la compilación de SQLite que se empaqueta: el bloque
+`hooks.user_defines` del `pubspec.yaml` pide la variante SQLite3MultipleCiphers.
+**Si se quita esa línea, el `PRAGMA key` se ignora en silencio y la base queda
+en claro sin que nada falle** — por eso hay una prueba que lo comprueba
+(`test/core/encryption_test.dart`) y no debe borrarse.
+
+Los paquetes `sqlcipher_flutter_libs` y `sqlite3_flutter_libs` que nombra el
+DDT están descontinuados desde febrero de 2026; esta es la forma vigente de
+pedir lo mismo. Se eligió SQLite3MultipleCiphers sobre la compilación de
+SQLCipher porque esta enlaza OpenSSL en Android y Linux y puede traer un SQLite
+más antiguo.
+
+La clave son 256 bits aleatorios en el almacén seguro del sistema
+([lib/core/security/secure_store.dart](lib/core/security/secure_store.dart)).
+**Si se pierde, los datos locales son irrecuperables**: no hay copia ni forma de
+derivarla, y en iOS no viaja en las copias de iCloud a propósito. Lo que protege
+al criador de perder su libro es la sincronización, no esta clave.
+
+Los tokens de sesión van al mismo almacén (`RNF-14`): el de refresco vale tanto
+como la contraseña, y `SharedPreferences` es un XML legible en un Android
+rooteado.
+
+Un dispositivo que ya tuviera la app con base sin cifrar se migra al arrancar,
+copiando tabla por tabla —`sqlcipher_export` no existe en sqlite3mc— y **sin
+borrar la original hasta que la cifrada está escrita**.
 
 ## 12. Convenciones de código
 

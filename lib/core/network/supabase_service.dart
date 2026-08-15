@@ -1,6 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/env.dart';
+import '../security/secure_session_storage.dart';
+import '../security/secure_store.dart';
 
 /// Envoltorio de Supabase que tolera no estar configurado.
 ///
@@ -13,11 +15,19 @@ class SupabaseService {
   final SupabaseClient? _client;
 
   /// Inicializa Supabase si hay credenciales. Se llama una vez desde `main`.
-  static Future<SupabaseService> initialize() async {
+  static Future<SupabaseService> initialize({SecureStore? secureStore}) async {
     if (!Env.isSupabaseConfigured) return SupabaseService(null);
     // `publishableKey` sustituye al antiguo `anonKey`; acepta tanto la clave
     // `anon` heredada como las nuevas `sb_publishable_...`.
-    await Supabase.initialize(url: Env.supabaseUrl, publishableKey: Env.supabaseAnonKey);
+    await Supabase.initialize(
+      url: Env.supabaseUrl,
+      publishableKey: Env.supabaseAnonKey,
+      // `RNF-14`: el token de refresco vale tanto como la contraseña, así que
+      // no puede quedarse en `SharedPreferences`.
+      authOptions: secureStore == null
+          ? const FlutterAuthClientOptions()
+          : FlutterAuthClientOptions(localStorage: SecureSessionStorage(secureStore)),
+    );
     return SupabaseService(Supabase.instance.client);
   }
 

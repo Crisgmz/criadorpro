@@ -53,7 +53,8 @@ dependencies:
   printing: ^5.14.3
   image_picker: ^1.2.3
   image: ^4.9.1
-
+  flutter_secure_storage: ^11.0.0
+  sqlite3: ^3.5.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -137,3 +138,18 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# `RNF-15` — base local cifrada.
+#
+# El SDK descarga una compilación de SQLite con cifrado en lugar de la normal.
+# Se elige SQLite3MultipleCiphers y no la de SQLCipher porque esta última
+# enlaza OpenSSL en Android y Linux y puede traer un SQLite más antiguo; el
+# esquema de cifrado de SQLCipher está disponible igual dentro de sqlite3mc.
+#
+# Los paquetes `sqlcipher_flutter_libs` y `sqlite3_flutter_libs` que nombra el
+# DDT están descontinuados desde febrero de 2026 («update to version 3.x of
+# package:sqlite3»); esta es la forma vigente de pedir lo mismo.
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc

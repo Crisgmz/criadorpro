@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/db/daos/birds_dao.dart';
+import '../../../core/db/daos/clutches_dao.dart';
 import '../../../core/db/daos/profiles_dao.dart';
 import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/error/failure.dart';
@@ -10,6 +12,7 @@ import '../../../core/sync/sync_service.dart';
 import '../../../core/utils/result.dart';
 import '../../../core/utils/validators.dart';
 import '../model/country.dart';
+import 'auth_preferences.dart';
 
 /// Resultado de un alta: Supabase puede dejar la sesión abierta o exigir que
 /// el usuario confirme el correo antes de entrar.
@@ -27,19 +30,25 @@ class AuthRepository {
     required SupabaseService supabase,
     required ProfilesDao profilesDao,
     required BirdsDao birdsDao,
+    required ClutchesDao clutchesDao,
     required SyncQueueDao syncQueue,
     required SyncService syncService,
+    required AuthPreferences preferences,
   }) : _supabase = supabase,
        _profilesDao = profilesDao,
        _birdsDao = birdsDao,
+       _clutchesDao = clutchesDao,
        _syncQueue = syncQueue,
-       _syncService = syncService;
+       _syncService = syncService,
+       _preferences = preferences;
 
   final SupabaseService _supabase;
   final ProfilesDao _profilesDao;
   final BirdsDao _birdsDao;
+  final ClutchesDao _clutchesDao;
   final SyncQueueDao _syncQueue;
   final SyncService _syncService;
+  final AuthPreferences _preferences;
 
   bool get isEnabled => _supabase.isEnabled;
 
@@ -60,6 +69,7 @@ class AuthRepository {
       email: Validators.normalizeEmail(email),
       password: password,
     );
+    await _adoptSession();
   });
 
   /// `RF-AUT-03`. Los datos del perfil viajan como metadatos del usuario para
@@ -94,17 +104,54 @@ class AuthRepository {
   /// sin implementar). Mientras no lo esté, borrar es lo correcto: otro usuario
   /// podría entrar en el mismo dispositivo. La UI avisa si quedan cambios sin
   /// sincronizar.
+  /// `RF-AUT-15` — cerrar sesión **conserva los datos locales**.
+  ///
+  /// Antes se borraba todo, y era lo correcto mientras la base estaba en claro:
+  /// en un teléfono compartido, dejar el libro de otro criadero legible era
+  /// peor que hacerle volver a descargarlo. Con la base cifrada (`RNF-15`) esa
+  /// razón desaparece: los datos quedan, y volver a entrar es instantáneo en
+  /// lugar de exigir una descarga completa en medio del galpón.
+  ///
+  /// Lo que sí se limpia son las marcas de sincronización, para que la próxima
+  /// entrada compruebe contra el servidor en vez de fiarse de una foto vieja.
   Future<Result<void>> signOut() async {
     final result = await _run(() async {
       if (isEnabled) await _supabase.client.auth.signOut();
     });
     if (result case Err(:final failure)) return Err(failure);
 
+    await _syncService.clearWatermarks();
+    return const Ok(null);
+  }
+
+  /// Deja la base local lista para quien acaba de entrar.
+  ///
+  /// Si es otro criadero, se borra todo lo del anterior. Las consultas ya
+  /// filtran por `owner_id` y no mezclarían nada, pero los datos seguirían en
+  /// el dispositivo, y `RF-AUT-15` conserva el libro **de su dueño**, no el de
+  /// cualquiera que haya pasado por aquí.
+  Future<void> _adoptSession() async {
+    final ownerId = _supabase.currentUserId;
+    if (ownerId == null) return;
+    await adoptSession(ownerId);
+  }
+
+  /// Público para poder verificarlo: es la regla que impide que dos criadores
+  /// que comparten teléfono acaben viendo el libro del otro.
+  @visibleForTesting
+  Future<void> adoptSession(String ownerId) async {
+    final previous = _preferences.lastOwnerId;
+    if (previous != null && previous != ownerId) await _wipeLocalData();
+
+    await _preferences.rememberOwner(ownerId);
+  }
+
+  Future<void> _wipeLocalData() async {
     await _birdsDao.clear();
+    await _clutchesDao.clear();
     await _profilesDao.clear();
     await _syncQueue.clear();
     await _syncService.clearWatermarks();
-    return const Ok(null);
   }
 
   // --- Verificación por código --------------------------------------------
@@ -127,6 +174,7 @@ class AuthRepository {
         VerificationPurpose.passwordRecovery => OtpType.recovery,
       },
     );
+    await _adoptSession();
   });
 
   /// `RF-AUT-08` — reenvío tras la cuenta regresiva.

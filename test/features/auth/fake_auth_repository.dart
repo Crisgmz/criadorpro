@@ -79,6 +79,9 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> adoptSession(String ownerId) async {}
+
+  @override
   Future<Result<void>> signOut() async {
     signOutCalls++;
     callOrder.add('signOut');

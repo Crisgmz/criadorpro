@@ -35,6 +35,7 @@ import '../domain/sex.dart';
 import '../media/photo_service.dart';
 import '../network/connectivity_service.dart';
 import '../network/supabase_service.dart';
+import '../security/secure_store.dart';
 import '../sync/sync_service.dart';
 
 // ---------------------------------------------------------------------------
@@ -71,6 +72,12 @@ final connectivityServiceProvider = Provider<ConnectivityService>((ref) => Conne
 
 /// Captura y almacenamiento local de fotos — `RF-REG-15`.
 final photoServiceProvider = Provider<PhotoService>((ref) => PhotoService());
+
+/// Almacén seguro del sistema — `RNF-14`. Lo construye `main()` porque la
+/// clave de la base hace falta antes de que exista el contenedor.
+final secureStoreProvider = Provider<SecureStore>(
+  (ref) => throw UnimplementedError('Sobrescribe secureStoreProvider en main()'),
+);
 
 /// Estado de red para la franja de "sin conexión".
 final isOnlineProvider = StreamProvider<bool>(
@@ -138,8 +145,10 @@ final authRepositoryProvider = Provider<AuthRepository>(
     supabase: ref.watch(supabaseServiceProvider),
     profilesDao: ref.watch(profilesDaoProvider),
     birdsDao: ref.watch(birdsDaoProvider),
+    clutchesDao: ref.watch(clutchesDaoProvider),
     syncQueue: ref.watch(syncQueueDaoProvider),
     syncService: ref.watch(syncServiceProvider),
+    preferences: ref.watch(authPreferencesProvider),
   ),
 );
 
