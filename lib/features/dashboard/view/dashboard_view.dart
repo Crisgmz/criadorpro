@@ -334,9 +334,9 @@ class _QuickActions extends StatelessWidget {
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: _QuickAction(
-            icon: Icons.list_alt_outlined,
-            label: l10n.navBirds,
-            onTap: () => context.go(Routes.birds),
+            icon: Icons.account_balance_wallet_outlined,
+            label: l10n.accountingTitle,
+            onTap: () => context.push(Routes.accounting),
           ),
         ),
       ],

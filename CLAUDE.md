@@ -426,6 +426,29 @@ Falta de `RF-REG`:
 | `RF-REG-14` | Editar cualquier campo y **registrar pesos sucesivos con su fecha**. Exige tabla nueva. | Esperado |
 | `RF-REG-15` | Subida de la foto a Storage (la captura ya está). | Esperado |
 
+### Contabilidad — implementado
+
+`RF-CON-01` a `RF-CON-06` y `RF-CON-08` en
+[lib/features/accounting/](lib/features/accounting/): pantalla 29 con el cierre
+del mes, navegación entre meses y desglose por categoría; pantalla 30 para
+registrar. No ocupa pestaña —se abre desde Inicio y desde el panel lateral—,
+como manda el PRD §7.
+
+**El dinero se guarda en centavos enteros**, no en coma flotante. `12.45 * 100`
+da `1244.9999…`, y sobre dos mil movimientos ese error llega a verse en el
+balance. En Postgres la columna sigue siendo `numeric(12,2)`; la conversión es
+exacta.
+
+`RF-CON-04` pide el balance negativo **en rojo y sin mensajes adicionales**: un
+mes en pérdidas es información, no un error que explicarle al criador.
+
+Los recurrentes (`RS-08`) se generan al abrir la app y **no duplican**: antes de
+crear se comprueba qué fechas ya existen para esa plantilla. El mensual avanza
+por calendario con cuidado del desbordamiento —un movimiento del día 31 cae el
+30 en los meses de treinta, en vez de saltar al 1 del siguiente.
+
+Falta `RF-CON-07` (exportar a PDF), que es Opcional y va en F4.
+
 ### Pruebas de campo — implementado
 
 `RF-PRU-01` a `RF-PRU-06` en [lib/features/evaluations/](lib/features/evaluations/):
@@ -482,7 +505,8 @@ primer trabajo de F1, porque todo lo demás cuelga de la placa:
 | `birds.is_dirty` | ✅ añadido | — |
 | `clutches`: `date`, `eggs`, `hatched` | ✅ alineado | ✅ UI de camadas completa |
 | Tabla `evaluations` | ✅ creada (esquema v4 + migración de Supabase) | — |
-| Tablas `transactions`, `employees`, `payroll_payments` | No existen | Crear con su feature |
+| Tabla `transactions` | ✅ creada (esquema v5 + migración de Supabase) | — |
+| Tablas `employees`, `payroll_payments` | No existen | Crear con su feature |
 | Triggers y RPC del servidor | ✅ `handle_new_user()`, `touch_updated_at()`, `next_plate()`, `active_bird_count()`; falta `delete_account()` y `verify_receipt()` | Implementar los dos restantes |
 | Cifrado local (`RNF-15`) | ✅ SQLite3MultipleCiphers vía `hooks.user_defines` | — |
 | Tokens en Keychain/Keystore (`RNF-14`) | ✅ `SecureSessionStorage` | — |

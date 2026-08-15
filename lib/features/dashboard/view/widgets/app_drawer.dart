@@ -57,6 +57,15 @@ class AppDrawer extends ConsumerWidget {
               onTap: () => _go(context, Routes.birds),
             ),
 
+            ListTile(
+              // Contabilidad y empleomanía **no ocupan pestaña** (PRD §7): son
+              // módulos administrativos y la barra inferior se reserva a lo que
+              // el criador toca a diario.
+              leading: const Icon(Icons.account_balance_wallet_outlined),
+              title: Text(l10n.accountingTitle),
+              onTap: () => _go(context, Routes.accounting),
+            ),
+
             const Divider(height: AppSpacing.xl),
             _GroupLabel(l10n.drawerGroupApp),
             ListTile(

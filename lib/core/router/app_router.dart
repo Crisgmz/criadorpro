@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/accounting/view/accounting_view.dart';
+import '../../features/accounting/view/transaction_form_view.dart';
 import '../../features/auth/repository/auth_repository.dart';
 import '../../features/auth/view/forgot_password_view.dart';
 import '../../features/auth/view/login_view.dart';
@@ -132,6 +134,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.birdNew, builder: (context, state) => const BirdFormView()),
       // Antes que `/birds/:id`: si no, `clutch` se tomaría por un id.
       GoRoute(path: Routes.clutchNew, builder: (context, state) => const ClutchFormView()),
+      GoRoute(path: Routes.accounting, builder: (context, state) => const AccountingView()),
+      GoRoute(
+        path: Routes.transactionNew,
+        builder: (context, state) => const TransactionFormView(),
+      ),
       GoRoute(
         path: Routes.evaluationNew,
         builder: (context, state) => EvaluationFormView(birdId: state.uri.queryParameters['bird']),

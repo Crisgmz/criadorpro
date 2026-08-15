@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthState;
 
+import '../../features/accounting/repository/transactions_repository.dart';
+import '../../features/accounting/viewmodel/accounting_viewmodel.dart';
+import '../../features/accounting/viewmodel/transaction_form_viewmodel.dart';
 import '../../features/auth/model/profile.dart';
 import '../../features/auth/repository/auth_preferences.dart';
 import '../../features/auth/repository/auth_repository.dart';
@@ -35,6 +38,7 @@ import '../db/daos/clutches_dao.dart';
 import '../db/daos/evaluations_dao.dart';
 import '../db/daos/profiles_dao.dart';
 import '../db/daos/sync_queue_dao.dart';
+import '../db/daos/transactions_dao.dart';
 import '../domain/sex.dart';
 import '../media/photo_service.dart';
 import '../network/connectivity_service.dart';
@@ -64,6 +68,9 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
 final birdsDaoProvider = Provider<BirdsDao>((ref) => ref.watch(appDatabaseProvider).birdsDao);
 final profilesDaoProvider = Provider<ProfilesDao>(
   (ref) => ref.watch(appDatabaseProvider).profilesDao,
+);
+final transactionsDaoProvider = Provider<TransactionsDao>(
+  (ref) => ref.watch(appDatabaseProvider).transactionsDao,
 );
 final evaluationsDaoProvider = Provider<EvaluationsDao>(
   (ref) => ref.watch(appDatabaseProvider).evaluationsDao,
@@ -138,6 +145,7 @@ final syncServiceProvider = Provider<SyncService>((ref) {
       ref.watch(clutchesRepositoryProvider),
       ref.watch(birdsRepositoryProvider),
       ref.watch(evaluationsRepositoryProvider),
+      ref.watch(transactionsRepositoryProvider),
     ],
   );
   ref.onDispose(service.dispose);
@@ -307,6 +315,31 @@ final birdDetailViewModelProvider = ChangeNotifierProvider.autoDispose
         evaluationsRepository: ref.watch(evaluationsRepositoryProvider),
         ownerId: ref.watch(currentOwnerIdProvider),
         birdId: birdId,
+      ),
+    );
+
+final transactionsRepositoryProvider = Provider<TransactionsRepository>(
+  (ref) => TransactionsRepository(
+    database: ref.watch(appDatabaseProvider),
+    transactionsDao: ref.watch(transactionsDaoProvider),
+    profilesDao: ref.watch(profilesDaoProvider),
+    syncQueue: ref.watch(syncQueueDaoProvider),
+    supabase: ref.watch(supabaseServiceProvider),
+  ),
+);
+
+final accountingViewModelProvider = ChangeNotifierProvider.autoDispose<AccountingViewModel>(
+  (ref) => AccountingViewModel(
+    repository: ref.watch(transactionsRepositoryProvider),
+    ownerId: ref.watch(currentOwnerIdProvider),
+  ),
+);
+
+final transactionFormViewModelProvider =
+    ChangeNotifierProvider.autoDispose<TransactionFormViewModel>(
+      (ref) => TransactionFormViewModel(
+        repository: ref.watch(transactionsRepositoryProvider),
+        ownerId: ref.watch(currentOwnerIdProvider),
       ),
     );
 

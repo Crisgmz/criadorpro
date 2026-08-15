@@ -29,6 +29,17 @@ abstract final class Formatters {
   static String number(num value, String locale) =>
       NumberFormat.decimalPattern(locale).format(value);
 
+  /// Moneda con símbolo del país del perfil, separador de miles y dos
+  /// decimales — PRD §6: `RD$ 12,450.00`.
+  ///
+  /// El símbolo se pasa desde fuera y no se deduce del locale: la app se puede
+  /// usar en inglés en República Dominicana, y el dinero seguiría siendo pesos.
+  static String currency(num value, String locale, {String symbol = 'RD\$'}) =>
+      NumberFormat.currency(locale: locale, symbol: '\$symbol ', decimalDigits: 2).format(value);
+
+  /// Nombre del mes y año, para la navegación del cierre contable.
+  static String monthYear(DateTime value, String locale) => DateFormat.yMMMM(locale).format(value);
+
   /// Un solo decimal, para promedios como la condición del criadero
   /// (`RF-PRU-03`): «7,4» dice lo suficiente y «7,3999» no dice más.
   static String decimal(num value, String locale) => NumberFormat('0.0', locale).format(value);

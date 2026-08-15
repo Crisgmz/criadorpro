@@ -33,6 +33,13 @@ abstract final class Routes {
   /// de las cosas que el criador consulta a diario.
   static const String evaluations = '/tests';
 
+  /// Contabilidad — `RF-CON`. **No ocupa pestaña** (PRD §7): es un módulo
+  /// administrativo que se abre a pantalla completa desde Inicio y Mi cuenta.
+  /// La barra inferior se reserva a lo que el criador toca a diario.
+  static const String accounting = '/accounting';
+
+  static const String transactionNew = '/accounting/new';
+
   // Pantallas a pantalla completa, fuera del shell.
   static const String birdNew = '/birds/new';
 
