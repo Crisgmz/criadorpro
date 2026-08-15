@@ -93,6 +93,20 @@ class BirdsDao extends DatabaseAccessor<AppDatabase> with _$BirdsDaoMixin {
     return query.get();
   }
 
+  /// Crías de un ejemplar, sea como padre o como madre — `RF-REG-13`.
+  ///
+  /// Orden ascendente por placa: dentro de una camada las placas son
+  /// correlativas, y el criador las lee en el orden en que las asignó.
+  Stream<List<BirdRow>> watchChildren(String parentId) =>
+      (select(birds)
+            ..where(
+              (t) =>
+                  (t.fatherId.equals(parentId) | t.motherId.equals(parentId)) &
+                  t.isDeleted.equals(false),
+            )
+            ..orderBy([(t) => OrderingTerm(expression: t.plate)]))
+          .watch();
+
   /// Cuenta los ejemplares que consumen cupo del plan.
   ///
   /// `RS-02` es explícito: solo cuentan los activos. Un ejemplar vendido o

@@ -5,7 +5,7 @@ import '../model/clutch.dart';
 import '../repository/birds_repository.dart';
 import '../repository/clutches_repository.dart';
 
-/// Registro de camada — pantalla 21, `RF-REG-08` a `RF-REG-11`.
+/// Registro de camada — pantalla 21, `RF-REG-08` a `RF-REG-10`.
 ///
 /// La promesa es registrar ocho crías en menos de un minuto, así que el estado
 /// arranca ya utilizable: fecha de hoy, una cría, y la placa siguiente del
@@ -67,7 +67,7 @@ class ClutchFormViewModel extends BaseViewModel {
   bool get canSubmit => !_dateInFuture && !_hatchedOverEggs && !isLoading;
 
   /// Primera placa que se asignará. Se muestra desde el principio porque es la
-  /// pregunta que el criador se hace al abrir la pantalla — `RF-REG-10`.
+  /// pregunta que el criador se hace al abrir la pantalla — `RF-REG-09`.
   int get firstPlate => _firstPlate;
 
   /// Última placa del bloque. Con una sola cría coincide con la primera.

@@ -58,6 +58,10 @@ class BirdsRepository implements RemotePuller {
 
   Stream<int> watchCount(String ownerId) => _birdsDao.watchCountForOwner(ownerId);
 
+  /// Descendencia directa de un ejemplar — `RF-REG-13`.
+  Stream<List<Bird>> watchChildren(String parentId) =>
+      _birdsDao.watchChildren(parentId).map((rows) => rows.map(Bird.fromRow).toList());
+
   Stream<Map<Sex, int>> watchSexTally(String ownerId) => _birdsDao
       .watchSexTally(ownerId)
       .map((tally) => {for (final entry in tally.entries) Sex.fromId(entry.key): entry.value});

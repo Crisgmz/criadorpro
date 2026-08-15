@@ -207,6 +207,29 @@
   "birdDeleteMessage": "It will be removed from your lists. This can't be undone.",
   "birdNoRing": "No plate",
   "birdUnknownParent": "Not recorded",
+  "birdTabData": "Details",
+  "birdTabTests": "Trials",
+  "birdTabOffspring": "Offspring",
+  "birdTestsEmptyTitle": "No trials logged",
+  "birdTestsEmptyMessage": "This is where the field-trial history for this bird will appear, with its result and date.",
+  "birdTestsComingSoon": "Field-trial logging arrives with its own module.",
+  "birdOffspringEmptyTitle": "No offspring",
+  "birdOffspringEmptyMessage": "Once you log a pairing with this bird, its chicks will appear grouped by clutch.",
+  "birdOffspringClutchOf": "Clutch of {date}",
+  "@birdOffspringClutchOf": {
+    "description": "RF-REG-13",
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "birdOffspringLoose": "Logged individually",
+  "birdOffspringCount": "{count, plural, =1{1 chick} other{{count} chicks}}",
+  "@birdOffspringCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "birdOffspringTotal": "{count, plural, =0{No offspring} =1{1 chick} other{{count} chicks}}",
+  "@birdOffspringTotal": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
   "birdSectionIdentity": "Identification",
   "birdSectionOrigin": "Origin",
   "birdSectionExtra": "Additional data",
@@ -222,7 +245,7 @@
   "clutchIncrement": "One chick more",
   "clutchPlatePreview": "Plates #{first} to #{last} will be assigned",
   "@clutchPlatePreview": {
-    "description": "RF-REG-10",
+    "description": "RF-REG-09",
     "placeholders": {
       "first": { "type": "int" },
       "last": { "type": "int" }
@@ -238,7 +261,7 @@
   "clutchHatchedOverEggs": "More chicks cannot hatch than eggs laid.",
   "clutchRegistered": "{count, plural, =1{1 chick logged} other{{count} chicks logged}}",
   "@clutchRegistered": {
-    "description": "RF-REG-11",
+    "description": "RF-REG-10",
     "placeholders": { "count": { "type": "int" } }
   },
   "clutchDoneTitle": "Clutch logged",

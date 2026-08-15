@@ -116,7 +116,7 @@ class Clutch {
 /// Lo que devuelve registrar una camada: la camada y sus crías ya con placa.
 ///
 /// Van juntas porque el criador necesita ver de inmediato qué placas se
-/// asignaron — es la confirmación de que el bloque quedó reservado (`RF-REG-11`).
+/// asignaron — es la confirmación de que el bloque quedó reservado (`RF-REG-10`).
 class ClutchRegistration {
   const ClutchRegistration({required this.clutch, required this.chicks});
 

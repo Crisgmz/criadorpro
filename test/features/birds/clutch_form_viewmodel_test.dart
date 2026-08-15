@@ -102,7 +102,7 @@ void main() {
     });
   });
 
-  group('RF-REG-10 · contador y vista previa de placas', () {
+  group('RF-REG-09 · contador y vista previa de placas', () {
     test('el rango de placas sigue al contador', () async {
       await viewModel.load();
 
@@ -200,7 +200,7 @@ void main() {
     });
   });
 
-  group('RF-REG-11 · envío', () {
+  group('RF-REG-10 · envío', () {
     test('devuelve la camada con sus crías y el rango de placas', () async {
       await viewModel.load();
       viewModel.setHatched(8);

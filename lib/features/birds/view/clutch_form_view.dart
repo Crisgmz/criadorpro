@@ -16,7 +16,7 @@ import '../model/clutch.dart';
 import '../viewmodel/clutch_form_viewmodel.dart';
 import 'widgets/form_fields.dart';
 
-/// Registro de camada — pantalla 21, `RF-REG-08` a `RF-REG-11`.
+/// Registro de camada — pantalla 21, `RF-REG-08` a `RF-REG-10`.
 ///
 /// Es la función que hace rentable la app: ocho crías registradas en menos de
 /// un minuto. De ahí el orden de la pantalla — primero lo que decide el número
@@ -88,7 +88,7 @@ class _ClutchFormViewState extends ConsumerState<ClutchFormView> {
     }
   }
 
-  /// `RF-REG-11` — confirmar con las placas asignadas.
+  /// `RF-REG-10` — confirmar el resultado con las placas asignadas.
   ///
   /// El criador necesita ver el rango exacto: es lo que va a escribir en las
   /// anillas físicas, y sin ese dato la pantalla no le ha resuelto el problema.
@@ -231,7 +231,7 @@ class _ClutchFormViewState extends ConsumerState<ClutchFormView> {
   }
 }
 
-/// Rango de placas que se reservará — `RF-REG-10`.
+/// Rango de placas que se reservará, antes de confirmar — `RF-REG-09`.
 class _PlatePreview extends StatelessWidget {
   const _PlatePreview({required this.first, required this.last, required this.count});
 

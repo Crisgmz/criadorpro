@@ -13,8 +13,15 @@ import '../../../core/widgets/cp_empty_state.dart';
 import '../../../core/widgets/sex_badge.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../model/bird.dart';
+import '../viewmodel/bird_detail_viewmodel.dart';
 import 'bird_labels.dart';
+import 'widgets/form_fields.dart';
 
+/// Ficha del ejemplar — pantallas 20 a 22, `RF-REG-12`.
+///
+/// Tres pestañas: Datos, Pruebas y Descendencia. La cabecera queda fuera de
+/// ellas porque identifica al ejemplar: al cambiar de pestaña el criador tiene
+/// que seguir viendo de quién está mirando los datos.
 class BirdDetailView extends ConsumerWidget {
   const BirdDetailView({required this.birdId, super.key});
 
@@ -57,9 +64,11 @@ class BirdDetailView extends ConsumerWidget {
     final viewModel = ref.watch(birdDetailViewModelProvider(birdId));
     final bird = viewModel.bird;
 
-    return Scaffold(
+    final scaffold = Scaffold(
       appBar: AppBar(
-        title: Text(bird?.name ?? ''),
+        // La placa y no el nombre: el nombre es opcional y muchos ejemplares no
+        // lo tienen, así que la barra se quedaría en blanco.
+        title: Text(bird == null ? '' : Formatters.plate(bird.plate)),
         actions: [
           if (bird != null) ...[
             IconButton(
@@ -74,6 +83,15 @@ class BirdDetailView extends ConsumerWidget {
             ),
           ],
         ],
+        bottom: bird == null
+            ? null
+            : TabBar(
+                tabs: [
+                  Tab(text: l10n.birdTabData),
+                  Tab(text: l10n.birdTabTests),
+                  Tab(text: l10n.birdTabOffspring),
+                ],
+              ),
       ),
       body: switch (viewModel.state) {
         ViewState.loading => const Center(child: CircularProgressIndicator()),
@@ -82,14 +100,42 @@ class BirdDetailView extends ConsumerWidget {
           title: failureMessage(l10n, viewModel.failure!),
         ),
         _ when bird == null => const SizedBox.shrink(),
-        _ => _Body(bird: bird, father: viewModel.father, mother: viewModel.mother, locale: locale),
+        _ => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+              child: _Header(bird: bird),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _DataTab(
+                    bird: bird,
+                    father: viewModel.father,
+                    mother: viewModel.mother,
+                    locale: locale,
+                  ),
+                  const _TestsTab(),
+                  _OffspringTab(groups: viewModel.offspring, locale: locale),
+                ],
+              ),
+            ),
+          ],
+        ),
       },
     );
+
+    // `DefaultTabController` envuelve el Scaffold entero porque la `TabBar` vive
+    // en la barra superior y la `TabBarView` en el cuerpo: sin un ancestro
+    // común no se encuentran.
+    return DefaultTabController(length: 3, child: scaffold);
   }
 }
 
-class _Body extends StatelessWidget {
-  const _Body({required this.bird, required this.locale, this.father, this.mother});
+/// Pantalla 20 — pestaña por defecto.
+class _DataTab extends StatelessWidget {
+  const _DataTab({required this.bird, required this.locale, this.father, this.mother});
 
   final Bird bird;
   final Bird? father;
@@ -101,12 +147,9 @@ class _Body extends StatelessWidget {
     final l10n = AppL10n.of(context);
 
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.lg),
       children: [
-        _Header(bird: bird),
-        const SizedBox(height: AppSpacing.lg),
-
-        _SectionLabel(l10n.birdSectionIdentity),
+        SectionLabel(l10n.birdSectionIdentity),
         _DataRow(label: l10n.fieldPlate, value: Formatters.plate(bird.plate)),
         _DataRow(
           label: l10n.fieldBirthDate,
@@ -116,13 +159,13 @@ class _Body extends StatelessWidget {
         _DataRow(label: l10n.fieldStatus, value: statusLabel(l10n, bird.status)),
 
         const SizedBox(height: AppSpacing.lg),
-        _SectionLabel(l10n.birdSectionOrigin),
-        _DataRow(label: l10n.fieldFather, value: father?.displayName ?? l10n.birdUnknownParent),
-        _DataRow(label: l10n.fieldMother, value: mother?.displayName ?? l10n.birdUnknownParent),
+        SectionLabel(l10n.birdSectionOrigin),
+        _ParentRow(label: l10n.fieldFather, parent: father),
+        _ParentRow(label: l10n.fieldMother, parent: mother),
         _DataRow(label: l10n.fieldLine, value: bird.line ?? '—'),
 
         const SizedBox(height: AppSpacing.lg),
-        _SectionLabel(l10n.birdSectionExtra),
+        SectionLabel(l10n.birdSectionExtra),
         _DataRow(label: l10n.fieldColor, value: bird.color ?? '—'),
         _DataRow(
           label: l10n.fieldWeight,
@@ -135,6 +178,120 @@ class _Body extends StatelessWidget {
           Text(bird.notes!, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ],
+    );
+  }
+}
+
+/// Pantalla 21 — historial de pruebas de campo.
+///
+/// La pestaña existe desde ya porque `RF-REG-12` la exige, pero el registro de
+/// pruebas es `RF-PRU` y llega en su propia fase: la tabla `evaluations` aún no
+/// existe. Hasta entonces muestra el estado vacío que pide el PRD, sin ofrecer
+/// una acción que no llevaría a ninguna parte.
+class _TestsTab extends StatelessWidget {
+  const _TestsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+
+    return CpEmptyState(
+      icon: Icons.assignment_outlined,
+      title: l10n.birdTestsEmptyTitle,
+      message: '${l10n.birdTestsEmptyMessage}\n\n${l10n.birdTestsComingSoon}',
+    );
+  }
+}
+
+/// Pantalla 22 — descendencia agrupada por camada (`RF-REG-13`).
+class _OffspringTab extends StatelessWidget {
+  const _OffspringTab({required this.groups, required this.locale});
+
+  final List<OffspringGroup> groups;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+
+    if (groups.isEmpty) {
+      return CpEmptyState(
+        icon: Icons.account_tree_outlined,
+        title: l10n.birdOffspringEmptyTitle,
+        message: l10n.birdOffspringEmptyMessage,
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.lg),
+      children: [
+        for (final group in groups) ...[
+          _GroupHeader(group: group, locale: locale),
+          for (final chick in group.chicks) _ChickTile(chick: chick),
+          const SizedBox(height: AppSpacing.md),
+        ],
+      ],
+    );
+  }
+}
+
+class _GroupHeader extends StatelessWidget {
+  const _GroupHeader({required this.group, required this.locale});
+
+  final OffspringGroup group;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final theme = Theme.of(context);
+
+    final title = group.clutch == null
+        ? l10n.birdOffspringLoose
+        : l10n.birdOffspringClutchOf(Formatters.date(group.clutch!.date, locale));
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.xs),
+      child: Row(
+        children: [
+          Expanded(child: Text(title.toUpperCase(), style: AppTypography.sectionLabel(context))),
+          Text(
+            l10n.birdOffspringCount(group.chicks.length),
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Cada cría enlaza a su propia ficha — `RF-REG-13`.
+class _ChickTile extends StatelessWidget {
+  const _ChickTile({required this.chick});
+
+  final Bird chick;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final color = SexBadge.colorOf(context, chick.sex);
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      // `push` y no `go`: se apila sobre la ficha actual, así el criador puede
+      // bajar por la descendencia y volver por donde vino.
+      onTap: () => context.push(Routes.birdDetail(chick.id)),
+      leading: CircleAvatar(
+        backgroundColor: color.withValues(alpha: 0.16),
+        child: Icon(SexBadge.iconOf(chick.sex), color: color, size: 20),
+      ),
+      title: Text(chick.displayName, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(
+        [Formatters.plate(chick.plate), sexLabel(l10n, chick.sex)].join(' · '),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: const Icon(Icons.chevron_right),
     );
   }
 }
@@ -178,23 +335,35 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
+/// Progenitor: además de nombrarlo, lleva a su ficha si está registrado.
+class _ParentRow extends StatelessWidget {
+  const _ParentRow({required this.label, this.parent});
 
-  final String text;
+  final String label;
+  final Bird? parent;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-    child: Text(text.toUpperCase(), style: AppTypography.sectionLabel(context)),
-  );
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    if (parent == null) return _DataRow(label: label, value: l10n.birdUnknownParent);
+
+    return InkWell(
+      onTap: () => context.push(Routes.birdDetail(parent!.id)),
+      child: _DataRow(
+        label: label,
+        value: parent!.displayName,
+        trailing: const Icon(Icons.chevron_right, size: 18),
+      ),
+    );
+  }
 }
 
 class _DataRow extends StatelessWidget {
-  const _DataRow({required this.label, required this.value});
+  const _DataRow({required this.label, required this.value, this.trailing});
 
   final String label;
   final String value;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -221,6 +390,7 @@ class _DataRow extends StatelessWidget {
               style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
+          ?trailing,
         ],
       ),
     );

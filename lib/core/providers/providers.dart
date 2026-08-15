@@ -262,8 +262,11 @@ final clutchFormViewModelProvider = ChangeNotifierProvider.autoDispose<ClutchFor
 
 final birdDetailViewModelProvider = ChangeNotifierProvider.autoDispose
     .family<BirdDetailViewModel, String>(
-      (ref, birdId) =>
-          BirdDetailViewModel(repository: ref.watch(birdsRepositoryProvider), birdId: birdId),
+      (ref, birdId) => BirdDetailViewModel(
+        repository: ref.watch(birdsRepositoryProvider),
+        clutchesRepository: ref.watch(clutchesRepositoryProvider),
+        birdId: birdId,
+      ),
     );
 
 final settingsViewModelProvider = ChangeNotifierProvider.autoDispose<SettingsViewModel>(

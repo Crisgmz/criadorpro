@@ -392,7 +392,20 @@ la función estrella y lo prohíbe `RF-SIN-01`. La RPC `next_plate()` sigue en e
 servidor como autoridad cuando dos dispositivos del mismo criadero registran a
 la vez.
 
-Falta la ficha con sus tres pestañas (`RF-REG-12` a `15`).
+La **ficha del ejemplar** (`RF-REG-12`, `RF-REG-13`) ya está: pantallas 20–22
+con las tres pestañas —Datos, Pruebas y Descendencia— y la descendencia
+agrupada por camada, cada cría enlazada a su propia ficha. La pestaña de
+pruebas muestra su estado vacío: el registro es `RF-PRU` y la tabla
+`evaluations` llega en F2.
+
+Falta de `RF-REG`:
+
+| ID | Qué falta | Prioridad |
+|---|---|---|
+| `RF-REG-11` | Pantalla 18: elegir progenitor de una lista filtrada por sexo, **con buscador y alta al vuelo sin perder lo capturado** (CU-02 alterno A). Hoy es un desplegable simple. | Obligatorio |
+| CU-02 alt. B | Al exceder el plan, decir **cuántas crías caben** y ofrecer registrar esa cantidad. Hoy devuelve el fallo genérico de límite. | Obligatorio |
+| `RF-REG-14` | Editar cualquier campo y **registrar pesos sucesivos con su fecha**. Exige tabla nueva. | Esperado |
+| `RF-REG-15` | Foto por ejemplar, cámara o galería (`RV-19`). | Esperado |
 
 **El esquema implementado diverge de la especificación.** Corregirlo es el
 primer trabajo de F1, porque todo lo demás cuelga de la placa:

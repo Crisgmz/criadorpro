@@ -16,7 +16,7 @@ import '../../../core/utils/result.dart';
 import '../model/bird.dart';
 import '../model/clutch.dart';
 
-/// Registro de camadas — `RF-REG-08` a `RF-REG-11`.
+/// Registro de camadas — `RF-REG-08` a `RF-REG-10`.
 ///
 /// Es la función que justifica el producto: ocho crías registradas en menos de
 /// un minuto, contra los ocho renglones que el criador escribiría a mano.
@@ -62,6 +62,16 @@ class ClutchesRepository implements RemotePuller {
       _clutchesDao.watchAll(ownerId).map((rows) => rows.map(Clutch.fromRow).toList());
 
   Stream<int> watchCount(String ownerId) => _clutchesDao.watchCountForOwner(ownerId);
+
+  /// Camadas concretas por id, para agrupar la descendencia de una ficha.
+  Future<Map<String, Clutch>> findByIds(Iterable<String> ids) async {
+    final result = <String, Clutch>{};
+    for (final id in ids.toSet()) {
+      final row = await _clutchesDao.findById(id);
+      if (row != null) result[id] = Clutch.fromRow(row);
+    }
+    return result;
+  }
 
   /// Placa con la que arrancaría la camada. Solo para mostrarla en el
   /// formulario: la reserva de verdad ocurre dentro de la transacción.

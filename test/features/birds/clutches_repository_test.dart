@@ -11,7 +11,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// `RF-REG-08` a `RF-REG-11`. La regla que se prueba con más saña es `RS-04`:
+/// `RF-REG-08` a `RF-REG-10`. La regla que se prueba con más saña es `RS-04`:
 /// la camada y sus crías se crean **todas o ninguna**. Un fallo a mitad que
 /// dejara tres crías y el contador movido sería silencioso y el criador no
 /// tendría cómo detectarlo.
