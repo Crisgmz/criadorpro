@@ -207,6 +207,26 @@
   "birdDeleteMessage": "It will be removed from your lists. This can't be undone.",
   "birdNoRing": "No plate",
   "birdUnknownParent": "Not recorded",
+  "pedigreeTitle": "Pedigree",
+  "pedigreeGenerations": "{count} generations",
+  "@pedigreeGenerations": {
+    "description": "RF-PED-02",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "pedigreeUnknown": "Not recorded",
+  "pedigreeCycle": "Circular reference",
+  "pedigreeCycleNotice": "One branch was cut because a bird appears as its own ancestor. The rest of the tree is correct.",
+  "@pedigreeCycleNotice": { "description": "RF-PED-06 · E-DATA-02" },
+  "pedigreePlanNotice": "Your plan shows {depth} generations. Pro goes up to four.",
+  "@pedigreePlanNotice": {
+    "description": "RF-PED-03",
+    "placeholders": { "depth": { "type": "int" } }
+  },
+  "pedigreeOpenRecord": "View record",
+  "pedigreeSee": "View full pedigree",
+  "pedigreeLegendMale": "Sires",
+  "pedigreeLegendFemale": "Dams",
+
   "birdTabData": "Details",
   "birdTabTests": "Trials",
   "birdTabOffspring": "Offspring",

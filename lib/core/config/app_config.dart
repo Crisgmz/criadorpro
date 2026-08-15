@@ -1,16 +1,25 @@
 /// Planes de suscripción. El límite se aplica en el repositorio, no en la UI.
 enum SubscriptionPlan {
-  free(id: 'free', birdLimit: 25, productId: null),
-  pro(id: 'pro', birdLimit: 500, productId: 'com.criadorpro.pro.monthly'),
-  elite(id: 'elite', birdLimit: null, productId: 'com.criadorpro.elite.monthly');
+  free(id: 'free', birdLimit: 25, pedigreeDepth: 2, productId: null),
+  pro(id: 'pro', birdLimit: 500, pedigreeDepth: 4, productId: 'com.criadorpro.pro.monthly'),
+  elite(id: 'elite', birdLimit: null, pedigreeDepth: 4, productId: 'com.criadorpro.elite.monthly');
 
-  const SubscriptionPlan({required this.id, required this.birdLimit, required this.productId});
+  const SubscriptionPlan({
+    required this.id,
+    required this.birdLimit,
+    required this.pedigreeDepth,
+    required this.productId,
+  });
 
   /// Valor persistido en `profiles.plan`.
   final String id;
 
   /// Máximo de ejemplares. `null` = ilimitado.
   final int? birdLimit;
+
+  /// Generaciones ascendentes visibles en el pedigrí — `RF-PED-03`.
+  /// El plan gratuito llega a dos; Pro y Élite, a cuatro.
+  final int pedigreeDepth;
 
   /// Identificador de producto en App Store / Play Console.
   final String? productId;

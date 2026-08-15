@@ -20,6 +20,7 @@ import '../../features/dashboard/view/dashboard_shell.dart';
 import '../../features/dashboard/view/dashboard_view.dart';
 import '../../features/onboarding/view/farm_setup_view.dart';
 import '../../features/onboarding/view/setup_done_view.dart';
+import '../../features/pedigree/view/pedigree_view.dart';
 import '../../features/settings/view/settings_view.dart';
 import '../domain/sex.dart';
 import '../providers/providers.dart';
@@ -125,6 +126,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.birdNew, builder: (context, state) => const BirdFormView()),
       // Antes que `/birds/:id`: si no, `clutch` se tomaría por un id.
       GoRoute(path: Routes.clutchNew, builder: (context, state) => const ClutchFormView()),
+      GoRoute(
+        path: '/birds/:id/pedigree',
+        builder: (context, state) => PedigreeView(birdId: state.pathParameters['id']!),
+      ),
       GoRoute(
         path: '/birds/parent/:sex',
         builder: (context, state) => ParentPickerView(

@@ -262,6 +262,26 @@
   "birdDeleteMessage": "Se eliminará de tus listas. Esta acción no se puede deshacer.",
   "birdNoRing": "Sin placa",
   "birdUnknownParent": "Sin registrar",
+  "pedigreeTitle": "Pedigrí",
+  "pedigreeGenerations": "{count} generaciones",
+  "@pedigreeGenerations": {
+    "description": "RF-PED-02 · selector de profundidad",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "pedigreeUnknown": "Sin registrar",
+  "pedigreeCycle": "Referencia cíclica",
+  "pedigreeCycleNotice": "Una rama se cortó porque un ejemplar aparece como ancestro de sí mismo. El resto del árbol es correcto.",
+  "@pedigreeCycleNotice": { "description": "RF-PED-06 · E-DATA-02" },
+  "pedigreePlanNotice": "Tu plan muestra {depth} generaciones. Con Pro llegas a cuatro.",
+  "@pedigreePlanNotice": {
+    "description": "RF-PED-03",
+    "placeholders": { "depth": { "type": "int" } }
+  },
+  "pedigreeOpenRecord": "Ver ficha",
+  "pedigreeSee": "Ver pedigrí completo",
+  "pedigreeLegendMale": "Padres",
+  "pedigreeLegendFemale": "Madres",
+
   "birdTabData": "Datos",
   "birdTabTests": "Pruebas",
   "birdTabOffspring": "Descendencia",

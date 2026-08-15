@@ -45,6 +45,9 @@ abstract final class Routes {
   static String birdDetail(String id) => '/birds/$id';
   static String birdEdit(String id) => '/birds/$id/edit';
 
+  /// Pantalla 23 — `RF-PED`.
+  static String birdPedigree(String id) => '/birds/$id/pedigree';
+
   // --- Ayudas --------------------------------------------------------------
 
   /// El correo viaja en la query porque las pantallas de código lo necesitan

@@ -22,6 +22,8 @@ import '../../features/birds/viewmodel/clutch_form_viewmodel.dart';
 import '../../features/birds/viewmodel/parent_picker_viewmodel.dart';
 import '../../features/dashboard/viewmodel/dashboard_viewmodel.dart';
 import '../../features/onboarding/viewmodel/farm_setup_viewmodel.dart';
+import '../../features/pedigree/repository/pedigree_repository.dart';
+import '../../features/pedigree/viewmodel/pedigree_viewmodel.dart';
 import '../../features/settings/viewmodel/app_settings_viewmodel.dart';
 import '../../features/settings/viewmodel/settings_viewmodel.dart';
 import '../db/app_database.dart';
@@ -280,6 +282,22 @@ final birdDetailViewModelProvider = ChangeNotifierProvider.autoDispose
       (ref, birdId) => BirdDetailViewModel(
         repository: ref.watch(birdsRepositoryProvider),
         clutchesRepository: ref.watch(clutchesRepositoryProvider),
+        birdId: birdId,
+      ),
+    );
+
+final pedigreeRepositoryProvider = Provider<PedigreeRepository>(
+  (ref) => PedigreeRepository(birdsDao: ref.watch(birdsDaoProvider)),
+);
+
+/// Pantalla 23 — `RF-PED`. Uno por ejemplar: abrir el pedigrí de un ancestro
+/// desde un nodo no debe pisar el árbol desde el que se llegó.
+final pedigreeViewModelProvider = ChangeNotifierProvider.autoDispose
+    .family<PedigreeViewModel, String>(
+      (ref, birdId) => PedigreeViewModel(
+        repository: ref.watch(pedigreeRepositoryProvider),
+        profilesDao: ref.watch(profilesDaoProvider),
+        ownerId: ref.watch(currentOwnerIdProvider),
         birdId: birdId,
       ),
     );

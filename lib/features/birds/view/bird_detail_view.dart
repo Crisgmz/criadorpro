@@ -163,6 +163,14 @@ class _DataTab extends StatelessWidget {
         _ParentRow(label: l10n.fieldFather, parent: father),
         _ParentRow(label: l10n.fieldMother, parent: mother),
         _DataRow(label: l10n.fieldLine, value: bird.line ?? '—'),
+        const SizedBox(height: AppSpacing.sm),
+        // El pedigrí completo se abre desde aquí y no desde una pestaña: es
+        // una vista aparte, con su propio desplazamiento y zoom.
+        OutlinedButton.icon(
+          onPressed: () => context.push(Routes.birdPedigree(bird.id)),
+          icon: const Icon(Icons.account_tree_outlined),
+          label: Text(l10n.pedigreeSee),
+        ),
 
         const SizedBox(height: AppSpacing.lg),
         SectionLabel(l10n.birdSectionExtra),

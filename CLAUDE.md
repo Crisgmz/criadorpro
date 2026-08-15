@@ -412,8 +412,27 @@ Falta de `RF-REG`, ambos de prioridad **Esperado**:
 | `RF-REG-14` | Editar cualquier campo y **registrar pesos sucesivos con su fecha**. Exige tabla nueva. |
 | `RF-REG-15` | Foto por ejemplar, cámara o galería (`RV-19`). |
 
-Con eso, lo único **Obligatorio** que queda de F1 es `RF-PED` — el pedigrí de
-la pantalla 23.
+### Genealogía — implementado
+
+`RF-PED-01` a `RF-PED-07` y `RF-PED-09` en
+[lib/features/pedigree/](lib/features/pedigree/): pantalla 23 con árbol
+horizontal, desplazamiento y zoom, selector de 2/3/4 generaciones y apertura de
+la ficha desde cualquier nodo. El plan gratuito se queda en dos generaciones y
+la pantalla lo dice (`RF-PED-03`).
+
+El algoritmo es el del DDT §7 y **no se debe cambiar por uno recursivo por
+nodo**: recolecta identificadores nivel a nivel y luego lee todo el árbol de
+una vez —5 consultas en lugar de 31—, que es lo que sostiene `RNF-03`.
+
+El corte de ciclos distingue dos casos que se confunden con facilidad: un
+ancestro repetido **en el mismo camino** es un dato imposible y corta la rama
+(`RS-05`); el mismo ancestro por la rama paterna y por la materna es
+**endogamia**, información legítima del criadero, y se dibuja entero.
+
+`RF-PED-08` (exportar a PDF) es Opcional y va en F4.
+
+Con eso **F1 queda cerrado en lo Obligatorio**. Fuera quedan, con prioridad
+Esperado, `RF-REG-14` y `RF-REG-15`.
 
 **El esquema implementado diverge de la especificación.** Corregirlo es el
 primer trabajo de F1, porque todo lo demás cuelga de la placa:

@@ -124,6 +124,31 @@ class BirdsDao extends DatabaseAccessor<AppDatabase> with _$BirdsDaoMixin {
             ..orderBy([(t) => OrderingTerm(expression: t.plate)]))
           .watch();
 
+  /// Identificadores de los progenitores de un nivel entero del pedigrí.
+  ///
+  /// Una consulta por generación en lugar de una por nodo: es lo que convierte
+  /// 2ⁿ lecturas en n+1 y sostiene el umbral de 300 ms de `RNF-03` (DDT §7).
+  Future<List<String>> parentsOf(List<String> ids) async {
+    if (ids.isEmpty) return const [];
+
+    final rows = await (select(birds)..where((t) => t.id.isIn(ids))).get();
+    return [
+      for (final row in rows) ...[
+        if (row.fatherId != null) row.fatherId!,
+        if (row.motherId != null) row.motherId!,
+      ],
+    ];
+  }
+
+  /// Los ejemplares del árbol, en una sola lectura.
+  ///
+  /// Excluye los dados de baja: un ancestro eliminado deja **casilla vacía**
+  /// (`RF-PED-05`), que es más honesto que resucitarlo dentro del pedigrí.
+  Future<List<BirdRow>> byIds(Iterable<String> ids) {
+    if (ids.isEmpty) return Future.value(const []);
+    return (select(birds)..where((t) => t.id.isIn(ids.toList()) & t.isDeleted.equals(false))).get();
+  }
+
   /// Cuenta los ejemplares que consumen cupo del plan.
   ///
   /// `RS-02` es explícito: solo cuentan los activos. Un ejemplar vendido o
