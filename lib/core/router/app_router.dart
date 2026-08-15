@@ -15,11 +15,13 @@ import '../../features/birds/view/bird_detail_view.dart';
 import '../../features/birds/view/bird_form_view.dart';
 import '../../features/birds/view/birds_list_view.dart';
 import '../../features/birds/view/clutch_form_view.dart';
+import '../../features/birds/view/parent_picker_view.dart';
 import '../../features/dashboard/view/dashboard_shell.dart';
 import '../../features/dashboard/view/dashboard_view.dart';
 import '../../features/onboarding/view/farm_setup_view.dart';
 import '../../features/onboarding/view/setup_done_view.dart';
 import '../../features/settings/view/settings_view.dart';
+import '../domain/sex.dart';
 import '../providers/providers.dart';
 import 'routes.dart';
 
@@ -123,6 +125,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.birdNew, builder: (context, state) => const BirdFormView()),
       // Antes que `/birds/:id`: si no, `clutch` se tomaría por un id.
       GoRoute(path: Routes.clutchNew, builder: (context, state) => const ClutchFormView()),
+      GoRoute(
+        path: '/birds/parent/:sex',
+        builder: (context, state) => ParentPickerView(
+          sex: Sex.fromId(state.pathParameters['sex']),
+          excludeId: state.uri.queryParameters['exclude'],
+        ),
+      ),
       GoRoute(
         path: '/birds/:id',
         builder: (context, state) => BirdDetailView(birdId: state.pathParameters['id']!),

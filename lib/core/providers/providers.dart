@@ -19,6 +19,7 @@ import '../../features/birds/viewmodel/bird_detail_viewmodel.dart';
 import '../../features/birds/viewmodel/bird_form_viewmodel.dart';
 import '../../features/birds/viewmodel/birds_list_viewmodel.dart';
 import '../../features/birds/viewmodel/clutch_form_viewmodel.dart';
+import '../../features/birds/viewmodel/parent_picker_viewmodel.dart';
 import '../../features/dashboard/viewmodel/dashboard_viewmodel.dart';
 import '../../features/onboarding/viewmodel/farm_setup_viewmodel.dart';
 import '../../features/settings/viewmodel/app_settings_viewmodel.dart';
@@ -28,6 +29,7 @@ import '../db/daos/birds_dao.dart';
 import '../db/daos/clutches_dao.dart';
 import '../db/daos/profiles_dao.dart';
 import '../db/daos/sync_queue_dao.dart';
+import '../domain/sex.dart';
 import '../network/connectivity_service.dart';
 import '../network/supabase_service.dart';
 import '../sync/sync_service.dart';
@@ -255,10 +257,23 @@ final birdFormViewModelProvider = ChangeNotifierProvider.autoDispose
 final clutchFormViewModelProvider = ChangeNotifierProvider.autoDispose<ClutchFormViewModel>(
   (ref) => ClutchFormViewModel(
     repository: ref.watch(clutchesRepositoryProvider),
-    birdsRepository: ref.watch(birdsRepositoryProvider),
     ownerId: ref.watch(currentOwnerIdProvider),
   ),
 );
+
+/// Pantalla 18 — `RF-REG-11`. El sexo y el ejemplar a excluir identifican la
+/// instancia: elegir padre y elegir madre son dos listas distintas.
+typedef ParentPickerArgs = ({Sex sex, String? excludeId});
+
+final parentPickerViewModelProvider = ChangeNotifierProvider.autoDispose
+    .family<ParentPickerViewModel, ParentPickerArgs>(
+      (ref, args) => ParentPickerViewModel(
+        repository: ref.watch(birdsRepositoryProvider),
+        ownerId: ref.watch(currentOwnerIdProvider),
+        sex: args.sex,
+        excludeId: args.excludeId,
+      ),
+    );
 
 final birdDetailViewModelProvider = ChangeNotifierProvider.autoDispose
     .family<BirdDetailViewModel, String>(

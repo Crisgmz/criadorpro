@@ -1,8 +1,7 @@
 import '../../../core/base/base_viewmodel.dart';
-import '../../../core/domain/sex.dart';
+import '../../../core/error/failure.dart';
 import '../model/bird.dart';
 import '../model/clutch.dart';
-import '../repository/birds_repository.dart';
 import '../repository/clutches_repository.dart';
 
 /// Registro de camada — pantalla 21, `RF-REG-08` a `RF-REG-10`.
@@ -14,43 +13,42 @@ import '../repository/clutches_repository.dart';
 class ClutchFormViewModel extends BaseViewModel {
   ClutchFormViewModel({
     required ClutchesRepository repository,
-    required BirdsRepository birdsRepository,
     required String ownerId,
     DateTime Function() clock = DateTime.now,
   }) : _repository = repository,
-       _birdsRepository = birdsRepository,
        _ownerId = ownerId,
        _clock = clock;
 
   final ClutchesRepository _repository;
-  final BirdsRepository _birdsRepository;
   final String _ownerId;
   final DateTime Function() _clock;
 
   DateTime _date = DateTime.now();
   int _hatched = 1;
   String _eggs = '';
-  String? _fatherId;
-  String? _motherId;
+  Bird? _father;
+  Bird? _mother;
   String _line = '';
   String _notes = '';
 
   int _firstPlate = 1;
-  List<Bird> _fatherCandidates = const [];
-  List<Bird> _motherCandidates = const [];
 
   bool _dateInFuture = false;
   bool _hatchedOverEggs = false;
+  PlanLimitFailure? _planLimit;
 
   DateTime get date => _date;
   int get hatched => _hatched;
   String get eggs => _eggs;
-  String? get fatherId => _fatherId;
-  String? get motherId => _motherId;
+  Bird? get father => _father;
+  Bird? get mother => _mother;
+
+  /// Lo que viaja al repositorio. Se deriva del ejemplar elegido para que no
+  /// puedan quedar desincronizados el id y el nombre que se está mostrando.
+  String? get fatherId => _father?.id;
+  String? get motherId => _mother?.id;
   String get line => _line;
   String get notes => _notes;
-  List<Bird> get fatherCandidates => _fatherCandidates;
-  List<Bird> get motherCandidates => _motherCandidates;
 
   /// `RV-09` — fecha futura. Bloquea el envío.
   bool get isDateInFuture => _dateInFuture;
@@ -73,6 +71,25 @@ class ClutchFormViewModel extends BaseViewModel {
   /// Última placa del bloque. Con una sola cría coincide con la primera.
   int get lastPlate => _firstPlate + _hatched - 1;
 
+  /// Tope de plan alcanzado al confirmar — CU-02 alterno B.
+  ///
+  /// No se trata como error: que el plan se llene no es un fallo de la app sino
+  /// una decisión que el criador tiene que tomar, y la pantalla se la plantea
+  /// con el número exacto en vez de un mensaje genérico.
+  PlanLimitFailure? get planLimit => _planLimit;
+
+  /// Cuántas crías caben todavía. Cero significa que no cabe ninguna.
+  int get planLimitFits {
+    final limit = _planLimit;
+    if (limit == null) return 0;
+    return (limit.limit - limit.current).clamp(0, maxHatched);
+  }
+
+  void clearPlanLimit() {
+    _planLimit = null;
+    safeNotify();
+  }
+
   /// Prepara la pantalla. Se vuelve a llamar tras registrar, cuando el criador
   /// elige «Registrar otra», así que deja el formulario **en blanco**: arrastrar
   /// las cinco crías o los progenitores de la camada anterior crearía registros
@@ -83,20 +100,15 @@ class ClutchFormViewModel extends BaseViewModel {
     _date = _today();
     _hatched = 1;
     _eggs = '';
-    _fatherId = null;
-    _motherId = null;
+    _father = null;
+    _mother = null;
     _line = '';
     _notes = '';
     _dateInFuture = false;
     _hatchedOverEggs = false;
+    _planLimit = null;
 
     _firstPlate = await _repository.nextPlate(_ownerId);
-
-    final fathers = await _birdsRepository.parentCandidates(ownerId: _ownerId, sex: Sex.male);
-    final mothers = await _birdsRepository.parentCandidates(ownerId: _ownerId, sex: Sex.female);
-    _fatherCandidates = fathers.valueOrNull ?? const [];
-    _motherCandidates = mothers.valueOrNull ?? const [];
-
     setReady();
   }
 
@@ -137,13 +149,15 @@ class ClutchFormViewModel extends BaseViewModel {
     safeNotify();
   }
 
-  void setFatherId(String? value) {
-    _fatherId = value;
+  /// Lo elige la pantalla 18 (`RF-REG-11`). `null` es «sin registrar», una
+  /// respuesta legítima: el progenitor puede no estar en el libro.
+  void setFather(Bird? value) {
+    _father = value;
     safeNotify();
   }
 
-  void setMotherId(String? value) {
-    _motherId = value;
+  void setMother(Bird? value) {
+    _mother = value;
     safeNotify();
   }
 
@@ -156,14 +170,15 @@ class ClutchFormViewModel extends BaseViewModel {
   Future<ClutchRegistration?> submit() async {
     if (!canSubmit) return null;
 
+    _planLimit = null;
     setLoading();
     final result = await _repository.register(
       ownerId: _ownerId,
       date: _date,
       hatched: _hatched,
       eggs: _parsedEggs(),
-      fatherId: _fatherId,
-      motherId: _motherId,
+      fatherId: fatherId,
+      motherId: motherId,
       line: _line,
       notes: _notes,
     );
@@ -174,6 +189,14 @@ class ClutchFormViewModel extends BaseViewModel {
         return registration;
       },
       err: (failure) {
+        // El límite de plan sale por su propia vía: la pantalla ofrece
+        // registrar las que caben (CU-02 alterno B), no un error que solo
+        // dice que no se pudo.
+        if (failure is PlanLimitFailure) {
+          _planLimit = failure;
+          setReady();
+          return null;
+        }
         setFailure(failure);
         return null;
       },

@@ -289,6 +289,33 @@
   "birdSectionOrigin": "Origen",
   "birdSectionExtra": "Datos adicionales",
 
+  "parentPickerTitleFather": "Elegir padre",
+  "parentPickerTitleMother": "Elegir madre",
+  "parentPickerSearchHint": "Buscar por placa o nombre",
+  "parentPickerNone": "Sin registrar",
+  "parentPickerNoneHint": "Puedes dejarlo en blanco y completarlo después.",
+  "parentPickerCreate": "Registrar uno nuevo",
+  "parentPickerEmptyMaleTitle": "Aún no hay machos",
+  "parentPickerEmptyFemaleTitle": "Aún no hay hembras",
+  "parentPickerEmptyMessage": "Regístralo ahora: volverás aquí con lo que ya habías capturado.",
+  "parentPickerSearchEmptyTitle": "Sin resultados",
+  "parentPickerSearchEmptyMessage": "Prueba con otra placa o nombre.",
+  "parentPickerSelect": "Seleccionar",
+
+  "clutchPlanLimitTitle": "No caben todas las crías",
+  "clutchPlanLimitBody": "{fits, plural, =0{Tu plan permite {limit} ejemplares y ya los tienes todos. Puedes seguir consultando y exportando.} =1{Tu plan permite {limit} ejemplares y solo cabe 1 más. ¿Registras 1 cría?} other{Tu plan permite {limit} ejemplares y solo caben {fits} más. ¿Registras {fits} crías?}}",
+  "@clutchPlanLimitBody": {
+    "description": "CU-02 alterno B · dice cuántas caben y ofrece esa cantidad",
+    "placeholders": {
+      "fits": { "type": "int" },
+      "limit": { "type": "int" }
+    }
+  },
+  "clutchPlanLimitAccept": "{fits, plural, =1{Registrar 1} other{Registrar {fits}}}",
+  "@clutchPlanLimitAccept": {
+    "placeholders": { "fits": { "type": "int" } }
+  },
+
   "clutchNew": "Registrar camada",
   "clutchTitle": "Nueva camada",
   "clutchSectionBirth": "Nacimiento",

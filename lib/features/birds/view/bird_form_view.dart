@@ -157,18 +157,20 @@ class _BirdFormViewState extends ConsumerState<BirdFormView> {
 
           const SizedBox(height: AppSpacing.lg),
           SectionLabel(l10n.birdSectionOrigin),
-          ParentDropdown(
+          ParentField(
             label: l10n.fieldFather,
-            value: viewModel.fatherId,
-            candidates: viewModel.fatherCandidates,
-            onChanged: viewModel.setFatherId,
+            sex: Sex.male,
+            value: viewModel.father,
+            excludeId: viewModel.excludeId,
+            onChanged: viewModel.setFather,
           ),
           const SizedBox(height: AppSpacing.md),
-          ParentDropdown(
+          ParentField(
             label: l10n.fieldMother,
-            value: viewModel.motherId,
-            candidates: viewModel.motherCandidates,
-            onChanged: viewModel.setMotherId,
+            sex: Sex.female,
+            value: viewModel.mother,
+            excludeId: viewModel.excludeId,
+            onChanged: viewModel.setMother,
           ),
           const SizedBox(height: AppSpacing.md),
           CpTextField(

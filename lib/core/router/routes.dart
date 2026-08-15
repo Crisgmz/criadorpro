@@ -37,6 +37,11 @@ abstract final class Routes {
   /// captura rápida y la barra inferior solo distraería.
   static const String clutchNew = '/birds/clutch/new';
 
+  /// Pantalla 18 (`RF-REG-11`). Devuelve la elección por `pop`, no navega:
+  /// el formulario que la abrió sigue vivo detrás con lo ya capturado.
+  static String parentPicker(String sexId, {String? excludeId}) =>
+      '/birds/parent/$sexId${excludeId == null ? '' : '?exclude=$excludeId'}';
+
   static String birdDetail(String id) => '/birds/$id';
   static String birdEdit(String id) => '/birds/$id/edit';
 

@@ -29,11 +29,8 @@ class BirdFormViewModel extends BaseViewModel {
   String _line = '';
   String _weight = '';
   String _notes = '';
-  String? _fatherId;
-  String? _motherId;
-
-  List<Bird> _fatherCandidates = const [];
-  List<Bird> _motherCandidates = const [];
+  Bird? _father;
+  Bird? _mother;
 
   ValidationError? _plateError;
   ValidationError? _weightError;
@@ -50,10 +47,16 @@ class BirdFormViewModel extends BaseViewModel {
   String get line => _line;
   String get weight => _weight;
   String get notes => _notes;
-  String? get fatherId => _fatherId;
-  String? get motherId => _motherId;
-  List<Bird> get fatherCandidates => _fatherCandidates;
-  List<Bird> get motherCandidates => _motherCandidates;
+  Bird? get father => _father;
+  Bird? get mother => _mother;
+
+  /// Se derivan del ejemplar elegido: así no pueden quedar desincronizados el
+  /// id que se guarda y el nombre que se muestra.
+  String? get fatherId => _father?.id;
+  String? get motherId => _mother?.id;
+
+  /// El propio ejemplar no puede ser su padre ni su madre (`RV-10`).
+  String? get excludeId => _birdId;
   ValidationError? get plateError => _plateError;
   ValidationError? get weightError => _weightError;
 
@@ -88,24 +91,11 @@ class BirdFormViewModel extends BaseViewModel {
       _line = bird.line ?? '';
       _weight = bird.weightG?.toString() ?? '';
       _notes = bird.notes ?? '';
-      _fatherId = bird.fatherId;
-      _motherId = bird.motherId;
+      _father = await _findOrNull(bird.fatherId);
+      _mother = await _findOrNull(bird.motherId);
     } else {
       _plate = (await _repository.nextPlate(_ownerId)).toString();
     }
-
-    final fathers = await _repository.parentCandidates(
-      ownerId: _ownerId,
-      sex: Sex.male,
-      excludeId: _birdId,
-    );
-    final mothers = await _repository.parentCandidates(
-      ownerId: _ownerId,
-      sex: Sex.female,
-      excludeId: _birdId,
-    );
-    _fatherCandidates = fathers.valueOrNull ?? const [];
-    _motherCandidates = mothers.valueOrNull ?? const [];
 
     setReady();
   }
@@ -149,14 +139,21 @@ class BirdFormViewModel extends BaseViewModel {
 
   void setNotes(String value) => _notes = value;
 
-  void setFatherId(String? value) {
-    _fatherId = value;
+  /// Lo elige la pantalla 18 (`RF-REG-11`).
+  void setFather(Bird? value) {
+    _father = value;
     safeNotify();
   }
 
-  void setMotherId(String? value) {
-    _motherId = value;
+  void setMother(Bird? value) {
+    _mother = value;
     safeNotify();
+  }
+
+  Future<Bird?> _findOrNull(String? id) async {
+    if (id == null) return null;
+    final result = await _repository.findById(id);
+    return result.valueOrNull;
   }
 
   // --- Validación al perder el foco (RF-AUT-05) ---------------------------
@@ -205,8 +202,8 @@ class BirdFormViewModel extends BaseViewModel {
       color: () => _emptyToNull(_color),
       line: () => _emptyToNull(_line),
       weightG: _parsedWeight,
-      fatherId: () => _fatherId,
-      motherId: () => _motherId,
+      fatherId: () => fatherId,
+      motherId: () => motherId,
       notes: () => _emptyToNull(_notes),
     );
 

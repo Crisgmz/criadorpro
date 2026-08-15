@@ -79,16 +79,33 @@ class BirdsDao extends DatabaseAccessor<AppDatabase> with _$BirdsDaoMixin {
 
   /// Candidatos a padre/madre: ejemplares vivos del criadero de ese sexo,
   /// excluyendo al propio ejemplar para no crear un ciclo genealógico.
+  ///
+  /// El [search] usa la misma regla que `RF-REG-04` —por placa o por nombre—
+  /// para que buscar en el selector de progenitor se sienta igual que buscar en
+  /// la lista de ejemplares.
   Future<List<BirdRow>> parentCandidates({
     required String ownerId,
     required String sex,
     String? excludeId,
+    String? search,
   }) {
     final query = select(birds)
       ..where((t) => t.ownerId.equals(ownerId) & t.isDeleted.equals(false) & t.sex.equals(sex));
     if (excludeId != null) {
       query.where((t) => t.id.equals(excludeId).not());
     }
+
+    final term = search?.trim() ?? '';
+    if (term.isNotEmpty) {
+      final pattern = '%${term.toLowerCase()}%';
+      final plate = int.tryParse(term.replaceAll('#', '').trim());
+      query.where(
+        (t) => plate == null
+            ? t.name.lower().like(pattern)
+            : t.name.lower().like(pattern) | t.plate.equals(plate),
+      );
+    }
+
     query.orderBy([(t) => OrderingTerm(expression: t.plate, mode: OrderingMode.desc)]);
     return query.get();
   }

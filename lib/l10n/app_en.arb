@@ -234,6 +234,33 @@
   "birdSectionOrigin": "Origin",
   "birdSectionExtra": "Additional data",
 
+  "parentPickerTitleFather": "Choose sire",
+  "parentPickerTitleMother": "Choose dam",
+  "parentPickerSearchHint": "Search by plate or name",
+  "parentPickerNone": "Not recorded",
+  "parentPickerNoneHint": "You can leave it blank and fill it in later.",
+  "parentPickerCreate": "Register a new one",
+  "parentPickerEmptyMaleTitle": "No males yet",
+  "parentPickerEmptyFemaleTitle": "No females yet",
+  "parentPickerEmptyMessage": "Register it now: you will come back here with everything you had entered.",
+  "parentPickerSearchEmptyTitle": "No results",
+  "parentPickerSearchEmptyMessage": "Try a different plate or name.",
+  "parentPickerSelect": "Select",
+
+  "clutchPlanLimitTitle": "Not every chick fits",
+  "clutchPlanLimitBody": "{fits, plural, =0{Your plan allows {limit} birds and you already have them all. You can still browse and export.} =1{Your plan allows {limit} birds and only 1 more fits. Log 1 chick?} other{Your plan allows {limit} birds and only {fits} more fit. Log {fits} chicks?}}",
+  "@clutchPlanLimitBody": {
+    "description": "CU-02 alternate B",
+    "placeholders": {
+      "fits": { "type": "int" },
+      "limit": { "type": "int" }
+    }
+  },
+  "clutchPlanLimitAccept": "{fits, plural, =1{Log 1} other{Log {fits}}}",
+  "@clutchPlanLimitAccept": {
+    "placeholders": { "fits": { "type": "int" } }
+  },
+
   "clutchNew": "Log a clutch",
   "clutchTitle": "New clutch",
   "clutchSectionBirth": "Hatching",

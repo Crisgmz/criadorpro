@@ -82,11 +82,13 @@ class BirdsRepository implements RemotePuller {
     required String ownerId,
     required Sex sex,
     String? excludeId,
+    String? search,
   }) => guard(() async {
     final rows = await _birdsDao.parentCandidates(
       ownerId: ownerId,
       sex: sex.id,
       excludeId: excludeId,
+      search: search,
     );
     return rows.map(Bird.fromRow).toList();
   }, (error, _) => DatabaseFailure(debugMessage: error.toString(), cause: error));

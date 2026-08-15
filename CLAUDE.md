@@ -398,14 +398,22 @@ agrupada por camada, cada cría enlazada a su propia ficha. La pestaña de
 pruebas muestra su estado vacío: el registro es `RF-PRU` y la tabla
 `evaluations` llega en F2.
 
-Falta de `RF-REG`:
+El **selector de progenitor** (`RF-REG-11`) es la pantalla 18: lista filtrada
+por sexo, buscador por placa o nombre y alta al vuelo. Se cierra devolviendo la
+elección en vez de navegar, así el formulario sigue montado con lo capturado
+(CU-02 alterno A). Sustituye al desplegable en el alta de ejemplar y en el
+registro de camada. Al topar con el plan, la camada dice **cuántas crías caben**
+y ofrece registrar esa cantidad (CU-02 alterno B).
 
-| ID | Qué falta | Prioridad |
-|---|---|---|
-| `RF-REG-11` | Pantalla 18: elegir progenitor de una lista filtrada por sexo, **con buscador y alta al vuelo sin perder lo capturado** (CU-02 alterno A). Hoy es un desplegable simple. | Obligatorio |
-| CU-02 alt. B | Al exceder el plan, decir **cuántas crías caben** y ofrecer registrar esa cantidad. Hoy devuelve el fallo genérico de límite. | Obligatorio |
-| `RF-REG-14` | Editar cualquier campo y **registrar pesos sucesivos con su fecha**. Exige tabla nueva. | Esperado |
-| `RF-REG-15` | Foto por ejemplar, cámara o galería (`RV-19`). | Esperado |
+Falta de `RF-REG`, ambos de prioridad **Esperado**:
+
+| ID | Qué falta |
+|---|---|
+| `RF-REG-14` | Editar cualquier campo y **registrar pesos sucesivos con su fecha**. Exige tabla nueva. |
+| `RF-REG-15` | Foto por ejemplar, cámara o galería (`RV-19`). |
+
+Con eso, lo único **Obligatorio** que queda de F1 es `RF-PED` — el pedigrí de
+la pantalla 23.
 
 **El esquema implementado diverge de la especificación.** Corregirlo es el
 primer trabajo de F1, porque todo lo demás cuelga de la placa:

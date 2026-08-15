@@ -3,7 +3,6 @@ import 'package:criadorpro/core/db/app_database.dart';
 import 'package:criadorpro/core/domain/sex.dart';
 import 'package:criadorpro/core/network/supabase_service.dart';
 import 'package:criadorpro/features/birds/model/bird.dart';
-import 'package:criadorpro/features/birds/repository/birds_repository.dart';
 import 'package:criadorpro/features/birds/repository/clutches_repository.dart';
 import 'package:criadorpro/features/birds/viewmodel/clutch_form_viewmodel.dart';
 import 'package:drift/drift.dart' show Value;
@@ -36,14 +35,6 @@ void main() {
       repository: ClutchesRepository(
         database: database,
         clutchesDao: database.clutchesDao,
-        birdsDao: database.birdsDao,
-        profilesDao: database.profilesDao,
-        syncQueue: database.syncQueueDao,
-        supabase: SupabaseService(null),
-        clock: () => now,
-      ),
-      birdsRepository: BirdsRepository(
-        database: database,
         birdsDao: database.birdsDao,
         profilesDao: database.profilesDao,
         syncQueue: database.syncQueueDao,
@@ -89,16 +80,6 @@ void main() {
 
       expect(viewModel.date.hour, 0);
       expect(viewModel.isDateInFuture, isFalse);
-    });
-
-    test('carga los candidatos a progenitor ya separados por sexo', () async {
-      await givenBird(id: 'macho', sex: Sex.male, plate: 1);
-      await givenBird(id: 'hembra', sex: Sex.female, plate: 2);
-
-      await viewModel.load();
-
-      expect(viewModel.fatherCandidates.map((b) => b.id), ['macho']);
-      expect(viewModel.motherCandidates.map((b) => b.id), ['hembra']);
     });
   });
 
@@ -200,6 +181,91 @@ void main() {
     });
   });
 
+  group('CU-02 alterno B · el plan se llena', () {
+    test('el límite no sale como error: dice cuántas caben', () async {
+      // 23 de 25 ocupadas en el plan gratuito, y se piden 8.
+      await database.profilesDao.upsert(
+        ProfilesCompanion.insert(
+          id: ownerId,
+          createdAt: now,
+          updatedAt: now,
+          plan: Value(SubscriptionPlan.free.id),
+          nextPlate: const Value(24),
+        ),
+      );
+      for (var i = 0; i < 23; i++) {
+        await givenBird(id: 'b$i', sex: Sex.male, plate: i + 1);
+      }
+
+      await viewModel.load();
+      viewModel.setHatched(8);
+      final registration = await viewModel.submit();
+
+      expect(registration, isNull);
+      // No es un error de la app: es una decisión del criador.
+      expect(viewModel.hasError, isFalse);
+      expect(viewModel.planLimit, isNotNull);
+      expect(viewModel.planLimit!.limit, 25);
+      expect(viewModel.planLimitFits, 2);
+    });
+
+    test('registrar solo las que caben sí funciona', () async {
+      await database.profilesDao.upsert(
+        ProfilesCompanion.insert(
+          id: ownerId,
+          createdAt: now,
+          updatedAt: now,
+          plan: Value(SubscriptionPlan.free.id),
+          nextPlate: const Value(24),
+        ),
+      );
+      for (var i = 0; i < 23; i++) {
+        await givenBird(id: 'b$i', sex: Sex.male, plate: i + 1);
+      }
+
+      await viewModel.load();
+      viewModel.setHatched(8);
+      await viewModel.submit();
+
+      // Lo que hace el botón «Registrar 2» del diálogo.
+      final fits = viewModel.planLimitFits;
+      viewModel.clearPlanLimit();
+      viewModel.setHatched(fits);
+      final registration = await viewModel.submit();
+
+      expect(registration, isNotNull);
+      expect(registration!.chicks, hasLength(2));
+      expect(viewModel.planLimit, isNull);
+    });
+
+    test('sin plazas libres no se ofrece ninguna cantidad', () async {
+      await database.profilesDao.upsert(
+        ProfilesCompanion.insert(
+          id: ownerId,
+          createdAt: now,
+          updatedAt: now,
+          plan: Value(SubscriptionPlan.free.id),
+          nextPlate: const Value(26),
+        ),
+      );
+      for (var i = 0; i < 25; i++) {
+        await givenBird(id: 'b$i', sex: Sex.male, plate: i + 1);
+      }
+
+      await viewModel.load();
+      final registration = await viewModel.submit();
+
+      expect(registration, isNull);
+      expect(viewModel.planLimitFits, 0);
+    });
+
+    test('recargar la pantalla olvida el aviso de límite', () async {
+      await viewModel.load();
+
+      expect(viewModel.planLimit, isNull);
+    });
+  });
+
   group('RF-REG-10 · envío', () {
     test('devuelve la camada con sus crías y el rango de placas', () async {
       await viewModel.load();
@@ -227,15 +293,26 @@ void main() {
       // crearía registros equivocados sin que nadie lo note.
       expect(viewModel.hatched, 1);
       expect(viewModel.eggs, isEmpty);
-      expect(viewModel.fatherId, isNull);
-      expect(viewModel.motherId, isNull);
+      expect(viewModel.father, isNull);
+      expect(viewModel.mother, isNull);
     });
 
     test('un fallo del repositorio deja el error y no devuelve camada', () async {
       await viewModel.load();
       await givenBird(id: 'hembra', sex: Sex.female, plate: 1);
-      // `RV-10`: una hembra no puede ser el padre.
-      viewModel.setFatherId('hembra');
+      // `RV-10`: una hembra no puede ser el padre. El repositorio es la última
+      // palabra aunque la pantalla 18 no deba ofrecerla nunca.
+      viewModel.setFather(
+        Bird(
+          id: 'hembra',
+          ownerId: ownerId,
+          plate: 1,
+          sex: Sex.female,
+          status: BirdStatus.active,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
 
       final registration = await viewModel.submit();
 

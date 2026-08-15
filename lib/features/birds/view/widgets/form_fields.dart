@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/domain/sex.dart';
+import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/sex_badge.dart';
 import '../../../../l10n/generated/app_l10n.dart';
 import '../../model/bird.dart';
+import '../parent_picker_view.dart';
 
 /// Piezas compartidas por los formularios del módulo de registros.
 ///
@@ -25,48 +30,62 @@ class SectionLabel extends StatelessWidget {
   );
 }
 
-/// Selector de padre o madre entre los ejemplares del criadero.
+/// Selector de padre o madre — `RF-REG-11`.
 ///
-/// Los candidatos ya vienen filtrados por sexo desde el repositorio (`RV-10`):
-/// la pantalla no puede ofrecer una hembra como padre.
-class ParentDropdown extends StatelessWidget {
-  const ParentDropdown({
+/// Abre la pantalla 18 en lugar de desplegar una lista: un `Dropdown` deja de
+/// servir en cuanto el criadero pasa de veinte ejemplares, y no permite ni
+/// buscar ni dar de alta al progenitor que falta. Al volver, el formulario
+/// sigue montado con todo lo capturado (CU-02 alterno A).
+class ParentField extends StatelessWidget {
+  const ParentField({
     required this.label,
+    required this.sex,
     required this.value,
-    required this.candidates,
     required this.onChanged,
     super.key,
+    this.excludeId,
   });
 
   final String label;
-  final String? value;
-  final List<Bird> candidates;
-  final ValueChanged<String?> onChanged;
+  final Sex sex;
+  final Bird? value;
+
+  /// El propio ejemplar cuando se edita: nadie puede ser su propio padre.
+  final String? excludeId;
+
+  final ValueChanged<Bird?> onChanged;
+
+  Future<void> _pick(BuildContext context) async {
+    final selection = await context.push<ParentSelection>(
+      Routes.parentPicker(sex.id, excludeId: excludeId),
+    );
+    // `null` es «cancelé»; un `ParentSelection` con `bird` nulo es «sin
+    // registrar», que sí es una elección y debe aplicarse.
+    if (selection != null) onChanged(selection.bird);
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
-    // Si el progenitor guardado ya no está entre los candidatos (por ejemplo,
-    // se dio de baja), no lo preseleccionamos para no romper el Dropdown.
-    final safeValue = candidates.any((bird) => bird.id == value) ? value : null;
+    final bird = value;
 
-    return DropdownButtonFormField<String?>(
-      initialValue: safeValue,
-      isExpanded: true,
-      decoration: InputDecoration(labelText: label),
-      items: [
-        DropdownMenuItem(value: null, child: Text(l10n.commonNone)),
-        for (final bird in candidates)
-          DropdownMenuItem(
-            value: bird.id,
-            // La placa siempre delante: es como el criador los distingue.
-            child: Text(
-              bird.name == null ? '#${bird.plate}' : '#${bird.plate} · ${bird.name}',
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-      ],
-      onChanged: onChanged,
+    return InkWell(
+      onTap: () => _pick(context),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(SexBadge.iconOf(sex), color: SexBadge.colorOf(context, sex)),
+          suffixIcon: const Icon(Icons.chevron_right),
+        ),
+        child: Text(
+          // La placa siempre delante: es como el criador los distingue.
+          bird == null
+              ? l10n.parentPickerNone
+              : (bird.name == null ? '#${bird.plate}' : '#${bird.plate} · ${bird.name}'),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
     );
   }
 }

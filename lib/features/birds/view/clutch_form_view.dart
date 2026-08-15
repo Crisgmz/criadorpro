@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/domain/sex.dart';
 import '../../../core/error/failure_messages.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
@@ -81,10 +82,57 @@ class _ClutchFormViewState extends ConsumerState<ClutchFormView> {
       return;
     }
 
+    // CU-02 alterno B antes que el error genérico: hay una salida concreta que
+    // ofrecerle al criador.
+    if (viewModel.planLimit != null) {
+      await _offerWhatFits();
+      return;
+    }
+
     final failure = viewModel.failure;
     if (failure != null) {
       messenger.showSnackBar(SnackBar(content: Text(failureMessage(l10n, failure))));
       viewModel.clearFailure();
+    }
+  }
+
+  /// CU-02 alterno B — «solo caben N, ¿registro N?».
+  ///
+  /// Decir «no se pudo» y dejar al criador contando a mano cuántas plazas le
+  /// quedan sería trasladarle un cálculo que la app ya tiene hecho.
+  Future<void> _offerWhatFits() async {
+    final l10n = AppL10n.of(context);
+    final viewModel = _viewModel;
+    final limit = viewModel.planLimit!;
+    final fits = viewModel.planLimitFits;
+
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.info_outline, size: 40),
+        title: Text(l10n.clutchPlanLimitTitle),
+        content: Text(l10n.clutchPlanLimitBody(fits, limit.limit)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.dashboardSeePlans),
+          ),
+          // Con cero plazas libres no hay nada que ofrecer: `RS-03` deja
+          // consultar y exportar, pero no crear.
+          if (fits > 0)
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.clutchPlanLimitAccept(fits)),
+            ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    viewModel.clearPlanLimit();
+    if (accepted ?? false) {
+      viewModel.setHatched(fits);
+      await _submit();
     }
   }
 
@@ -188,18 +236,18 @@ class _ClutchFormViewState extends ConsumerState<ClutchFormView> {
 
           const SizedBox(height: AppSpacing.lg),
           SectionLabel(l10n.clutchSectionParents),
-          ParentDropdown(
+          ParentField(
             label: l10n.fieldFather,
-            value: viewModel.fatherId,
-            candidates: viewModel.fatherCandidates,
-            onChanged: viewModel.setFatherId,
+            sex: Sex.male,
+            value: viewModel.father,
+            onChanged: viewModel.setFather,
           ),
           const SizedBox(height: AppSpacing.md),
-          ParentDropdown(
+          ParentField(
             label: l10n.fieldMother,
-            value: viewModel.motherId,
-            candidates: viewModel.motherCandidates,
-            onChanged: viewModel.setMotherId,
+            sex: Sex.female,
+            value: viewModel.mother,
+            onChanged: viewModel.setMother,
           ),
 
           const SizedBox(height: AppSpacing.lg),
