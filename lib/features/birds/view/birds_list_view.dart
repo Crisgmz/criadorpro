@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -168,10 +170,14 @@ class _BirdTile extends StatelessWidget {
       if (bird.status != BirdStatus.active) statusLabel(l10n, bird.status),
     ].join(' · ');
 
+    final photo = bird.photoPath == null ? null : File(bird.photoPath!);
+    final hasPhoto = photo != null && photo.existsSync();
+
     return ListTile(
       onTap: () => context.push(Routes.birdDetail(bird.id)),
       leading: CircleAvatar(
         backgroundColor: color.withValues(alpha: 0.16),
+        foregroundImage: hasPhoto ? FileImage(photo) : null,
         child: Icon(SexBadge.iconOf(bird.sex), color: color),
       ),
       title: Text(bird.displayName, maxLines: 1, overflow: TextOverflow.ellipsis),

@@ -405,12 +405,24 @@ elección en vez de navegar, así el formulario sigue montado con lo capturado
 registro de camada. Al topar con el plan, la camada dice **cuántas crías caben**
 y ofrece registrar esa cantidad (CU-02 alterno B).
 
-Falta de `RF-REG`, ambos de prioridad **Esperado**:
+La **foto del ejemplar** (`RF-REG-15`) ya está: cámara o galería, con los topes
+de `RV-19` —1.600 px de lado mayor y 2 MB— aplicados en
+[lib/core/media/photo_service.dart](lib/core/media/photo_service.dart). El
+redimensionado lo hace el selector en código nativo; solo si aun así se pasa de
+2 MB se recomprime en un isolate. Se ve en el formulario, en la ficha y como
+miniatura en la lista.
 
-| ID | Qué falta |
-|---|---|
-| `RF-REG-14` | Editar cualquier campo y **registrar pesos sucesivos con su fecha**. Exige tabla nueva. |
-| `RF-REG-15` | Foto por ejemplar, cámara o galería (`RV-19`). |
+**La foto todavía no sube a Storage.** Vive en el área privada de la app y
+`birds.photo_path` no viaja en el payload de sincronización —una ruta local no
+significa nada en otro dispositivo—. Falta el bucket en Supabase y la operación
+de subida independiente que describe §5.
+
+Falta de `RF-REG`:
+
+| ID | Qué falta | Prioridad |
+|---|---|---|
+| `RF-REG-14` | Editar cualquier campo y **registrar pesos sucesivos con su fecha**. Exige tabla nueva. | Esperado |
+| `RF-REG-15` | Subida de la foto a Storage (la captura ya está). | Esperado |
 
 ### Genealogía — implementado
 

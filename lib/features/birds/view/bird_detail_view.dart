@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -314,11 +316,17 @@ class _Header extends StatelessWidget {
     final l10n = AppL10n.of(context);
     final color = SexBadge.colorOf(context, bird.sex);
 
+    // `RF-REG-15`: con foto, manda la foto. El icono de sexo no se pierde —
+    // sigue en la insignia de debajo, que además lleva su etiqueta textual.
+    final photo = bird.photoPath == null ? null : File(bird.photoPath!);
+    final hasPhoto = photo != null && photo.existsSync();
+
     return Row(
       children: [
         CircleAvatar(
           radius: 32,
           backgroundColor: color.withValues(alpha: 0.16),
+          foregroundImage: hasPhoto ? FileImage(photo) : null,
           child: Icon(SexBadge.iconOf(bird.sex), size: 32, color: color),
         ),
         const SizedBox(width: AppSpacing.md),

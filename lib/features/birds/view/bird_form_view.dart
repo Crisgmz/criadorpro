@@ -15,6 +15,7 @@ import '../model/bird.dart';
 import '../viewmodel/bird_form_viewmodel.dart';
 import 'bird_labels.dart';
 import 'widgets/form_fields.dart';
+import 'widgets/photo_field.dart';
 
 /// Alta y edición de un ejemplar. Sin [birdId] es un alta.
 class BirdFormView extends ConsumerStatefulWidget {
@@ -182,6 +183,13 @@ class _BirdFormViewState extends ConsumerState<BirdFormView> {
 
           const SizedBox(height: AppSpacing.lg),
           SectionLabel(l10n.birdSectionExtra),
+          PhotoField(
+            path: viewModel.photoPath,
+            isBusy: viewModel.isCapturingPhoto,
+            onCapture: viewModel.capturePhoto,
+            onRemove: viewModel.removePhoto,
+          ),
+          const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<BirdStatus>(
             initialValue: viewModel.status,
             decoration: InputDecoration(labelText: l10n.fieldStatus),

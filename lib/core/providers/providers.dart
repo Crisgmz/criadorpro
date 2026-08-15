@@ -32,6 +32,7 @@ import '../db/daos/clutches_dao.dart';
 import '../db/daos/profiles_dao.dart';
 import '../db/daos/sync_queue_dao.dart';
 import '../domain/sex.dart';
+import '../media/photo_service.dart';
 import '../network/connectivity_service.dart';
 import '../network/supabase_service.dart';
 import '../sync/sync_service.dart';
@@ -67,6 +68,9 @@ final syncQueueDaoProvider = Provider<SyncQueueDao>(
 );
 
 final connectivityServiceProvider = Provider<ConnectivityService>((ref) => ConnectivityService());
+
+/// Captura y almacenamiento local de fotos — `RF-REG-15`.
+final photoServiceProvider = Provider<PhotoService>((ref) => PhotoService());
 
 /// Estado de red para la franja de "sin conexión".
 final isOnlineProvider = StreamProvider<bool>(
@@ -251,6 +255,7 @@ final birdFormViewModelProvider = ChangeNotifierProvider.autoDispose
     .family<BirdFormViewModel, String?>(
       (ref, birdId) => BirdFormViewModel(
         repository: ref.watch(birdsRepositoryProvider),
+        photoService: ref.watch(photoServiceProvider),
         ownerId: ref.watch(currentOwnerIdProvider),
         birdId: birdId,
       ),

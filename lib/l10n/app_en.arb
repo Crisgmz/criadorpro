@@ -227,6 +227,14 @@
   "pedigreeLegendMale": "Sires",
   "pedigreeLegendFemale": "Dams",
 
+  "photoTitle": "Photo",
+  "photoAdd": "Add photo",
+  "photoChange": "Change photo",
+  "photoRemove": "Remove photo",
+  "photoFromCamera": "Take a photo",
+  "photoFromGallery": "Choose from gallery",
+  "photoHint": "Optional. Stored on the device.",
+
   "birdTabData": "Details",
   "birdTabTests": "Trials",
   "birdTabOffspring": "Offspring",

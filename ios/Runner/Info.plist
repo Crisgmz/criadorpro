@@ -72,5 +72,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Criador Pro usa la cámara para tomar la foto de un ejemplar.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Criador Pro accede a tus fotos para que elijas la imagen de un ejemplar.</string>
 </dict>
 </plist>

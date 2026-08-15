@@ -1,5 +1,6 @@
 import '../../../core/base/base_viewmodel.dart';
 import '../../../core/domain/sex.dart';
+import '../../../core/media/photo_service.dart';
 import '../../../core/utils/validators.dart';
 import '../model/bird.dart';
 import '../repository/birds_repository.dart';
@@ -9,12 +10,18 @@ import '../repository/birds_repository.dart';
 /// Mantiene el borrador en memoria y solo toca el repositorio al enviar, así el
 /// usuario puede cambiar de idea sin dejar registros a medias.
 class BirdFormViewModel extends BaseViewModel {
-  BirdFormViewModel({required BirdsRepository repository, required String ownerId, String? birdId})
-    : _repository = repository,
-      _ownerId = ownerId,
-      _birdId = birdId;
+  BirdFormViewModel({
+    required BirdsRepository repository,
+    required PhotoService photoService,
+    required String ownerId,
+    String? birdId,
+  }) : _repository = repository,
+       _photoService = photoService,
+       _ownerId = ownerId,
+       _birdId = birdId;
 
   final BirdsRepository _repository;
+  final PhotoService _photoService;
   final String _ownerId;
   final String? _birdId;
 
@@ -31,6 +38,8 @@ class BirdFormViewModel extends BaseViewModel {
   String _notes = '';
   Bird? _father;
   Bird? _mother;
+  String? _photoPath;
+  bool _capturingPhoto = false;
 
   ValidationError? _plateError;
   ValidationError? _weightError;
@@ -57,6 +66,13 @@ class BirdFormViewModel extends BaseViewModel {
 
   /// El propio ejemplar no puede ser su padre ni su madre (`RV-10`).
   String? get excludeId => _birdId;
+
+  /// Ruta local de la foto — `RF-REG-15`.
+  String? get photoPath => _photoPath;
+
+  /// La captura pasa por la cámara y por una recompresión: puede tardar lo
+  /// suficiente como para que haga falta decírselo al usuario.
+  bool get isCapturingPhoto => _capturingPhoto;
   ValidationError? get plateError => _plateError;
   ValidationError? get weightError => _weightError;
 
@@ -91,6 +107,7 @@ class BirdFormViewModel extends BaseViewModel {
       _line = bird.line ?? '';
       _weight = bird.weightG?.toString() ?? '';
       _notes = bird.notes ?? '';
+      _photoPath = bird.photoPath;
       _father = await _findOrNull(bird.fatherId);
       _mother = await _findOrNull(bird.motherId);
     } else {
@@ -138,6 +155,31 @@ class BirdFormViewModel extends BaseViewModel {
   }
 
   void setNotes(String value) => _notes = value;
+
+  /// `RF-REG-15` — cámara o galería. Cancelar no cambia nada ni avisa.
+  Future<void> capturePhoto(PhotoSource source) async {
+    _capturingPhoto = true;
+    safeNotify();
+
+    final path = await _photoService.capture(source);
+    if (path != null) {
+      // La anterior se borra solo cuando la nueva ya está en disco: si la
+      // captura falla, el ejemplar conserva la foto que tenía.
+      final previous = _photoPath;
+      _photoPath = path;
+      if (previous != null && previous != path) await _photoService.deleteFile(previous);
+    }
+
+    _capturingPhoto = false;
+    safeNotify();
+  }
+
+  /// Quita la foto del ejemplar. El archivo no se borra hasta guardar: si el
+  /// criador se arrepiente y sale sin guardar, la foto sigue ahí.
+  void removePhoto() {
+    _photoPath = null;
+    safeNotify();
+  }
 
   /// Lo elige la pantalla 18 (`RF-REG-11`).
   void setFather(Bird? value) {
@@ -205,6 +247,7 @@ class BirdFormViewModel extends BaseViewModel {
       fatherId: () => fatherId,
       motherId: () => motherId,
       notes: () => _emptyToNull(_notes),
+      photoPath: () => _photoPath,
     );
 
     final result = await _repository.save(draft);

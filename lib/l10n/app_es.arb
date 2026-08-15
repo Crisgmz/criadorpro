@@ -282,6 +282,14 @@
   "pedigreeLegendMale": "Padres",
   "pedigreeLegendFemale": "Madres",
 
+  "photoTitle": "Foto",
+  "photoAdd": "Añadir foto",
+  "photoChange": "Cambiar foto",
+  "photoRemove": "Quitar foto",
+  "photoFromCamera": "Tomar una foto",
+  "photoFromGallery": "Elegir de la galería",
+  "photoHint": "Opcional. Se guarda en el dispositivo.",
+
   "birdTabData": "Datos",
   "birdTabTests": "Pruebas",
   "birdTabOffspring": "Descendencia",
