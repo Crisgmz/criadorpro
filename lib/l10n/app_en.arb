@@ -455,8 +455,9 @@
   "traitNewPlumage": "Create new feather",
   "traitNewComb": "Create new comb",
   "traitName": "Name",
+  "traitContinue": "Continue",
 
-  "fieldColor": "Color / plumage",
+  "fieldColor": "Feather",
   "fieldLine": "Line or breed",
   "fieldStatus": "Status",
   "fieldWeight": "Weight (g)",

@@ -512,8 +512,9 @@
   "traitNewPlumage": "Crear plumaje nuevo",
   "traitNewComb": "Crear cresta nueva",
   "traitName": "Nombre",
+  "traitContinue": "Continuar",
 
-  "fieldColor": "Color / plumaje",
+  "fieldColor": "Plumaje",
   "fieldLine": "Línea o raza",
   "fieldStatus": "Estado",
   "fieldWeight": "Peso (g)",

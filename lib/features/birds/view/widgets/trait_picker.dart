@@ -206,7 +206,7 @@ class _TraitSheetState extends ConsumerState<_TraitSheet> {
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
             child: CpButton(
-              label: l10n.commonNext,
+              label: l10n.traitContinue,
               onPressed: () => Navigator.of(context).pop(_TraitSelection(_selected)),
             ),
           ),

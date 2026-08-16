@@ -40,7 +40,11 @@ class PhoneField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 116,
+          // 132 y no 116: con Inter, «DO +1» más el padding del campo y la
+          // flecha del desplegable no caben en 116, y el texto desbordaba trece
+          // píxeles. Cabía antes solo porque el tema aplicaba por error la
+          // fuente del sistema a este campo.
+          width: 132,
           child: DropdownButtonFormField<Country>(
             initialValue: country,
             isExpanded: true,
@@ -67,7 +71,13 @@ class PhoneField extends StatelessWidget {
               for (final option in Country.values)
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('${option.code} +${option.dialCode}'),
+                  // Un prefijo de tres dígitos no puede romper la fila: se
+                  // recorta antes de desbordar.
+                  child: Text(
+                    '${option.code} +${option.dialCode}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
             ],
             onChanged: enabled

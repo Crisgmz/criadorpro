@@ -93,12 +93,18 @@ abstract final class AppTheme {
     final isLight = scheme.brightness == Brightness.light;
     final base = ThemeData(colorScheme: scheme, useMaterial3: true);
 
+    // Se construye una vez y se usa en todas partes. Tomar `base.textTheme` en
+    // los temas de componente —como estaba— deja fuera la familia y el color:
+    // los botones y la barra superior acababan dibujados con la fuente del
+    // sistema mientras el resto de la app usaba Inter, y nada fallaba.
+    final textTheme = AppTypography.apply(base.textTheme, scheme);
+
     return base.copyWith(
       // Vocabulario del oficio (sexo, aviso, acento de marca): cambia con el
       // tema, así que ningún widget necesita preguntar por el brillo.
       extensions: [isLight ? SemanticColors.light : SemanticColors.dark],
       scaffoldBackgroundColor: isLight ? AppColors.background : AppColors.navyDeep,
-      textTheme: AppTypography.apply(base.textTheme, scheme),
+      textTheme: textTheme,
       // Barra superior siempre clara y con el título centrado: el navy del
       // producto se reserva a tarjetas dentro del contenido (membresía,
       // resumen del criadero), no al cromado de la pantalla.
@@ -108,7 +114,7 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 2,
         centerTitle: true,
-        titleTextStyle: base.textTheme.titleLarge?.copyWith(
+        titleTextStyle: textTheme.titleLarge?.copyWith(
           color: scheme.onSurface,
           fontWeight: FontWeight.w600,
         ),
@@ -143,7 +149,7 @@ abstract final class AppTheme {
         errorBorder: _fieldBorder(scheme.error),
         focusedErrorBorder: _fieldBorder(scheme.error, width: 2),
         disabledBorder: _fieldBorder(scheme.outlineVariant.withValues(alpha: 0.5)),
-        errorStyle: base.textTheme.bodySmall?.copyWith(color: scheme.error),
+        errorStyle: textTheme.bodySmall?.copyWith(color: scheme.error),
       ),
       // Ojo con `Size.fromHeight`: equivale a `Size(double.infinity, alto)` y
       // dentro de una Row o de las acciones de un diálogo fuerza ancho
@@ -153,7 +159,7 @@ abstract final class AppTheme {
         style: FilledButton.styleFrom(
           minimumSize: const Size(AppSizes.minTouchTarget, AppSizes.control),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
-          textStyle: base.textTheme.labelLarge,
+          textStyle: textTheme.labelLarge,
           // El deshabilitado del diseño es el mismo color al 40 % — PRD §6.
           disabledBackgroundColor: scheme.primary.withValues(alpha: 0.4),
           disabledForegroundColor: scheme.onPrimary.withValues(alpha: 0.9),
@@ -165,14 +171,14 @@ abstract final class AppTheme {
           foregroundColor: isLight ? AppColors.navy : scheme.onSurface,
           side: BorderSide(color: isLight ? AppColors.navy : scheme.outline, width: 1.5),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
-          textStyle: base.textTheme.labelLarge,
+          textStyle: textTheme.labelLarge,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           // 44 × 44 es el área táctil mínima de `RNF-23`.
           minimumSize: const Size(AppSizes.minTouchTarget, AppSizes.minTouchTarget),
-          textStyle: base.textTheme.labelLarge,
+          textStyle: textTheme.labelLarge,
         ),
       ),
       // Barra inferior. El indicador es el navy suave y no el rojo: navegar no
@@ -202,8 +208,7 @@ abstract final class AppTheme {
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return base.textTheme.labelMedium!.copyWith(
-            fontFamily: AppTypography.fontFamily,
+          return textTheme.labelMedium!.copyWith(
             fontSize: 12,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
             color: selected ? scheme.onSecondaryContainer : scheme.onSurfaceVariant,

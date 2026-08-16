@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/domain/markings.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/semantic_colors.dart';
 import '../../../../l10n/generated/app_l10n.dart';
 
 /// Marca de nacimiento — tres zonas con sus posiciones dibujadas encima.
@@ -101,16 +102,18 @@ class _ZoneCard extends StatelessWidget {
   final Set<int> selected;
   final ValueChanged<int> onToggle;
 
-  /// Ámbar de la zona marcada, como en el prototipo. No es el rojo de acción:
-  /// marcar no es una acción destructiva ni primaria, es un estado.
-  static const Color _activeBorder = Color(0xFFF08A28);
-  static const Color _activeSurface = Color(0xFFFFF8F1);
-  static const Color _activeLabel = Color(0xFFC96A12);
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
     final theme = Theme.of(context);
+    // Ámbar de la zona marcada, como en el prototipo. No es el rojo de acción:
+    // marcar no es una acción destructiva ni primaria, es un estado.
+    final semantic = context.semantic;
+
+    // El dibujo inactivo se apoya en el borde del tema para que en oscuro no
+    // quede una pata blanca sobre una tarjeta navy.
+    final lineColor = isActive ? semantic.markLabel : theme.colorScheme.outline;
+    final fillColor = isActive ? semantic.markFill : theme.colorScheme.surfaceContainerHigh;
 
     final label = switch (zone) {
       MarkZone.leftFoot => l10n.markingLeftFoot,
@@ -126,10 +129,10 @@ class _ZoneCard extends StatelessWidget {
         AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: isActive ? _activeSurface : theme.cardTheme.color,
+        color: isActive ? semantic.markSurface : theme.cardTheme.color,
         borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(
-          color: isActive ? _activeBorder : theme.colorScheme.outlineVariant,
+          color: isActive ? semantic.markBorder : theme.colorScheme.outlineVariant,
           width: 2,
         ),
       ),
@@ -144,8 +147,12 @@ class _ZoneCard extends StatelessWidget {
                   CustomPaint(
                     size: Size(constraints.maxWidth, constraints.maxHeight),
                     painter: zone == MarkZone.beak
-                        ? _BeakPainter(isActive: isActive)
-                        : _FootPainter(isActive: isActive, flip: zone == MarkZone.rightFoot),
+                        ? _BeakPainter(line: lineColor, fill: fillColor)
+                        : _FootPainter(
+                            line: lineColor,
+                            fill: fillColor,
+                            flip: zone == MarkZone.rightFoot,
+                          ),
                   ),
                   for (final (index, position) in zone.positions.indexed)
                     Align(
@@ -158,6 +165,9 @@ class _ZoneCard extends StatelessWidget {
                       child: _MarkDot(
                         position: position,
                         isOn: selected.contains(position),
+                        surface: isActive
+                            ? semantic.markSurface
+                            : (theme.cardTheme.color ?? theme.colorScheme.surface),
                         onTap: () => onToggle(position),
                       ),
                     ),
@@ -170,7 +180,7 @@ class _ZoneCard extends StatelessWidget {
             label.toUpperCase(),
             textAlign: TextAlign.center,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: isActive ? _activeLabel : theme.colorScheme.onSurfaceVariant,
+              color: isActive ? semantic.markLabel : theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -180,10 +190,20 @@ class _ZoneCard extends StatelessWidget {
 }
 
 class _MarkDot extends StatelessWidget {
-  const _MarkDot({required this.position, required this.isOn, required this.onTap});
+  const _MarkDot({
+    required this.position,
+    required this.isOn,
+    required this.surface,
+    required this.onTap,
+  });
 
   final int position;
   final bool isOn;
+
+  /// Fondo de la tarjeta en la que va. Sin esto, un punto sin marcar dibujado
+  /// con el `surface` del tema salía negro sobre la tarjeta ámbar en oscuro.
+  final Color surface;
+
   final VoidCallback onTap;
 
   @override
@@ -201,7 +221,7 @@ class _MarkDot extends StatelessWidget {
           height: 26,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isOn ? theme.colorScheme.primary : theme.colorScheme.surface,
+            color: isOn ? theme.colorScheme.primary : surface,
             shape: BoxShape.circle,
             border: Border.all(
               color: isOn ? Colors.white : theme.colorScheme.outlineVariant,
@@ -268,9 +288,10 @@ class _MarkCode extends StatelessWidget {
 /// no con una imagen porque cambia de color al marcarse y tiene que escalar sin
 /// pixelarse.
 class _FootPainter extends CustomPainter {
-  const _FootPainter({required this.isActive, required this.flip});
+  const _FootPainter({required this.line, required this.fill, required this.flip});
 
-  final bool isActive;
+  final Color line;
+  final Color fill;
   final bool flip;
 
   static const List<(Offset, Offset, double)> _limbs = [
@@ -293,7 +314,7 @@ class _FootPainter extends CustomPainter {
     canvas.scale(scale);
 
     // Dos pasadas: la ancha hace de contorno y la estrecha, de relleno.
-    for (final (color, extra) in [(_line, 6.0), (_fill, 0.0)]) {
+    for (final (color, extra) in [(line, 6.0), (fill, 0.0)]) {
       final paint = Paint()
         ..color = color
         ..style = PaintingStyle.stroke
@@ -307,18 +328,16 @@ class _FootPainter extends CustomPainter {
     canvas.restore();
   }
 
-  Color get _line => isActive ? const Color(0xFFC96A12) : const Color(0xFFB6C0CC);
-  Color get _fill => isActive ? const Color(0xFFFFD9AE) : const Color(0xFFE7ECF2);
-
   @override
-  bool shouldRepaint(_FootPainter old) => old.isActive != isActive || old.flip != flip;
+  bool shouldRepaint(_FootPainter old) => old.line != line || old.fill != fill || old.flip != flip;
 }
 
 /// Pico esquemático visto de frente, con las dos fosas nasales.
 class _BeakPainter extends CustomPainter {
-  const _BeakPainter({required this.isActive});
+  const _BeakPainter({required this.line, required this.fill});
 
-  final bool isActive;
+  final Color line;
+  final Color fill;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -337,11 +356,11 @@ class _BeakPainter extends CustomPainter {
       ..close();
 
     canvas
-      ..drawPath(path, Paint()..color = _fill)
+      ..drawPath(path, Paint()..color = fill)
       ..drawPath(
         path,
         Paint()
-          ..color = _line
+          ..color = line
           ..style = PaintingStyle.stroke
           ..strokeWidth = 7
           ..strokeJoin = StrokeJoin.round,
@@ -354,18 +373,15 @@ class _BeakPainter extends CustomPainter {
         ..rotate(angle)
         ..drawOval(
           Rect.fromCenter(center: Offset.zero, width: 7.6, height: 19),
-          Paint()..color = _line,
+          Paint()..color = line,
         )
         ..restore();
     }
     canvas.restore();
   }
 
-  Color get _line => isActive ? const Color(0xFFC96A12) : const Color(0xFFB6C0CC);
-  Color get _fill => isActive ? const Color(0xFFFFD9AE) : const Color(0xFFE7ECF2);
-
   @override
-  bool shouldRepaint(_BeakPainter old) => old.isActive != isActive;
+  bool shouldRepaint(_BeakPainter old) => old.line != line || old.fill != fill;
 }
 
 /// Cintas de ala: una paleta por ala.

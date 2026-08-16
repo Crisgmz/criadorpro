@@ -666,6 +666,20 @@ borrar la original hasta que la cifrada está escrita**.
 
 ---
 
+## 11 ter. Revisar el UI con capturas
+
+[test/ui_preview_test.dart](test/ui_preview_test.dart) renderiza los controles
+nuevos y escribe PNG en `test/goldens/`. Se regeneran con:
+
+```bash
+flutter test test/ui_preview_test.dart --update-goldens
+```
+
+No son pruebas de regresión visual: son el sustituto de abrir la app cuando el
+widget vive detrás de la autenticación y de una base con datos. **Cargan Inter y
+los iconos de Material a mano**: sin eso las capturas salen con bloques negros y
+cuadrados vacíos, y no sirven para juzgar nada.
+
 ## 12 bis. El prototipo interactivo es la fuente del diseño
 
 El diseño visual **no está en el DDT** —ese documento es técnico: capas,

@@ -18,6 +18,10 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
     required this.warning,
     required this.action,
     required this.brand,
+    required this.markSurface,
+    required this.markBorder,
+    required this.markLabel,
+    required this.markFill,
   });
 
   /// Convención cerrada: verde macho, azul hembra, gris sin definir.
@@ -35,6 +39,17 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
   /// navy literal: sería el color del fondo.
   final Color brand;
 
+  /// Ámbar de la marca de nacimiento: superficie, borde y rótulo de la zona
+  /// marcada, más el relleno y el trazo del dibujo de la pata y del pico.
+  ///
+  /// Van aquí y no como constantes del widget porque **tienen que seguir al
+  /// tema**: una tarjeta crema entre tarjetas navy, en modo oscuro, es un
+  /// parche que además deja los puntos sin marcar ilegibles encima.
+  final Color markSurface;
+  final Color markBorder;
+  final Color markLabel;
+  final Color markFill;
+
   static const SemanticColors light = SemanticColors(
     male: AppColors.male,
     female: AppColors.female,
@@ -42,6 +57,10 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
     warning: AppColors.warning,
     action: AppColors.action,
     brand: AppColors.navy,
+    markSurface: Color(0xFFFFF8F1),
+    markBorder: Color(0xFFF08A28),
+    markLabel: Color(0xFFC96A12),
+    markFill: Color(0xFFFFD9AE),
   );
 
   static const SemanticColors dark = SemanticColors(
@@ -51,6 +70,12 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
     warning: AppColors.warningLight,
     action: AppColors.actionLight,
     brand: Color(0xFFA9C3DE),
+    // Mismo ámbar, llevado a una superficie oscura: la zona marcada sigue
+    // destacando sin convertirse en un rectángulo blanco en mitad de la noche.
+    markSurface: Color(0xFF2E2013),
+    markBorder: Color(0xFFE08A34),
+    markLabel: Color(0xFFE9A75C),
+    markFill: Color(0xFF8A5A26),
   );
 
   /// Resultado de prueba de campo (`RF-PRU`): reutiliza el verde y el rojo del
@@ -68,6 +93,10 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
     Color? warning,
     Color? action,
     Color? brand,
+    Color? markSurface,
+    Color? markBorder,
+    Color? markLabel,
+    Color? markFill,
   }) => SemanticColors(
     male: male ?? this.male,
     female: female ?? this.female,
@@ -75,6 +104,10 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
     warning: warning ?? this.warning,
     action: action ?? this.action,
     brand: brand ?? this.brand,
+    markSurface: markSurface ?? this.markSurface,
+    markBorder: markBorder ?? this.markBorder,
+    markLabel: markLabel ?? this.markLabel,
+    markFill: markFill ?? this.markFill,
   );
 
   @override
@@ -87,6 +120,10 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
       warning: Color.lerp(warning, other.warning, t)!,
       action: Color.lerp(action, other.action, t)!,
       brand: Color.lerp(brand, other.brand, t)!,
+      markSurface: Color.lerp(markSurface, other.markSurface, t)!,
+      markBorder: Color.lerp(markBorder, other.markBorder, t)!,
+      markLabel: Color.lerp(markLabel, other.markLabel, t)!,
+      markFill: Color.lerp(markFill, other.markFill, t)!,
     );
   }
 }

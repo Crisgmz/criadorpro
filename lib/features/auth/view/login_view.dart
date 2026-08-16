@@ -101,26 +101,39 @@ class _LoginViewState extends ConsumerState<LoginView> {
         ),
 
         const SizedBox(height: AppSpacing.sm),
+        // Los dos lados ceden. Con el enlace a ancho natural, «Recordarme» se
+        // quedaba sin sitio y la fila desbordaba: en inglés el enlace es más
+        // largo, y `RNF-28` da por hecho textos un 40 % mayores que el español.
         Row(
           children: [
-            Expanded(
+            Flexible(
               child: InkWell(
                 onTap: () => viewModel.setRememberMe(value: !viewModel.rememberMe),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Checkbox(
                       value: viewModel.rememberMe,
                       onChanged: (value) => viewModel.setRememberMe(value: value ?? false),
                     ),
-                    Flexible(child: Text(l10n.loginRememberMe, style: theme.textTheme.bodySmall)),
+                    Flexible(
+                      child: Text(
+                        l10n.loginRememberMe,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-            TextButton(
-              onPressed: () => context.push(Routes.recover),
-              child: Text(l10n.loginForgotPassword),
+            Flexible(
+              child: TextButton(
+                onPressed: () => context.push(Routes.recover),
+                child: Text(l10n.loginForgotPassword, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
             ),
           ],
         ),

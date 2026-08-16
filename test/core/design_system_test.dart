@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// comprobaciones existen para que dejen de serlo solo a propósito: si alguien
 /// cambia un tamaño o un color, falla aquí y no en una revisión de capturas.
 void main() {
+  _componentTypographyTests();
   _textColorTests();
   _semanticColorTests();
 
@@ -283,6 +284,42 @@ void _semanticColorTests() {
         AppTheme.dark.inputDecorationTheme.fillColor,
         isNot(AppTheme.dark.scaffoldBackgroundColor),
       );
+    });
+  });
+}
+
+/// La tipografía del producto tiene que llegar a **todos** los componentes.
+///
+/// Los temas de componente se construían con `base.textTheme` —el de Material,
+/// sin Inter— así que los botones, la barra superior y los mensajes de error
+/// salían con la fuente del sistema mientras el resto de la app usaba Inter.
+/// Nada fallaba: solo se veía distinto.
+void _componentTypographyTests() {
+  group('tipografía en los componentes', () {
+    test('los botones usan Inter', () {
+      for (final theme in [AppTheme.light, AppTheme.dark]) {
+        final filled = theme.filledButtonTheme.style?.textStyle?.resolve({});
+        final outlined = theme.outlinedButtonTheme.style?.textStyle?.resolve({});
+        final text = theme.textButtonTheme.style?.textStyle?.resolve({});
+
+        expect(filled?.fontFamily, AppTypography.fontFamily);
+        expect(outlined?.fontFamily, AppTypography.fontFamily);
+        expect(text?.fontFamily, AppTypography.fontFamily);
+      }
+    });
+
+    test('la barra superior y los errores de campo también', () {
+      for (final theme in [AppTheme.light, AppTheme.dark]) {
+        expect(theme.appBarTheme.titleTextStyle?.fontFamily, AppTypography.fontFamily);
+        expect(theme.inputDecorationTheme.errorStyle?.fontFamily, AppTypography.fontFamily);
+      }
+    });
+
+    test('las etiquetas de la barra inferior también', () {
+      for (final theme in [AppTheme.light, AppTheme.dark]) {
+        final label = theme.navigationBarTheme.labelTextStyle?.resolve({});
+        expect(label?.fontFamily, AppTypography.fontFamily);
+      }
     });
   });
 }
