@@ -506,6 +506,13 @@
   "colorDark": "Retinto",
   "colorBlack": "Negro",
 
+  "fieldComb": "Cresta",
+  "traitSelectPlumage": "Elegir plumaje",
+  "traitSelectComb": "Elegir cresta",
+  "traitNewPlumage": "Crear plumaje nuevo",
+  "traitNewComb": "Crear cresta nueva",
+  "traitName": "Nombre",
+
   "fieldColor": "Color / plumaje",
   "fieldLine": "Línea o raza",
   "fieldStatus": "Estado",

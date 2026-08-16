@@ -39,6 +39,7 @@ import '../db/daos/evaluations_dao.dart';
 import '../db/daos/profiles_dao.dart';
 import '../db/daos/sync_queue_dao.dart';
 import '../db/daos/transactions_dao.dart';
+import '../domain/bird_traits.dart';
 import '../domain/sex.dart';
 import '../media/photo_service.dart';
 import '../network/connectivity_service.dart';
@@ -266,6 +267,16 @@ final dashboardViewModelProvider = ChangeNotifierProvider.autoDispose<DashboardV
     sync: ref.watch(syncServiceProvider),
     ownerId: ref.watch(currentOwnerIdProvider),
   ),
+);
+
+/// Opciones de plumaje o cresta con su número de ejemplares. Catálogo abierto:
+/// lo que el criadero ya usa más las sugerencias de fábrica.
+typedef TraitOptionsArgs = ({String ownerId, BirdTrait trait});
+
+final traitOptionsProvider = StreamProvider.autoDispose.family<List<TraitOption>, TraitOptionsArgs>(
+  (ref, args) => ref
+      .watch(birdsRepositoryProvider)
+      .watchTraitOptions(ownerId: args.ownerId, trait: args.trait),
 );
 
 final birdsListViewModelProvider = ChangeNotifierProvider.autoDispose<BirdsListViewModel>(

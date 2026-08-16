@@ -10,7 +10,10 @@
 alter table public.birds
   add column if not exists birth_mark text,
   add column if not exists wing_band_left text,
-  add column if not exists wing_band_right text;
+  add column if not exists wing_band_right text,
+  -- Tipo de cresta: peine, rosa, pava, motón… Catálogo **abierto**, igual que
+  -- `color`: cada criadero usa su vocabulario y puede añadir los suyos.
+  add column if not exists comb text;
 
 comment on column public.birds.birth_mark is
   'Posiciones marcadas separadas por comas (1..6) o «none». 1-2 pie izquierdo, 3-4 pie derecho, 5-6 pico. «none» significa «se miró y no tiene»; nulo, «no se ha dicho».';

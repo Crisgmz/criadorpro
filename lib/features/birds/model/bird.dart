@@ -32,6 +32,7 @@ class Bird {
     this.name,
     this.birthDate,
     this.color,
+    this.comb,
     this.line,
     this.weightG,
     this.fatherId,
@@ -67,6 +68,7 @@ class Bird {
     status: BirdStatus.fromId(row.status),
     birthDate: row.birthDate,
     color: row.color,
+    comb: row.comb,
     line: row.line,
     weightG: row.weightG,
     fatherId: row.fatherId,
@@ -92,6 +94,7 @@ class Bird {
     status: BirdStatus.fromId(json['status'] as String?),
     birthDate: _parseDate(json['birth_date']),
     color: json['color'] as String?,
+    comb: json['comb'] as String?,
     line: json['line'] as String?,
     weightG: (json['weight_g'] as num?)?.toInt(),
     fatherId: json['father_id'] as String?,
@@ -119,7 +122,10 @@ class Bird {
   final Sex sex;
   final BirdStatus status;
   final DateTime? birthDate;
+
+  /// Color del plumaje y tipo de cresta — catálogos abiertos por criadero.
   final String? color;
+  final String? comb;
   final String? line;
 
   /// Peso en gramos enteros (SRS §4).
@@ -163,6 +169,7 @@ class Bird {
     status: Value(status.id),
     birthDate: Value(birthDate),
     color: Value(color),
+    comb: Value(comb),
     line: Value(line),
     weightG: Value(weightG),
     fatherId: Value(fatherId),
@@ -190,6 +197,7 @@ class Bird {
     'status': status.id,
     'birth_date': birthDate == null ? null : _formatDate(birthDate!),
     'color': color,
+    'comb': comb,
     'line': line,
     'weight_g': weightG,
     'father_id': fatherId,
@@ -215,6 +223,7 @@ class Bird {
     String? Function()? name,
     DateTime? Function()? birthDate,
     String? Function()? color,
+    String? Function()? comb,
     String? Function()? line,
     int? Function()? weightG,
     String? Function()? fatherId,
@@ -239,6 +248,7 @@ class Bird {
     name: name == null ? this.name : name(),
     birthDate: birthDate == null ? this.birthDate : birthDate(),
     color: color == null ? this.color : color(),
+    comb: comb == null ? this.comb : comb(),
     line: line == null ? this.line : line(),
     weightG: weightG == null ? this.weightG : weightG(),
     fatherId: fatherId == null ? this.fatherId : fatherId(),

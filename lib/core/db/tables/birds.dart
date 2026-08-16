@@ -23,7 +23,14 @@ class Birds extends Table {
   TextColumn get status => text()();
 
   DateTimeColumn get birthDate => dateTime().nullable()();
+
+  /// Color del plumaje. **Catálogo abierto**: el criadero usa el suyo, y el
+  /// SRS lo define como texto libre. Se guarda el nombre tal cual.
   TextColumn get color => text().nullable()();
+
+  /// Tipo de cresta — peine, rosa, pava, motón… Mismo trato que el color:
+  /// catálogo abierto y valor de texto.
+  TextColumn get comb => text().nullable()();
   TextColumn get line => text().nullable()();
 
   /// Gramos enteros. Que se muestre en kilos o libras lo decide el perfil.

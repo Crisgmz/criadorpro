@@ -7,6 +7,7 @@ import '../../../core/db/app_database.dart';
 import '../../../core/db/daos/birds_dao.dart';
 import '../../../core/db/daos/profiles_dao.dart';
 import '../../../core/db/daos/sync_queue_dao.dart';
+import '../../../core/domain/bird_traits.dart';
 import '../../../core/domain/sex.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/network/supabase_service.dart';
@@ -57,6 +58,17 @@ class BirdsRepository implements RemotePuller {
       _birdsDao.watchById(id).map((row) => row == null ? null : Bird.fromRow(row));
 
   Stream<int> watchCount(String ownerId) => _birdsDao.watchCountForOwner(ownerId);
+
+  /// Opciones de color de plumaje o de cresta, con su número de ejemplares.
+  ///
+  /// La lista es **abierta**: lo que el criadero ya usa, más las sugerencias de
+  /// fábrica que aún no ha tocado.
+  Stream<List<TraitOption>> watchTraitOptions({
+    required String ownerId,
+    required BirdTrait trait,
+  }) => _birdsDao
+      .watchTraitUsage(ownerId: ownerId, isComb: trait == BirdTrait.comb)
+      .map((usage) => buildTraitOptions(trait: trait, inUse: usage));
 
   /// Descendencia directa de un ejemplar — `RF-REG-13`.
   Stream<List<Bird>> watchChildren(String parentId) =>

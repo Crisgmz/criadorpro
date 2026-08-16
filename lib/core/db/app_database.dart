@@ -44,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -109,6 +109,11 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(birds, birds.birthMark);
         await m.addColumn(birds, birds.wingBandLeft);
         await m.addColumn(birds, birds.wingBandRight);
+      }
+
+      // v8 — tipo de cresta. Columna nueva y nula: lo registrado sigue igual.
+      if (from < 8) {
+        await m.addColumn(birds, birds.comb);
       }
     },
     beforeOpen: (details) async {

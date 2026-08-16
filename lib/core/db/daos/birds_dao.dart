@@ -149,6 +149,31 @@ class BirdsDao extends DatabaseAccessor<AppDatabase> with _$BirdsDaoMixin {
     return (select(birds)..where((t) => t.id.isIn(ids.toList()) & t.isDeleted.equals(false))).get();
   }
 
+  /// Cuántos ejemplares usan cada color de plumaje o cada tipo de cresta.
+  ///
+  /// Es lo que da el contador de la lista de selección: ver que el criadero
+  /// tiene 211 cenizos y 1 amarillo dice de un vistazo cuál es el nombre real y
+  /// cuál fue un error de tecleo.
+  Stream<Map<String, int>> watchTraitUsage({required String ownerId, required bool isComb}) {
+    final column = isComb ? birds.comb : birds.color;
+    final total = birds.id.count();
+
+    final query = selectOnly(birds)
+      ..addColumns([column, total])
+      ..where(birds.ownerId.equals(ownerId) & birds.isDeleted.equals(false) & column.isNotNull())
+      ..groupBy([column]);
+
+    return query.watch().map((rows) {
+      final usage = <String, int>{};
+      for (final row in rows) {
+        final value = row.read(column);
+        if (value == null || value.isEmpty) continue;
+        usage[value] = row.read(total) ?? 0;
+      }
+      return usage;
+    });
+  }
+
   /// Cuenta los ejemplares que consumen cupo del plan.
   ///
   /// `RS-02` es explícito: solo cuentan los activos. Un ejemplar vendido o

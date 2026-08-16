@@ -1,6 +1,5 @@
 import '../../../core/base/base_viewmodel.dart';
 import '../../../core/domain/markings.dart';
-import '../../../core/domain/plumage_color.dart';
 import '../../../core/domain/sex.dart';
 import '../../../core/media/photo_service.dart';
 import '../../../core/utils/validators.dart';
@@ -34,7 +33,8 @@ class BirdFormViewModel extends BaseViewModel {
   Sex _sex = Sex.unknown;
   BirdStatus _status = BirdStatus.active;
   DateTime? _birthDate;
-  PlumageColor? _color;
+  String? _color;
+  String? _comb;
   String? _birthMark;
   WingBand? _wingLeft;
   WingBand? _wingRight;
@@ -57,7 +57,8 @@ class BirdFormViewModel extends BaseViewModel {
   Sex get sex => _sex;
   BirdStatus get status => _status;
   DateTime? get birthDate => _birthDate;
-  PlumageColor? get color => _color;
+  String? get color => _color;
+  String? get comb => _comb;
 
   /// Marca de nacimiento — `1,4` o `none`.
   String? get birthMark => _birthMark;
@@ -114,7 +115,8 @@ class BirdFormViewModel extends BaseViewModel {
       _sex = bird.sex;
       _status = bird.status;
       _birthDate = bird.birthDate;
-      _color = PlumageColor.fromId(bird.color);
+      _color = bird.color;
+      _comb = bird.comb;
       _birthMark = bird.birthMark;
       _wingLeft = WingBand.fromId(bird.wingBandLeft);
       _wingRight = WingBand.fromId(bird.wingBandRight);
@@ -157,8 +159,13 @@ class BirdFormViewModel extends BaseViewModel {
     safeNotify();
   }
 
-  void setColor(PlumageColor? value) {
+  void setColor(String? value) {
     _color = value;
+    safeNotify();
+  }
+
+  void setComb(String? value) {
+    _comb = value;
     safeNotify();
   }
 
@@ -273,7 +280,8 @@ class BirdFormViewModel extends BaseViewModel {
       status: _status,
       name: () => _emptyToNull(_name),
       birthDate: () => _birthDate,
-      color: () => _color?.id,
+      color: () => _color,
+      comb: () => _comb,
       birthMark: () => _birthMark,
       wingBandLeft: () => _wingLeft?.id,
       wingBandRight: () => _wingRight?.id,

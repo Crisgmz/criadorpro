@@ -449,6 +449,13 @@
   "colorDark": "Dark red",
   "colorBlack": "Black",
 
+  "fieldComb": "Comb",
+  "traitSelectPlumage": "Select feather",
+  "traitSelectComb": "Select comb",
+  "traitNewPlumage": "Create new feather",
+  "traitNewComb": "Create new comb",
+  "traitName": "Name",
+
   "fieldColor": "Color / plumage",
   "fieldLine": "Line or breed",
   "fieldStatus": "Status",

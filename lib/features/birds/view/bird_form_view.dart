@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/domain/bird_traits.dart';
 import '../../../core/domain/sex.dart';
 import '../../../core/error/failure_messages.dart';
 import '../../../core/providers/providers.dart';
@@ -17,7 +18,7 @@ import 'bird_labels.dart';
 import 'widgets/form_fields.dart';
 import 'widgets/marking_fields.dart';
 import 'widgets/photo_field.dart';
-import 'widgets/plumage_field.dart';
+import 'widgets/trait_picker.dart';
 
 /// Alta y edición de un ejemplar. Sin [birdId] es un alta.
 class BirdFormView extends ConsumerStatefulWidget {
@@ -199,7 +200,13 @@ class _BirdFormViewState extends ConsumerState<BirdFormView> {
             onChanged: (status) => viewModel.setStatus(status ?? BirdStatus.active),
           ),
           const SizedBox(height: AppSpacing.md),
-          PlumageField(selected: viewModel.color, onChanged: viewModel.setColor),
+          TraitField(
+            trait: BirdTrait.plumage,
+            value: viewModel.color,
+            onChanged: viewModel.setColor,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TraitField(trait: BirdTrait.comb, value: viewModel.comb, onChanged: viewModel.setComb),
 
           const SizedBox(height: AppSpacing.lg),
           // Marca de nacimiento: es como el criador identifica la nidada antes

@@ -689,17 +689,25 @@ significado (`RNF-25`) y la etiqueta no cabe, va como descripción accesible.
 
 Ambos aparecen en la ficha del ejemplar, como en el prototipo.
 
-**Color del plumaje.** El SRS y el DDT lo definen como texto libre y **ninguna
-pantalla del prototipo lo captura**; se cierra en catálogo con desplegable
-([lib/core/domain/plumage_color.dart](lib/core/domain/plumage_color.dart))
-porque escrito a mano el mismo color acaba con varias grafías y deja de servir
-para filtrar. La lista sale del vocabulario del oficio y de los ejemplares del
-propio prototipo (Giro Colorado, Canela, Blanca Real, Giro Pinta, Cenizo):
-**es una propuesta, no un dato de los documentos**.
+**Plumaje y cresta son catálogos abiertos**, no cerrados
+([lib/core/domain/bird_traits.dart](lib/core/domain/bird_traits.dart)). No están
+en la lista de catálogos cerrados del SRS §5 —ahí solo hay categorías
+contables, estado, resultado, frecuencia y método de pago— y el SRS define
+`birds.color` como texto libre. Cada criadero nombra los colores a su manera,
+así que el criador **puede crear los suyos** y el valor se guarda tal cual, no
+como clave traducible.
 
-En Postgres la columna **no lleva `CHECK`**: una instalación con texto libre
-anterior vería rechazada su sincronización, y ese valor se sigue mostrando tal
-cual en la ficha en vez de perderse.
+La lista que ve son sus valores en uso más unas sugerencias de fábrica que
+aparecen a cero. Cada opción lleva **cuántos ejemplares la usan**: ver 211
+cenizos y 1 amarillo dice de un vistazo cuál es el nombre real del criadero y
+cuál fue un error de tecleo. Se elige en una hoja con radios y no en un
+desplegable, porque la lista crece con el criadero.
+
+`comb` (tipo de cresta) **no aparece en ningún documento ni en el prototipo**:
+sale de la app de referencia que usa el criador. Mismo trato que el color.
+
+Ninguna de las dos columnas lleva `CHECK` en Postgres — siendo abiertas, sería
+contradictorio.
 
 ## 12 ter. Divergencias con el prototipo, sin resolver
 
