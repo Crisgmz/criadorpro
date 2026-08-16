@@ -313,6 +313,7 @@ final birdDetailViewModelProvider = ChangeNotifierProvider.autoDispose
         repository: ref.watch(birdsRepositoryProvider),
         clutchesRepository: ref.watch(clutchesRepositoryProvider),
         evaluationsRepository: ref.watch(evaluationsRepositoryProvider),
+        pedigreeRepository: ref.watch(pedigreeRepositoryProvider),
         ownerId: ref.watch(currentOwnerIdProvider),
         birdId: birdId,
       ),

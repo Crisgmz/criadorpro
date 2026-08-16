@@ -39,8 +39,9 @@ class Bird {
     this.clutchId,
     this.photoPath,
     this.photoUrl,
-    this.footMark,
-    this.beakMark,
+    this.birthMark,
+    this.wingBandLeft,
+    this.wingBandRight,
     this.notes,
     this.isDeleted = false,
   });
@@ -73,8 +74,9 @@ class Bird {
     clutchId: row.clutchId,
     photoPath: row.photoPath,
     photoUrl: row.photoUrl,
-    footMark: row.footMark,
-    beakMark: row.beakMark,
+    birthMark: row.birthMark,
+    wingBandLeft: row.wingBandLeft,
+    wingBandRight: row.wingBandRight,
     notes: row.notes,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -96,8 +98,9 @@ class Bird {
     motherId: json['mother_id'] as String?,
     clutchId: json['clutch_id'] as String?,
     photoUrl: json['photo_url'] as String?,
-    footMark: json['foot_mark'] as String?,
-    beakMark: json['beak_mark'] as String?,
+    birthMark: json['birth_mark'] as String?,
+    wingBandLeft: json['wing_band_left'] as String?,
+    wingBandRight: json['wing_band_right'] as String?,
     notes: json['notes'] as String?,
     createdAt: _parseDate(json['created_at']) ?? DateTime.now(),
     updatedAt: _parseDate(json['updated_at']) ?? DateTime.now(),
@@ -133,11 +136,12 @@ class Bird {
   /// URL en Storage, la rellena la sincronización.
   final String? photoUrl;
 
-  /// Marca de nacimiento en el pie, formato `izquierda|derecha` (`1,3|2`).
-  final String? footMark;
+  /// Marca de nacimiento: posiciones separadas por comas (`1,4`) o `none`.
+  final String? birthMark;
 
-  /// Marca en el pico.
-  final String? beakMark;
+  /// Cintas de ala, el identificador que se lee de lejos.
+  final String? wingBandLeft;
+  final String? wingBandRight;
 
   final String? notes;
   final DateTime createdAt;
@@ -166,8 +170,9 @@ class Bird {
     clutchId: Value(clutchId),
     photoPath: Value(photoPath),
     photoUrl: Value(photoUrl),
-    footMark: Value(footMark),
-    beakMark: Value(beakMark),
+    birthMark: Value(birthMark),
+    wingBandLeft: Value(wingBandLeft),
+    wingBandRight: Value(wingBandRight),
     notes: Value(notes),
     createdAt: Value(createdAt),
     updatedAt: Value(updatedAt),
@@ -191,8 +196,9 @@ class Bird {
     'mother_id': motherId,
     'clutch_id': clutchId,
     'photo_url': photoUrl,
-    'foot_mark': footMark,
-    'beak_mark': beakMark,
+    'birth_mark': birthMark,
+    'wing_band_left': wingBandLeft,
+    'wing_band_right': wingBandRight,
     'notes': notes,
     'created_at': createdAt.toUtc().toIso8601String(),
     'updated_at': updatedAt.toUtc().toIso8601String(),
@@ -216,8 +222,9 @@ class Bird {
     String? Function()? clutchId,
     String? Function()? photoPath,
     String? Function()? photoUrl,
-    String? Function()? footMark,
-    String? Function()? beakMark,
+    String? Function()? birthMark,
+    String? Function()? wingBandLeft,
+    String? Function()? wingBandRight,
     String? Function()? notes,
   }) => Bird(
     id: id ?? this.id,
@@ -239,8 +246,9 @@ class Bird {
     clutchId: clutchId == null ? this.clutchId : clutchId(),
     photoPath: photoPath == null ? this.photoPath : photoPath(),
     photoUrl: photoUrl == null ? this.photoUrl : photoUrl(),
-    footMark: footMark == null ? this.footMark : footMark(),
-    beakMark: beakMark == null ? this.beakMark : beakMark(),
+    birthMark: birthMark == null ? this.birthMark : birthMark(),
+    wingBandLeft: wingBandLeft == null ? this.wingBandLeft : wingBandLeft(),
+    wingBandRight: wingBandRight == null ? this.wingBandRight : wingBandRight(),
     notes: notes == null ? this.notes : notes(),
     isDeleted: isDeleted ?? this.isDeleted,
   );

@@ -180,7 +180,7 @@ añaden `is_dirty`.
 | Tabla | Campos |
 |---|---|
 | `profiles` | `id` (= auth uid), `full_name`, `email`, `phone`, `farm_name`, `location`, `country_code` (def. `DO`), `locale` (`es`/`en`), **`next_plate`** (≥1, estrictamente creciente), `plan` (`free`/`pro`/`elite`), `plan_expires_at`, `avatar_url` |
-| `birds` | `id`, **`plate`** (integer, ≥1, obligatorio), `name` (opcional), `sex` (`male`/`female`/`unknown`), `line`, `color` (catálogo), **`foot_mark`**, **`beak_mark`**, `birth_date`, `father_id`, `mother_id`, `clutch_id`, `weight_g` (100–8000), `status` (`active`/`sold`/`deceased`/`loaned`), `photo_url`, `notes` |
+| `birds` | `id`, **`plate`** (integer, ≥1, obligatorio), `name` (opcional), `sex` (`male`/`female`/`unknown`), `line`, `color`, **`birth_mark`**, **`wing_band_left`**, **`wing_band_right`**, `birth_date`, `father_id`, `mother_id`, `clutch_id`, `weight_g` (100–8000), `status` (`active`/`sold`/`deceased`/`loaned`), `photo_url`, `notes` |
 | `clutches` | `father_id`, `mother_id`, `date`, `eggs` (0–30), `hatched` (1–30, ≤ `eggs`) |
 | `evaluations` | `bird_id`, `date`, `place`, `result` (`favorable`/`unfavorable`/`undefined`), `condition` (1–10), **`weight_g`**, **`notes`** |
 | `transactions` | `type` (`income`/`expense`), `category` (catálogo cerrado), `amount` `numeric(12,2)` >0, `date`, `description`, `bird_id`, `recurrence` (`none`/`weekly`/`biweekly`/`monthly`) |
@@ -666,30 +666,44 @@ borrar la original hasta que la cifrada está escrita**.
 
 ---
 
-## 12 bis. Dos divergencias entre el prototipo y el esquema
+## 12 bis. El prototipo interactivo es la fuente del diseño
 
-El prototipo del PRD (flujo 3, captura 20) muestra en la ficha una **«Marca de
-nacimiento: 1 · 4»** que ni el SRS ni el DDT recogen en `birds`. Se implementó
-como dos campos —`foot_mark` y `beak_mark`— porque es como el criador reconoce
-al ave antes de que tenga placa. El pie se marca perforando las membranas, en
-cuatro posiciones por pata; se guarda como `izquierda|derecha`, por ejemplo
-`1,3|2`.
+El diseño visual **no está en el DDT** —ese documento es técnico: capas,
+esquema, algoritmos, seguridad, riesgos— ni completo en el PRD. Vive en el
+prototipo interactivo del proyecto de Claude Design
+(`Criador Pro Auth.dc.html`, 27 pantallas), que es lo que hay que consultar
+antes de dar por buena una pantalla.
 
-El **color de plumaje** es texto libre de 40 caracteres en el SRS y en el DDT.
-Se cerró en catálogo con muestra
-([lib/core/domain/plumage.dart](lib/core/domain/plumage.dart)) porque escrito a
-mano el mismo color acaba con cinco grafías y deja de servir para filtrar. **La
-lista de colores es una propuesta, no un dato de los documentos**: sale del
-vocabulario del oficio y de los nombres del propio prototipo (Giro, Colorado,
-Canela, Cenizo, Pinto). Ajustarla es cambiar el enum y los `.arb`.
+Dos campos salen de ahí y de ningún documento:
 
-En Postgres, `color` **no lleva `CHECK`** a propósito: una instalación con texto
-libre anterior vería rechazada su sincronización. El catálogo se impone en el
-cliente, que es quien captura.
+**Marca de nacimiento.** Seis posiciones en tres zonas: 1 y 2 en el pie
+izquierdo, 3 y 4 en el derecho, 5 y 6 en el pico. Se captura tocando los puntos
+sobre el dibujo de la pata y del pico, no eligiendo números de una lista. Se
+guarda como `1,4`, y `none` cuando el criador declara que el ave no lleva marca
+— que **no es lo mismo que dejarlo en blanco**: en blanco es «no se ha dicho».
 
-Quedan otras dos divergencias con ese mismo prototipo, **sin resolver**: la
-ficha lleva cabecera navy con la foto y las insignias, y sus pestañas se llaman
-«Datos · Evaluaciones · Crías».
+**Cintas de ala.** Una paleta cerrada por ala (roja, rosada, azul, verde,
+amarilla) con los tonos del prototipo, elegidos para distinguirse a varios
+metros y bajo el sol. Como el color no puede ser el único portador de
+significado (`RNF-25`) y la etiqueta no cabe, va como descripción accesible.
+
+Ambos aparecen en la ficha del ejemplar, como en el prototipo.
+
+## 12 ter. Divergencias con el prototipo, sin resolver
+
+| Qué | Estado |
+|---|---|
+| La ficha lleva **cabecera navy** con la foto y las insignias dentro | Pendiente |
+| Sus pestañas se llaman «Datos · Evaluaciones · Crías» | Pendiente — choca con la decisión abierta de terminología |
+| El registro de cruce tiene **«Estado del cruce»**: Prueba · Hecho · Repetidos | Pendiente, campo nuevo |
+| El registro de cruce captura la marca y las cintas **para toda la camada** | Pendiente; hoy solo se capturan por ejemplar |
+| El peso se muestra en **libras** | Pendiente; hoy en gramos |
+
+**Aviso de cumplimiento:** el prototipo llama «trabas» al módulo de Comunidad —
+«Buscar trabas», `is('trabas')`, `is('trabaRequests')`— con 22 apariciones. Es
+vocabulario prohibido por el BRD §8 y **no puede pasar al código ni a los
+`.arb`**. La compuerta de compilación lo rechazaría. Al implementar `RF-COM` hay
+que renombrarlo: «solicitud de encuentro» es el término del glosario.
 
 ## 13. Decisiones abiertas
 

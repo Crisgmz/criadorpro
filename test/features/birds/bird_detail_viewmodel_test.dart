@@ -9,6 +9,7 @@ import 'package:criadorpro/features/birds/repository/birds_repository.dart';
 import 'package:criadorpro/features/birds/repository/clutches_repository.dart';
 import 'package:criadorpro/features/birds/viewmodel/bird_detail_viewmodel.dart';
 import 'package:criadorpro/features/evaluations/repository/evaluations_repository.dart';
+import 'package:criadorpro/features/pedigree/repository/pedigree_repository.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -88,6 +89,7 @@ void main() {
       supabase: SupabaseService(null),
       clock: () => now,
     ),
+    pedigreeRepository: PedigreeRepository(birdsDao: database.birdsDao),
     ownerId: ownerId,
     birdId: id,
   );

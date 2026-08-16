@@ -305,6 +305,14 @@
   "photoFromGallery": "Choose from gallery",
   "photoHint": "Optional. Stored on the device.",
 
+  "birdRecordTitle": "BIRD RECORD",
+  "birdPhotoPlaceholder": "PHOTO",
+  "pedigreeRegistered": "{count, plural, =0{No ancestry recorded} =1{1 generation recorded} other{{count} generations recorded}}",
+  "@pedigreeRegistered": {
+    "description": "Pedigree access subtitle on the record",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
   "birdTabData": "Details",
   "birdTabTests": "Trials",
   "birdTabOffspring": "Offspring",
@@ -407,34 +415,28 @@
   "birdWeightOutOfRange": "A weight outside 100 g to 8 kg is unusual. You can save it anyway.",
   "fieldSex": "Sex",
   "fieldBirthDate": "Date of birth",
-  "fieldFootMark": "Hatch marking",
-  "fieldBeakMark": "Beak marking",
-  "footMarkLeft": "Left foot",
-  "footMarkRight": "Right foot",
-  "footMarkNone": "No marking",
-  "footMarkHint": "Tap the marked positions on each foot.",
-  "footMarkSummary": "L {left} \u00b7 R {right}",
-  "@footMarkSummary": {
-    "description": "Foot marking summary on the record",
-    "placeholders": {
-      "left": { "type": "String" },
-      "right": { "type": "String" }
-    }
+
+  "markingTitle": "Hatch marking",
+  "markingNoMark": "No marking",
+  "markingNoMarkSet": "No hatch marking",
+  "markingHint": "Tap the points to mark",
+  "markingCode": "Marking: {code}",
+  "@markingCode": {
+    "description": "Resulting marking code, e.g. «1 · 4»",
+    "placeholders": { "code": { "type": "String" } }
   },
-  "beakMarkUpper": "Upper",
-  "beakMarkLower": "Lower",
-  "beakMarkLeft": "Left side",
-  "beakMarkRight": "Right side",
-  "colorWhite": "White",
-  "colorGiro": "Giro",
-  "colorRed": "Red",
-  "colorCinnamon": "Cinnamon",
-  "colorYellow": "Yellow",
-  "colorAsh": "Ash",
-  "colorBarred": "Barred",
-  "colorMottled": "Mottled",
-  "colorDark": "Dark red",
-  "colorBlack": "Black",
+  "markingLeftFoot": "Left foot",
+  "markingRightFoot": "Right foot",
+  "markingBeak": "Beak",
+  "markingBands": "Wing bands",
+  "markingLeftWing": "Left wing",
+  "markingRightWing": "Right wing",
+  "markingBandNone": "None",
+  "bandRed": "Red",
+  "bandPink": "Pink",
+  "bandBlue": "Blue",
+  "bandGreen": "Green",
+  "bandYellow": "Yellow",
 
   "fieldColor": "Color / plumage",
   "fieldLine": "Line or breed",

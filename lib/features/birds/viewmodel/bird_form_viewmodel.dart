@@ -1,5 +1,5 @@
 import '../../../core/base/base_viewmodel.dart';
-import '../../../core/domain/plumage.dart';
+import '../../../core/domain/markings.dart';
 import '../../../core/domain/sex.dart';
 import '../../../core/media/photo_service.dart';
 import '../../../core/utils/validators.dart';
@@ -33,9 +33,10 @@ class BirdFormViewModel extends BaseViewModel {
   Sex _sex = Sex.unknown;
   BirdStatus _status = BirdStatus.active;
   DateTime? _birthDate;
-  PlumageColor? _color;
-  String? _footMark;
-  BeakMark? _beakMark;
+  String _color = '';
+  String? _birthMark;
+  WingBand? _wingLeft;
+  WingBand? _wingRight;
   String _line = '';
   String _weight = '';
   String _notes = '';
@@ -55,9 +56,13 @@ class BirdFormViewModel extends BaseViewModel {
   Sex get sex => _sex;
   BirdStatus get status => _status;
   DateTime? get birthDate => _birthDate;
-  PlumageColor? get color => _color;
-  String? get footMark => _footMark;
-  BeakMark? get beakMark => _beakMark;
+  String get color => _color;
+
+  /// Marca de nacimiento — `1,4` o `none`.
+  String? get birthMark => _birthMark;
+
+  WingBand? get wingLeft => _wingLeft;
+  WingBand? get wingRight => _wingRight;
   String get line => _line;
   String get weight => _weight;
   String get notes => _notes;
@@ -108,9 +113,10 @@ class BirdFormViewModel extends BaseViewModel {
       _sex = bird.sex;
       _status = bird.status;
       _birthDate = bird.birthDate;
-      _color = PlumageColor.fromId(bird.color);
-      _footMark = bird.footMark;
-      _beakMark = BeakMark.fromId(bird.beakMark);
+      _color = bird.color ?? '';
+      _birthMark = bird.birthMark;
+      _wingLeft = WingBand.fromId(bird.wingBandLeft);
+      _wingRight = WingBand.fromId(bird.wingBandRight);
       _line = bird.line ?? '';
       _weight = bird.weightG?.toString() ?? '';
       _notes = bird.notes ?? '';
@@ -150,18 +156,20 @@ class BirdFormViewModel extends BaseViewModel {
     safeNotify();
   }
 
-  void setColor(PlumageColor? value) {
-    _color = value;
+  void setColor(String value) => _color = value;
+
+  void setBirthMark(String? value) {
+    _birthMark = value;
     safeNotify();
   }
 
-  void setFootMark(String? value) {
-    _footMark = value;
+  void setWingLeft(WingBand? value) {
+    _wingLeft = value;
     safeNotify();
   }
 
-  void setBeakMark(BeakMark? value) {
-    _beakMark = value;
+  void setWingRight(WingBand? value) {
+    _wingRight = value;
     safeNotify();
   }
 
@@ -261,9 +269,10 @@ class BirdFormViewModel extends BaseViewModel {
       status: _status,
       name: () => _emptyToNull(_name),
       birthDate: () => _birthDate,
-      color: () => _color?.id,
-      footMark: () => _footMark,
-      beakMark: () => _beakMark?.id,
+      color: () => _emptyToNull(_color),
+      birthMark: () => _birthMark,
+      wingBandLeft: () => _wingLeft?.id,
+      wingBandRight: () => _wingRight?.id,
       line: () => _emptyToNull(_line),
       weightG: _parsedWeight,
       fatherId: () => fatherId,

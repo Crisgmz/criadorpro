@@ -1,31 +1,35 @@
--- Criador Pro — marca de nacimiento en pie y pico.
+-- Criador Pro — marca de nacimiento y cintas de ala.
 --
--- El prototipo del PRD muestra este dato en la ficha del ejemplar («Marca de
--- nacimiento: 1 · 4») pero el esquema del SRS no lo recoge. Se añade porque es
--- como el criador reconoce al ave antes de que tenga placa.
---
--- `color` pasa de texto libre a clave de catálogo cerrado. Los valores que ya
--- existan se conservan tal cual: la app los muestra sin muestra de color en
--- lugar de perderlos.
+-- El prototipo las muestra en la ficha del ejemplar («Marca de nacimiento:
+-- 1 · 4», «Cintas de ala: Roja · Azul») y las captura en el registro de cruce,
+-- pero el esquema del SRS y del DDT no las recoge. Se añaden porque es como el
+-- criador identifica una nidada antes de que las crías tengan placa.
 --
 -- Idempotente.
 
 alter table public.birds
-  add column if not exists foot_mark text,
-  add column if not exists beak_mark text;
+  add column if not exists birth_mark text,
+  add column if not exists wing_band_left text,
+  add column if not exists wing_band_right text;
 
-comment on column public.birds.foot_mark is
-  'Marca en las membranas del pie. Formato «izquierda|derecha», posiciones 1-4 separadas por comas: 1,3|2';
+comment on column public.birds.birth_mark is
+  'Posiciones marcadas separadas por comas (1..6) o «none». 1-2 pie izquierdo, 3-4 pie derecho, 5-6 pico. «none» significa «se miró y no tiene»; nulo, «no se ha dicho».';
 
 do $$
 begin
-  if not exists (select 1 from pg_constraint where conname = 'birds_beak_mark_check') then
+  if not exists (select 1 from pg_constraint where conname = 'birds_wing_band_left_check') then
     alter table public.birds
-      add constraint birds_beak_mark_check
-      check (beak_mark is null or beak_mark in ('upper', 'lower', 'left', 'right'));
+      add constraint birds_wing_band_left_check
+      check (wing_band_left is null or wing_band_left in ('red','pink','blue','green','yellow'));
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'birds_wing_band_right_check') then
+    alter table public.birds
+      add constraint birds_wing_band_right_check
+      check (wing_band_right is null or wing_band_right in ('red','pink','blue','green','yellow'));
   end if;
 end $$;
 
--- `color` NO lleva CHECK a propósito: hay instalaciones con texto libre escrito
--- antes de cerrar el catálogo, y una restricción rechazaría su sincronización.
--- El catálogo se impone en el cliente, que es quien captura.
+-- `birth_mark` no lleva CHECK: el formato es una lista y validarlo en SQL
+-- exigiría una expresión regular frágil. El cliente es quien captura, y ahí
+-- está cubierto con pruebas.

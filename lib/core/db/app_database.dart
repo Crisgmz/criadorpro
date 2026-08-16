@@ -44,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -100,11 +100,15 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(transactions);
       }
 
-      // v6 — marca de pie y de pico. Columnas nuevas y nulas: lo registrado
-      // hasta ahora sigue igual, sin marca, que es la verdad.
-      if (from < 6) {
-        await m.addColumn(birds, birds.footMark);
-        await m.addColumn(birds, birds.beakMark);
+      // v7 — marca de nacimiento y cintas de ala, como en el prototipo. La v6
+      // había añadido `foot_mark` y `beak_mark`, que eran una lectura
+      // equivocada del mismo dato; se quedan sin usar y sin borrar, porque
+      // `RS-10` y el riesgo de migración del DDT piden que toda migración sea
+      // compatible con la versión anterior de la app.
+      if (from < 7) {
+        await m.addColumn(birds, birds.birthMark);
+        await m.addColumn(birds, birds.wingBandLeft);
+        await m.addColumn(birds, birds.wingBandRight);
       }
     },
     beforeOpen: (details) async {

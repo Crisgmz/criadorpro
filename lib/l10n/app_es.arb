@@ -360,6 +360,14 @@
   "photoFromGallery": "Elegir de la galería",
   "photoHint": "Opcional. Se guarda en el dispositivo.",
 
+  "birdRecordTitle": "FICHA DEL EJEMPLAR",
+  "birdPhotoPlaceholder": "FOTO",
+  "pedigreeRegistered": "{count, plural, =0{Sin ascendencia registrada} =1{1 generación registrada} other{{count} generaciones registradas}}",
+  "@pedigreeRegistered": {
+    "description": "Subtítulo del acceso al pedigrí en la ficha",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
   "birdTabData": "Datos",
   "birdTabTests": "Pruebas",
   "birdTabOffspring": "Descendencia",
@@ -464,34 +472,28 @@
   "@birdWeightOutOfRange": { "description": "RV-12" },
   "fieldSex": "Sexo",
   "fieldBirthDate": "Fecha de nacimiento",
-  "fieldFootMark": "Marca de nacimiento",
-  "fieldBeakMark": "Marca en el pico",
-  "footMarkLeft": "Pie izquierdo",
-  "footMarkRight": "Pie derecho",
-  "footMarkNone": "Sin marca",
-  "footMarkHint": "Toca las posiciones marcadas en cada pie.",
-  "footMarkSummary": "I {left} · D {right}",
-  "@footMarkSummary": {
-    "description": "Resumen de la marca de pie en la ficha",
-    "placeholders": {
-      "left": { "type": "String" },
-      "right": { "type": "String" }
-    }
+
+  "markingTitle": "Marca de nacimiento",
+  "markingNoMark": "Sin marca",
+  "markingNoMarkSet": "Sin marca de nacimiento",
+  "markingHint": "Toca los puntos para marcar",
+  "markingCode": "Marca: {code}",
+  "@markingCode": {
+    "description": "Código resultante de la marca, por ejemplo «1 · 4»",
+    "placeholders": { "code": { "type": "String" } }
   },
-  "beakMarkUpper": "Superior",
-  "beakMarkLower": "Inferior",
-  "beakMarkLeft": "Lateral izquierda",
-  "beakMarkRight": "Lateral derecha",
-  "colorWhite": "Blanco",
-  "colorGiro": "Giro",
-  "colorRed": "Colorado",
-  "colorCinnamon": "Canela",
-  "colorYellow": "Amarillo",
-  "colorAsh": "Cenizo",
-  "colorBarred": "Jabado",
-  "colorMottled": "Pinto",
-  "colorDark": "Retinto",
-  "colorBlack": "Negro",
+  "markingLeftFoot": "Pie izq.",
+  "markingRightFoot": "Pie der.",
+  "markingBeak": "Pico",
+  "markingBands": "Cintas de ala",
+  "markingLeftWing": "Ala izquierda",
+  "markingRightWing": "Ala derecha",
+  "markingBandNone": "Ninguna",
+  "bandRed": "Roja",
+  "bandPink": "Rosada",
+  "bandBlue": "Azul",
+  "bandGreen": "Verde",
+  "bandYellow": "Amarilla",
 
   "fieldColor": "Color / plumaje",
   "fieldLine": "Línea o raza",

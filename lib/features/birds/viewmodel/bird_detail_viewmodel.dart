@@ -4,6 +4,7 @@ import '../../../core/base/base_viewmodel.dart';
 import '../../../core/error/failure.dart';
 import '../../evaluations/model/evaluation.dart';
 import '../../evaluations/repository/evaluations_repository.dart';
+import '../../pedigree/repository/pedigree_repository.dart';
 import '../model/bird.dart';
 import '../model/clutch.dart';
 import '../repository/birds_repository.dart';
@@ -29,11 +30,13 @@ class BirdDetailViewModel extends BaseViewModel {
     required BirdsRepository repository,
     required ClutchesRepository clutchesRepository,
     required EvaluationsRepository evaluationsRepository,
+    required PedigreeRepository pedigreeRepository,
     required String ownerId,
     required String birdId,
   }) : _repository = repository,
        _clutchesRepository = clutchesRepository,
        _evaluationsRepository = evaluationsRepository,
+       _pedigreeRepository = pedigreeRepository,
        _ownerId = ownerId,
        _birdId = birdId {
     _subscribe();
@@ -43,6 +46,7 @@ class BirdDetailViewModel extends BaseViewModel {
   final BirdsRepository _repository;
   final ClutchesRepository _clutchesRepository;
   final EvaluationsRepository _evaluationsRepository;
+  final PedigreeRepository _pedigreeRepository;
   final String _ownerId;
   final String _birdId;
 
@@ -56,6 +60,7 @@ class BirdDetailViewModel extends BaseViewModel {
   List<OffspringGroup> _offspring = const [];
   List<Evaluation> _evaluations = const [];
   bool _evaluationsAvailable = false;
+  int _pedigreeDepth = 0;
 
   Bird? get bird => _bird;
   Bird? get father => _father;
@@ -72,6 +77,11 @@ class BirdDetailViewModel extends BaseViewModel {
   /// `RF-PRU-06` — con plan gratuito la pestaña se ve pero explica la
   /// restricción, en vez de mostrar un vacío que parecería un error.
   bool get areEvaluationsAvailable => _evaluationsAvailable;
+
+  /// Generaciones ascendentes ya registradas. Lo muestra el acceso al pedigrí,
+  /// como en el prototipo del PRD: sin ese número, el criador no sabe si vale
+  /// la pena abrirlo.
+  int get pedigreeDepth => _pedigreeDepth;
 
   Future<bool> delete() async {
     final result = await _repository.delete(_birdId);
@@ -94,6 +104,7 @@ class BirdDetailViewModel extends BaseViewModel {
           return;
         }
         await _resolveParents(bird);
+        await _resolvePedigreeDepth();
         setReady();
       },
       onError: (Object error) =>
@@ -149,6 +160,14 @@ class BirdDetailViewModel extends BaseViewModel {
   Future<void> _resolvePlan() async {
     _evaluationsAvailable = await _evaluationsRepository.isAvailableFor(_ownerId);
     safeNotify();
+  }
+
+  Future<void> _resolvePedigreeDepth() async {
+    final result = await _pedigreeRepository.build(
+      rootId: _birdId,
+      depth: PedigreeRepository.maxDepth,
+    );
+    _pedigreeDepth = result.valueOrNull?.depth ?? 0;
   }
 
   Future<void> _resolveParents(Bird bird) async {
