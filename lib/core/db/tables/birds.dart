@@ -38,6 +38,18 @@ class Birds extends Table {
   TextColumn get photoPath => text().nullable()();
   TextColumn get photoUrl => text().nullable()();
 
+  /// Marca física de identificación — pie y pico.
+  ///
+  /// El prototipo del PRD la muestra en la ficha («Marca de nacimiento: 1 · 4»)
+  /// pero el esquema del SRS no la recoge. Se añade porque es como el criador
+  /// reconoce al ave antes de que tenga placa.
+  ///
+  /// Formato `izquierda|derecha`, posiciones separadas por comas: `1,3|2`.
+  TextColumn get footMark => text().nullable()();
+
+  /// `upper` · `lower` · `left` · `right`.
+  TextColumn get beakMark => text().nullable()();
+
   TextColumn get notes => text().nullable()();
 
   DateTimeColumn get createdAt => dateTime()();

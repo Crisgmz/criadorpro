@@ -1,4 +1,5 @@
 import '../../../core/base/base_viewmodel.dart';
+import '../../../core/domain/plumage.dart';
 import '../../../core/domain/sex.dart';
 import '../../../core/media/photo_service.dart';
 import '../../../core/utils/validators.dart';
@@ -32,7 +33,9 @@ class BirdFormViewModel extends BaseViewModel {
   Sex _sex = Sex.unknown;
   BirdStatus _status = BirdStatus.active;
   DateTime? _birthDate;
-  String _color = '';
+  PlumageColor? _color;
+  String? _footMark;
+  BeakMark? _beakMark;
   String _line = '';
   String _weight = '';
   String _notes = '';
@@ -52,7 +55,9 @@ class BirdFormViewModel extends BaseViewModel {
   Sex get sex => _sex;
   BirdStatus get status => _status;
   DateTime? get birthDate => _birthDate;
-  String get color => _color;
+  PlumageColor? get color => _color;
+  String? get footMark => _footMark;
+  BeakMark? get beakMark => _beakMark;
   String get line => _line;
   String get weight => _weight;
   String get notes => _notes;
@@ -103,7 +108,9 @@ class BirdFormViewModel extends BaseViewModel {
       _sex = bird.sex;
       _status = bird.status;
       _birthDate = bird.birthDate;
-      _color = bird.color ?? '';
+      _color = PlumageColor.fromId(bird.color);
+      _footMark = bird.footMark;
+      _beakMark = BeakMark.fromId(bird.beakMark);
       _line = bird.line ?? '';
       _weight = bird.weightG?.toString() ?? '';
       _notes = bird.notes ?? '';
@@ -143,7 +150,20 @@ class BirdFormViewModel extends BaseViewModel {
     safeNotify();
   }
 
-  void setColor(String value) => _color = value;
+  void setColor(PlumageColor? value) {
+    _color = value;
+    safeNotify();
+  }
+
+  void setFootMark(String? value) {
+    _footMark = value;
+    safeNotify();
+  }
+
+  void setBeakMark(BeakMark? value) {
+    _beakMark = value;
+    safeNotify();
+  }
 
   void setLine(String value) => _line = value;
 
@@ -241,7 +261,9 @@ class BirdFormViewModel extends BaseViewModel {
       status: _status,
       name: () => _emptyToNull(_name),
       birthDate: () => _birthDate,
-      color: () => _emptyToNull(_color),
+      color: () => _color?.id,
+      footMark: () => _footMark,
+      beakMark: () => _beakMark?.id,
       line: () => _emptyToNull(_line),
       weightG: _parsedWeight,
       fatherId: () => fatherId,

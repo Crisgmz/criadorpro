@@ -180,7 +180,7 @@ añaden `is_dirty`.
 | Tabla | Campos |
 |---|---|
 | `profiles` | `id` (= auth uid), `full_name`, `email`, `phone`, `farm_name`, `location`, `country_code` (def. `DO`), `locale` (`es`/`en`), **`next_plate`** (≥1, estrictamente creciente), `plan` (`free`/`pro`/`elite`), `plan_expires_at`, `avatar_url` |
-| `birds` | `id`, **`plate`** (integer, ≥1, obligatorio), `name` (opcional), `sex` (`male`/`female`/`unknown`), `line`, `color`, `birth_date`, `father_id`, `mother_id`, `clutch_id`, `weight_g` (100–8000), `status` (`active`/`sold`/`deceased`/`loaned`), `photo_url`, `notes` |
+| `birds` | `id`, **`plate`** (integer, ≥1, obligatorio), `name` (opcional), `sex` (`male`/`female`/`unknown`), `line`, `color` (catálogo), **`foot_mark`**, **`beak_mark`**, `birth_date`, `father_id`, `mother_id`, `clutch_id`, `weight_g` (100–8000), `status` (`active`/`sold`/`deceased`/`loaned`), `photo_url`, `notes` |
 | `clutches` | `father_id`, `mother_id`, `date`, `eggs` (0–30), `hatched` (1–30, ≤ `eggs`) |
 | `evaluations` | `bird_id`, `date`, `place`, `result` (`favorable`/`unfavorable`/`undefined`), `condition` (1–10), **`weight_g`**, **`notes`** |
 | `transactions` | `type` (`income`/`expense`), `category` (catálogo cerrado), `amount` `numeric(12,2)` >0, `date`, `description`, `bird_id`, `recurrence` (`none`/`weekly`/`biweekly`/`monthly`) |
@@ -665,6 +665,31 @@ borrar la original hasta que la cifrada está escrita**.
 - Comenta el **porqué**, no el qué, y cita el identificador del requisito cuando la línea existe por una regla.
 
 ---
+
+## 12 bis. Dos divergencias entre el prototipo y el esquema
+
+El prototipo del PRD (flujo 3, captura 20) muestra en la ficha una **«Marca de
+nacimiento: 1 · 4»** que ni el SRS ni el DDT recogen en `birds`. Se implementó
+como dos campos —`foot_mark` y `beak_mark`— porque es como el criador reconoce
+al ave antes de que tenga placa. El pie se marca perforando las membranas, en
+cuatro posiciones por pata; se guarda como `izquierda|derecha`, por ejemplo
+`1,3|2`.
+
+El **color de plumaje** es texto libre de 40 caracteres en el SRS y en el DDT.
+Se cerró en catálogo con muestra
+([lib/core/domain/plumage.dart](lib/core/domain/plumage.dart)) porque escrito a
+mano el mismo color acaba con cinco grafías y deja de servir para filtrar. **La
+lista de colores es una propuesta, no un dato de los documentos**: sale del
+vocabulario del oficio y de los nombres del propio prototipo (Giro, Colorado,
+Canela, Cenizo, Pinto). Ajustarla es cambiar el enum y los `.arb`.
+
+En Postgres, `color` **no lleva `CHECK`** a propósito: una instalación con texto
+libre anterior vería rechazada su sincronización. El catálogo se impone en el
+cliente, que es quien captura.
+
+Quedan otras dos divergencias con ese mismo prototipo, **sin resolver**: la
+ficha lleva cabecera navy con la foto y las insignias, y sus pestañas se llaman
+«Datos · Evaluaciones · Crías».
 
 ## 13. Decisiones abiertas
 

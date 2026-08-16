@@ -44,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -98,6 +98,13 @@ class AppDatabase extends _$AppDatabase {
       // v5 — contabilidad (`RF-CON`). Tabla nueva, nada que migrar.
       if (from < 5) {
         await m.createTable(transactions);
+      }
+
+      // v6 — marca de pie y de pico. Columnas nuevas y nulas: lo registrado
+      // hasta ahora sigue igual, sin marca, que es la verdad.
+      if (from < 6) {
+        await m.addColumn(birds, birds.footMark);
+        await m.addColumn(birds, birds.beakMark);
       }
     },
     beforeOpen: (details) async {

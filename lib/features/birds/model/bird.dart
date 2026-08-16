@@ -39,6 +39,8 @@ class Bird {
     this.clutchId,
     this.photoPath,
     this.photoUrl,
+    this.footMark,
+    this.beakMark,
     this.notes,
     this.isDeleted = false,
   });
@@ -71,6 +73,8 @@ class Bird {
     clutchId: row.clutchId,
     photoPath: row.photoPath,
     photoUrl: row.photoUrl,
+    footMark: row.footMark,
+    beakMark: row.beakMark,
     notes: row.notes,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -92,6 +96,8 @@ class Bird {
     motherId: json['mother_id'] as String?,
     clutchId: json['clutch_id'] as String?,
     photoUrl: json['photo_url'] as String?,
+    footMark: json['foot_mark'] as String?,
+    beakMark: json['beak_mark'] as String?,
     notes: json['notes'] as String?,
     createdAt: _parseDate(json['created_at']) ?? DateTime.now(),
     updatedAt: _parseDate(json['updated_at']) ?? DateTime.now(),
@@ -127,6 +133,12 @@ class Bird {
   /// URL en Storage, la rellena la sincronización.
   final String? photoUrl;
 
+  /// Marca de nacimiento en el pie, formato `izquierda|derecha` (`1,3|2`).
+  final String? footMark;
+
+  /// Marca en el pico.
+  final String? beakMark;
+
   final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -154,6 +166,8 @@ class Bird {
     clutchId: Value(clutchId),
     photoPath: Value(photoPath),
     photoUrl: Value(photoUrl),
+    footMark: Value(footMark),
+    beakMark: Value(beakMark),
     notes: Value(notes),
     createdAt: Value(createdAt),
     updatedAt: Value(updatedAt),
@@ -177,6 +191,8 @@ class Bird {
     'mother_id': motherId,
     'clutch_id': clutchId,
     'photo_url': photoUrl,
+    'foot_mark': footMark,
+    'beak_mark': beakMark,
     'notes': notes,
     'created_at': createdAt.toUtc().toIso8601String(),
     'updated_at': updatedAt.toUtc().toIso8601String(),
@@ -200,6 +216,8 @@ class Bird {
     String? Function()? clutchId,
     String? Function()? photoPath,
     String? Function()? photoUrl,
+    String? Function()? footMark,
+    String? Function()? beakMark,
     String? Function()? notes,
   }) => Bird(
     id: id ?? this.id,
@@ -221,6 +239,8 @@ class Bird {
     clutchId: clutchId == null ? this.clutchId : clutchId(),
     photoPath: photoPath == null ? this.photoPath : photoPath(),
     photoUrl: photoUrl == null ? this.photoUrl : photoUrl(),
+    footMark: footMark == null ? this.footMark : footMark(),
+    beakMark: beakMark == null ? this.beakMark : beakMark(),
     notes: notes == null ? this.notes : notes(),
     isDeleted: isDeleted ?? this.isDeleted,
   );

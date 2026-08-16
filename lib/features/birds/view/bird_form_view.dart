@@ -16,6 +16,7 @@ import '../viewmodel/bird_form_viewmodel.dart';
 import 'bird_labels.dart';
 import 'widgets/form_fields.dart';
 import 'widgets/photo_field.dart';
+import 'widgets/plumage_fields.dart';
 
 /// Alta y edición de un ejemplar. Sin [birdId] es un alta.
 class BirdFormView extends ConsumerStatefulWidget {
@@ -30,7 +31,6 @@ class BirdFormView extends ConsumerStatefulWidget {
 class _BirdFormViewState extends ConsumerState<BirdFormView> {
   final _nameController = TextEditingController();
   final _plateController = TextEditingController();
-  final _colorController = TextEditingController();
   final _lineController = TextEditingController();
   final _weightController = TextEditingController();
   final _notesController = TextEditingController();
@@ -47,7 +47,6 @@ class _BirdFormViewState extends ConsumerState<BirdFormView> {
   void dispose() {
     _nameController.dispose();
     _plateController.dispose();
-    _colorController.dispose();
     _lineController.dispose();
     _weightController.dispose();
     _notesController.dispose();
@@ -62,7 +61,6 @@ class _BirdFormViewState extends ConsumerState<BirdFormView> {
     final viewModel = _viewModel;
     _nameController.text = viewModel.name;
     _plateController.text = viewModel.plate;
-    _colorController.text = viewModel.color;
     _lineController.text = viewModel.line;
     _weightController.text = viewModel.weight;
     _notesController.text = viewModel.notes;
@@ -200,12 +198,21 @@ class _BirdFormViewState extends ConsumerState<BirdFormView> {
             onChanged: (status) => viewModel.setStatus(status ?? BirdStatus.active),
           ),
           const SizedBox(height: AppSpacing.md),
-          CpTextField(
-            label: l10n.fieldColor,
-            controller: _colorController,
-            textInputAction: TextInputAction.next,
-            onChanged: viewModel.setColor,
-          ),
+          // Paleta y no campo libre: escrito a mano, el mismo color acaba con
+          // cinco grafías y deja de servir para filtrar o comparar.
+          SectionLabel(l10n.fieldColor),
+          PlumagePicker(selected: viewModel.color, onChanged: viewModel.setColor),
+
+          const SizedBox(height: AppSpacing.lg),
+          // Marca de nacimiento: el criador la usa para reconocer al ave antes
+          // de que tenga placa.
+          SectionLabel(l10n.fieldFootMark),
+          FootMarkPicker(value: viewModel.footMark, onChanged: viewModel.setFootMark),
+          InlineWarning(message: l10n.footMarkHint),
+
+          const SizedBox(height: AppSpacing.md),
+          SectionLabel(l10n.fieldBeakMark),
+          BeakMarkPicker(selected: viewModel.beakMark, onChanged: viewModel.setBeakMark),
           const SizedBox(height: AppSpacing.md),
           CpTextField(
             label: l10n.fieldWeight,

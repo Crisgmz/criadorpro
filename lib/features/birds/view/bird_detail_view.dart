@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/base/view_state.dart';
+import '../../../core/domain/plumage.dart';
 import '../../../core/error/failure_messages.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
@@ -21,6 +22,7 @@ import '../model/bird.dart';
 import '../viewmodel/bird_detail_viewmodel.dart';
 import 'bird_labels.dart';
 import 'widgets/form_fields.dart';
+import 'widgets/plumage_fields.dart';
 
 /// Ficha del ejemplar — pantallas 20 a 22, `RF-REG-12`.
 ///
@@ -184,7 +186,16 @@ class _DataTab extends StatelessWidget {
 
         const SizedBox(height: AppSpacing.lg),
         SectionLabel(l10n.birdSectionExtra),
-        _DataRow(label: l10n.fieldColor, value: bird.color ?? '—'),
+        _ColorRow(color: PlumageColor.fromId(bird.color), raw: bird.color),
+        // «Marca de nacimiento», como en el prototipo del PRD.
+        _DataRow(label: l10n.fieldFootMark, value: footMarkSummary(l10n, bird.footMark) ?? '—'),
+        _DataRow(
+          label: l10n.fieldBeakMark,
+          value: switch (BeakMark.fromId(bird.beakMark)) {
+            final mark? => beakMarkLabel(l10n, mark),
+            null => '—',
+          },
+        ),
         _DataRow(
           label: l10n.fieldWeight,
           value: bird.weightG == null ? '—' : Formatters.number(bird.weightG!.toDouble(), locale),
@@ -449,6 +460,67 @@ class _ParentRow extends StatelessWidget {
         label: label,
         value: parent!.displayName,
         trailing: const Icon(Icons.chevron_right, size: 18),
+      ),
+    );
+  }
+}
+
+/// El color se muestra con su muestra, igual que en la paleta de captura.
+///
+/// Un valor que no pertenece al catálogo —texto libre escrito antes de
+/// cerrarlo— se enseña tal cual: perderlo sería peor que mostrarlo sin muestra.
+class _ColorRow extends StatelessWidget {
+  const _ColorRow({this.color, this.raw});
+
+  final PlumageColor? color;
+  final String? raw;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final theme = Theme.of(context);
+    final known = color;
+
+    if (known == null) {
+      return _DataRow(label: l10n.fieldColor, value: (raw ?? '').isEmpty ? '—' : raw!);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              l10n.fieldColor,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Row(
+              children: [
+                Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: known.swatch,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                // `RNF-25`: la muestra nunca va sola.
+                Text(
+                  plumageColorLabel(l10n, known),
+                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
