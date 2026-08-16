@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/base/view_state.dart';
 import '../../../core/domain/markings.dart';
+import '../../../core/domain/plumage_color.dart';
 import '../../../core/error/failure_messages.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
@@ -23,6 +24,7 @@ import '../viewmodel/bird_detail_viewmodel.dart';
 import 'bird_labels.dart';
 import 'widgets/form_fields.dart';
 import 'widgets/marking_fields.dart';
+import 'widgets/plumage_field.dart';
 
 /// Ficha del ejemplar — pantallas 20 a 22, `RF-REG-12`.
 ///
@@ -186,7 +188,7 @@ class _DataTab extends StatelessWidget {
 
         const SizedBox(height: AppSpacing.lg),
         SectionLabel(l10n.birdSectionExtra),
-        _DataRow(label: l10n.fieldColor, value: bird.color ?? '—'),
+        _ColorRow(raw: bird.color),
         // Marca de nacimiento y cintas de ala, como en la ficha del prototipo.
         _DataRow(
           label: l10n.markingTitle,
@@ -462,6 +464,58 @@ class _ParentRow extends StatelessWidget {
         label: label,
         value: parent!.displayName,
         trailing: const Icon(Icons.chevron_right, size: 18),
+      ),
+    );
+  }
+}
+
+/// El color con su muestra, como en el desplegable de captura.
+///
+/// Un valor fuera del catálogo —texto libre escrito antes de cerrarlo— se
+/// enseña tal cual: perderlo sería peor que mostrarlo sin muestra.
+class _ColorRow extends StatelessWidget {
+  const _ColorRow({this.raw});
+
+  final String? raw;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final theme = Theme.of(context);
+    final known = PlumageColor.fromId(raw);
+
+    if (known == null) {
+      return _DataRow(label: l10n.fieldColor, value: (raw ?? '').isEmpty ? '—' : raw!);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              l10n.fieldColor,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Row(
+              children: [
+                PlumageSwatch(color: known.swatch, size: 14),
+                const SizedBox(width: AppSpacing.sm),
+                // `RNF-25`: la muestra nunca va sola.
+                Text(
+                  plumageColorLabel(l10n, known),
+                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

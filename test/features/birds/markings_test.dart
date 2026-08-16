@@ -1,4 +1,5 @@
 import 'package:criadorpro/core/domain/markings.dart';
+import 'package:criadorpro/core/domain/plumage_color.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Marca de nacimiento y cintas de ala, según el prototipo.
@@ -58,6 +59,24 @@ void main() {
       expect(BirthMark.positionsOf('0,7,9'), isEmpty);
       expect(BirthMark.positionsOf('2,8'), {2});
       expect(BirthMark.codeOf(null), isNull);
+    });
+  });
+
+  group('color del plumaje', () {
+    test('las claves son estables y únicas', () {
+      final ids = PlumageColor.values.map((c) => c.id).toList();
+      // Viajan a la base: cambiarlas rompería lo ya registrado.
+      expect(ids.toSet(), hasLength(ids.length));
+      expect(PlumageColor.fromId('giro'), PlumageColor.giro);
+      expect(PlumageColor.fromId('red'), PlumageColor.red);
+    });
+
+    test('un valor fuera del catálogo devuelve null y no revienta', () {
+      // Texto libre escrito antes de cerrar el catálogo: la ficha lo muestra
+      // tal cual en lugar de perderlo.
+      expect(PlumageColor.fromId('colorao con pinta'), isNull);
+      expect(PlumageColor.fromId(''), isNull);
+      expect(PlumageColor.fromId(null), isNull);
     });
   });
 

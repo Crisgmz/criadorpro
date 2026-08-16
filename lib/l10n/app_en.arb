@@ -438,6 +438,17 @@
   "bandGreen": "Green",
   "bandYellow": "Yellow",
 
+  "colorGiro": "Giro",
+  "colorRed": "Red",
+  "colorCinnamon": "Cinnamon",
+  "colorWhite": "White",
+  "colorMottled": "Mottled",
+  "colorAsh": "Ash",
+  "colorBarred": "Barred",
+  "colorYellow": "Yellow",
+  "colorDark": "Dark red",
+  "colorBlack": "Black",
+
   "fieldColor": "Color / plumage",
   "fieldLine": "Line or breed",
   "fieldStatus": "Status",
