@@ -34,6 +34,9 @@ void main() {
       profilesDao: database.profilesDao,
       birdsDao: database.birdsDao,
       clutchesDao: database.clutchesDao,
+      evaluationsDao: database.evaluationsDao,
+      transactionsDao: database.transactionsDao,
+      payrollDao: database.payrollDao,
       syncQueue: database.syncQueueDao,
       syncService: SyncService(
         queue: database.syncQueueDao,

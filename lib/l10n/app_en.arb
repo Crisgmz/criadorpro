@@ -470,7 +470,7 @@
   "sexFemale": "Female",
   "sexUnknown": "Unsexed",
 
-  "statusActive": "In loft",
+  "statusActive": "Active",
   "statusSold": "Sold",
   "statusDeceased": "Deceased",
   "statusLoaned": "On loan",
@@ -506,5 +506,74 @@
   "planPro": "Pro",
   "planElite": "Elite",
   "planUsage": "{current} of {limit} birds",
-  "planUsageUnlimited": "{current} birds · unlimited"
+  "planUsageUnlimited": "{current} birds · unlimited",
+
+  "birdsRecordCount": "{count, plural, =0{No records} =1{1 record} other{{count} records}}",
+  "@birdsRecordCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "birdsPlateLabel": "Plate {plate}",
+  "@birdsPlateLabel": {
+    "placeholders": { "plate": { "type": "String" } }
+  },
+  "birdWingBandOf": "{color} wing band",
+  "@birdWingBandOf": {
+    "placeholders": { "color": { "type": "String" } }
+  },
+  "settingsAdmin": "Administration",
+  "payrollTitle": "Payroll",
+  "payrollPlanTitle": "Available with Elite",
+  "payrollPlanMessage": "Keep your team, record payments, and let the payroll expense flow into the month's books on its own.",
+  "payrollEmptyTitle": "No employees yet",
+  "payrollEmptyMessage": "Add whoever works with you and you'll be able to track their payments here.",
+  "payrollTeam": "TEAM",
+  "payrollHistory": "RECENT PAYMENTS",
+  "payrollActive": "Active",
+  "payrollMonthlyCost": "Monthly cost",
+  "payrollMonthlyCostEstimate": "Estimated from active salaries",
+  "payrollPaidThisMonth": "Paid this month",
+  "payrollNewEmployee": "Add employee",
+  "payrollEmployeeFormTitle": "New employee",
+  "payrollEmployeeEditTitle": "Edit employee",
+  "payrollFieldName": "Name",
+  "payrollFieldRole": "Role",
+  "payrollFieldPhone": "Phone",
+  "payrollFieldDocument": "ID number",
+  "payrollFieldSalary": "Salary",
+  "payrollFieldFrequency": "Frequency",
+  "payrollDocumentWarning": "That ID number doesn't look valid. You can save it anyway.",
+  "payrollInactive": "Inactive",
+  "payrollDeactivate": "Deactivate",
+  "payrollActivate": "Reactivate",
+  "payrollEmployeeSaved": "Employee saved",
+  "payrollPay": "Record payment",
+  "payrollPaymentTitle": "Payroll payment",
+  "payrollFieldPeriod": "Period",
+  "payrollFieldPeriodStart": "From",
+  "payrollFieldPeriodEnd": "To",
+  "payrollFieldBase": "Base salary",
+  "payrollFieldBonus": "Bonus",
+  "payrollFieldDeductions": "Deductions",
+  "payrollFieldMethod": "Payment method",
+  "payrollNet": "Net pay",
+  "payrollNetNegative": "Net pay cannot be negative.",
+  "payrollOverlapWarning": "There is already a payment covering part of this period.",
+  "payrollConfirmPayment": "Confirm payment",
+  "payrollPaymentSaved": "Payment recorded and booked as an expense",
+  "payrollVoidTitle": "Void this payment?",
+  "payrollVoidMessage": "The payroll expense it created will be voided too.",
+  "payrollVoided": "Payment voided",
+  "payrollPeriodRange": "{start} to {end}",
+  "@payrollPeriodRange": {
+    "placeholders": {
+      "start": { "type": "String" },
+      "end": { "type": "String" }
+    }
+  },
+  "frequencyWeekly": "Weekly",
+  "frequencyBiweekly": "Biweekly",
+  "frequencyMonthly": "Monthly",
+  "methodCash": "Cash",
+  "methodTransfer": "Transfer",
+  "methodOther": "Other"
 }

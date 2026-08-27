@@ -143,5 +143,28 @@ abstract final class Validators {
         : null;
   }
 
+  /// `RV-17` — cédula dominicana: 11 dígitos con dígito verificador.
+  ///
+  /// Devuelve un booleano y no un [ValidationError] a propósito: el requisito
+  /// dice **advertencia, no bloqueo**. Hay trabajadores sin documento
+  /// dominicano, y un pago que no se puede registrar por eso es peor que un
+  /// número mal escrito.
+  ///
+  /// El dígito verificador se calcula como en el Luhn de las tarjetas:
+  /// alternando factores 1 y 2 sobre los diez primeros dígitos, restando 9 a
+  /// los productos de dos cifras, y completando la suma a la decena siguiente.
+  static bool isValidDominicanId(String? value) {
+    final digits = digitsOf(value ?? '');
+    if (digits.length != 11) return false;
+
+    var sum = 0;
+    for (var index = 0; index < 10; index++) {
+      final product = int.parse(digits[index]) * (index.isEven ? 1 : 2);
+      sum += product > 9 ? product - 9 : product;
+    }
+
+    return (10 - sum % 10) % 10 == int.parse(digits[10]);
+  }
+
   static String digitsOf(String value) => value.replaceAll(RegExp(r'\D'), '');
 }

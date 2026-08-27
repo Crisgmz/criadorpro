@@ -65,6 +65,11 @@ class AppDrawer extends ConsumerWidget {
               title: Text(l10n.accountingTitle),
               onTap: () => _go(context, Routes.accounting),
             ),
+            ListTile(
+              leading: const Icon(Icons.badge_outlined),
+              title: Text(l10n.payrollTitle),
+              onTap: () => _go(context, Routes.payroll),
+            ),
 
             const Divider(height: AppSpacing.xl),
             _GroupLabel(l10n.drawerGroupApp),

@@ -28,6 +28,10 @@ import '../../features/evaluations/repository/evaluations_repository.dart';
 import '../../features/evaluations/viewmodel/evaluation_form_viewmodel.dart';
 import '../../features/evaluations/viewmodel/evaluations_list_viewmodel.dart';
 import '../../features/onboarding/viewmodel/farm_setup_viewmodel.dart';
+import '../../features/payroll/repository/payroll_repository.dart';
+import '../../features/payroll/viewmodel/employee_form_viewmodel.dart';
+import '../../features/payroll/viewmodel/payment_form_viewmodel.dart';
+import '../../features/payroll/viewmodel/payroll_viewmodel.dart';
 import '../../features/pedigree/repository/pedigree_repository.dart';
 import '../../features/pedigree/viewmodel/pedigree_viewmodel.dart';
 import '../../features/settings/viewmodel/app_settings_viewmodel.dart';
@@ -36,6 +40,7 @@ import '../db/app_database.dart';
 import '../db/daos/birds_dao.dart';
 import '../db/daos/clutches_dao.dart';
 import '../db/daos/evaluations_dao.dart';
+import '../db/daos/payroll_dao.dart';
 import '../db/daos/profiles_dao.dart';
 import '../db/daos/sync_queue_dao.dart';
 import '../db/daos/transactions_dao.dart';
@@ -76,6 +81,7 @@ final transactionsDaoProvider = Provider<TransactionsDao>(
 final evaluationsDaoProvider = Provider<EvaluationsDao>(
   (ref) => ref.watch(appDatabaseProvider).evaluationsDao,
 );
+final payrollDaoProvider = Provider<PayrollDao>((ref) => ref.watch(appDatabaseProvider).payrollDao);
 final clutchesDaoProvider = Provider<ClutchesDao>(
   (ref) => ref.watch(appDatabaseProvider).clutchesDao,
 );
@@ -147,6 +153,10 @@ final syncServiceProvider = Provider<SyncService>((ref) {
       ref.watch(birdsRepositoryProvider),
       ref.watch(evaluationsRepositoryProvider),
       ref.watch(transactionsRepositoryProvider),
+      // Los empleados antes que los pagos: un pago sin su empleado no se puede
+      // pintar, y el orden de descarga es el que lo garantiza.
+      ref.watch(payrollRepositoryProvider).employeesPuller,
+      ref.watch(payrollRepositoryProvider).paymentsPuller,
     ],
   );
   ref.onDispose(service.dispose);
@@ -163,6 +173,9 @@ final authRepositoryProvider = Provider<AuthRepository>(
     profilesDao: ref.watch(profilesDaoProvider),
     birdsDao: ref.watch(birdsDaoProvider),
     clutchesDao: ref.watch(clutchesDaoProvider),
+    evaluationsDao: ref.watch(evaluationsDaoProvider),
+    transactionsDao: ref.watch(transactionsDaoProvider),
+    payrollDao: ref.watch(payrollDaoProvider),
     syncQueue: ref.watch(syncQueueDaoProvider),
     syncService: ref.watch(syncServiceProvider),
     preferences: ref.watch(authPreferencesProvider),
@@ -408,3 +421,45 @@ final settingsViewModelProvider = ChangeNotifierProvider.autoDispose<SettingsVie
     ownerId: ref.watch(currentOwnerIdProvider),
   ),
 );
+
+// --- Empleomanía (RF-NOM) ---------------------------------------------------
+
+final payrollRepositoryProvider = Provider<PayrollRepository>(
+  (ref) => PayrollRepository(
+    database: ref.watch(appDatabaseProvider),
+    payrollDao: ref.watch(payrollDaoProvider),
+    profilesDao: ref.watch(profilesDaoProvider),
+    syncQueue: ref.watch(syncQueueDaoProvider),
+    supabase: ref.watch(supabaseServiceProvider),
+    // `RS-06` — el gasto de nómina lo escribe contabilidad. La dependencia va
+    // por la interfaz de `core/`, no por el repositorio concreto: empleomanía
+    // no puede importar de otro feature.
+    expenses: ref.watch(transactionsRepositoryProvider),
+  ),
+);
+
+final payrollViewModelProvider = ChangeNotifierProvider.autoDispose<PayrollViewModel>(
+  (ref) => PayrollViewModel(
+    repository: ref.watch(payrollRepositoryProvider),
+    ownerId: ref.watch(currentOwnerIdProvider),
+  ),
+);
+
+/// `null` es un alta; con id, edición.
+final employeeFormViewModelProvider = ChangeNotifierProvider.autoDispose
+    .family<EmployeeFormViewModel, String?>(
+      (ref, employeeId) => EmployeeFormViewModel(
+        repository: ref.watch(payrollRepositoryProvider),
+        ownerId: ref.watch(currentOwnerIdProvider),
+        employeeId: employeeId,
+      ),
+    );
+
+final paymentFormViewModelProvider = ChangeNotifierProvider.autoDispose
+    .family<PaymentFormViewModel, String>(
+      (ref, employeeId) => PaymentFormViewModel(
+        repository: ref.watch(payrollRepositoryProvider),
+        ownerId: ref.watch(currentOwnerIdProvider),
+        employeeId: employeeId,
+      ),
+    );

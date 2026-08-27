@@ -4,8 +4,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/db/daos/birds_dao.dart';
 import '../../../core/db/daos/clutches_dao.dart';
+import '../../../core/db/daos/evaluations_dao.dart';
+import '../../../core/db/daos/payroll_dao.dart';
 import '../../../core/db/daos/profiles_dao.dart';
 import '../../../core/db/daos/sync_queue_dao.dart';
+import '../../../core/db/daos/transactions_dao.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/network/supabase_service.dart';
 import '../../../core/sync/sync_service.dart';
@@ -31,6 +34,9 @@ class AuthRepository {
     required ProfilesDao profilesDao,
     required BirdsDao birdsDao,
     required ClutchesDao clutchesDao,
+    required EvaluationsDao evaluationsDao,
+    required TransactionsDao transactionsDao,
+    required PayrollDao payrollDao,
     required SyncQueueDao syncQueue,
     required SyncService syncService,
     required AuthPreferences preferences,
@@ -38,6 +44,9 @@ class AuthRepository {
        _profilesDao = profilesDao,
        _birdsDao = birdsDao,
        _clutchesDao = clutchesDao,
+       _evaluationsDao = evaluationsDao,
+       _transactionsDao = transactionsDao,
+       _payrollDao = payrollDao,
        _syncQueue = syncQueue,
        _syncService = syncService,
        _preferences = preferences;
@@ -46,6 +55,9 @@ class AuthRepository {
   final ProfilesDao _profilesDao;
   final BirdsDao _birdsDao;
   final ClutchesDao _clutchesDao;
+  final EvaluationsDao _evaluationsDao;
+  final TransactionsDao _transactionsDao;
+  final PayrollDao _payrollDao;
   final SyncQueueDao _syncQueue;
   final SyncService _syncService;
   final AuthPreferences _preferences;
@@ -146,9 +158,18 @@ class AuthRepository {
     await _preferences.rememberOwner(ownerId);
   }
 
+  /// **Todas** las tablas de datos del criadero, sin excepción.
+  ///
+  /// Cada módulo nuevo tiene que añadirse aquí. Olvidarse de uno no rompe nada
+  /// visible —las consultas filtran por `owner_id`— pero deja los datos del
+  /// criadero anterior en el teléfono de otro, que es exactamente lo que
+  /// `RF-AUT-15` no permite.
   Future<void> _wipeLocalData() async {
     await _birdsDao.clear();
     await _clutchesDao.clear();
+    await _evaluationsDao.clear();
+    await _transactionsDao.clear();
+    await _payrollDao.clear();
     await _profilesDao.clear();
     await _syncQueue.clear();
     await _syncService.clearWatermarks();

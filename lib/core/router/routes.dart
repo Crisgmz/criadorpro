@@ -40,6 +40,18 @@ abstract final class Routes {
 
   static const String transactionNew = '/accounting/new';
 
+  /// Empleomanía — `RF-NOM`. Tampoco ocupa pestaña, por lo mismo que
+  /// contabilidad: es administración, no lo que el criador toca a diario.
+  static const String payroll = '/payroll';
+
+  static const String employeeNew = '/payroll/employee/new';
+
+  static String employeeEdit(String id) => '/payroll/employee/$id';
+
+  /// Registro de pago. El empleado va en la ruta porque la pantalla no tiene
+  /// sentido sin él: se llega desde su fila, nunca en vacío.
+  static String paymentNewFor(String employeeId) => '/payroll/pay/$employeeId';
+
   // Pantallas a pantalla completa, fuera del shell.
   static const String birdNew = '/birds/new';
 

@@ -308,7 +308,7 @@ renegociar alcance).
 | Fase | Contenido | Criterio de salida |
 |---|---|---|
 | **F1** | `RF-AUT` · `RF-ONB` · `RF-REG` · `RF-PED` · `RF-SIN` | Un criador migra su libro completo y consulta pedigrí sin conexión |
-| **F2** | `RF-PRU` · `RF-CON` · `RF-NOM` | Un mes contable se cierra íntegramente dentro de la app |
+| **F2** | `RF-PRU` · `RF-CON` · `RF-NOM` | ✅ Un mes contable se cierra íntegramente dentro de la app |
 | **F3** | `RF-CTA-04` a `RF-CTA-12` (membresías, compras, envío) | Suscripción cobrada y aprobación en ambas tiendas |
 | **F4** | `RF-COM` · `RF-PED-08` · `RF-CON-07` (exportación real a PDF) | Primer encuentro concretado y exportación real a PDF |
 | **F5** | Multiusuario, roles, panel web | Un criadero operando con dos cuentas y permisos distintos |
@@ -468,6 +468,36 @@ hundiría la media. Sin ninguna condición anotada se muestra un guion, no «0,0
 Falta `RF-PRU-07` (Esperado): incorporar el peso de la prueba al historial de
 pesos del ejemplar. Va junto con `RF-REG-14`, que es quien crea ese historial.
 
+### Empleomanía — implementado
+
+`RF-NOM-01` a `RF-NOM-03` en [lib/features/payroll/](lib/features/payroll/):
+panel con la plantilla y el costo mensual, alta y edición de empleado, y
+registro de pago. No ocupa pestaña —se abre desde el panel lateral y desde Mi
+cuenta—, como contabilidad. El módulo es de Élite y, como pruebas de campo, la
+pantalla **se muestra con su aviso** en vez de esconderse.
+
+`RS-06` es la regla que sostiene el módulo: confirmar un pago crea el gasto de
+nómina **en la misma transacción**, y anular el pago anula el gasto. El puente
+va por `PayrollExpenseSink`
+([lib/core/accounting/payroll_expense_sink.dart](lib/core/accounting/payroll_expense_sink.dart)),
+una interfaz en `core/` que implementa contabilidad: un feature no importa de
+otro, y así el acoplamiento —que es del requisito, no del código— queda
+explícito y sustituible. `save()` de contabilidad **sigue rechazando** la
+categoría nómina: solo se escribe por ese camino.
+
+El costo mensual de `RS-07` se rotula como estimación en la pantalla. Nadie
+cobra 4,33 semanas en un mes concreto, y darlo por exacto llevaría al criador a
+cuadrarlo contra su banco. Al lado va lo realmente pagado en el mes, que sí es
+exacto.
+
+`RV-15` bloquea el neto negativo; `RV-17` —cédula dominicana con dígito
+verificador— **solo advierte**: hay trabajadores sin documento dominicano, y un
+pago que no se puede registrar por eso es peor que un número mal escrito. El
+solapamiento de períodos también advierte y no bloquea, porque un adelanto
+sobre el mismo período es legítimo.
+
+Falta `RF-NOM-04` (recibo en PDF), que va con las demás exportaciones en F4.
+
 ### Genealogía — implementado
 
 `RF-PED-01` a `RF-PED-07` y `RF-PED-09` en
@@ -506,11 +536,11 @@ primer trabajo de F1, porque todo lo demás cuelga de la placa:
 | `clutches`: `date`, `eggs`, `hatched` | ✅ alineado | ✅ UI de camadas completa |
 | Tabla `evaluations` | ✅ creada (esquema v4 + migración de Supabase) | — |
 | Tabla `transactions` | ✅ creada (esquema v5 + migración de Supabase) | — |
-| Tablas `employees`, `payroll_payments` | No existen | Crear con su feature |
+| Tablas `employees`, `payroll_payments` | ✅ creadas (esquema v9 + migración de Supabase) | — |
 | Triggers y RPC del servidor | ✅ `handle_new_user()`, `touch_updated_at()`, `next_plate()`, `active_bird_count()`; falta `delete_account()` y `verify_receipt()` | Implementar los dos restantes |
 | Cifrado local (`RNF-15`) | ✅ SQLite3MultipleCiphers vía `hooks.user_defines` | — |
 | Tokens en Keychain/Keystore (`RNF-14`) | ✅ `SecureSessionStorage` | — |
-| Rutas `/tests`, `/community`, `/account`, `/accounting`, `/payroll` | Faltan (las de `RF-AUT` ya están) | Completar con su feature |
+| Rutas `/tests`, `/community`, `/account`, `/accounting`, `/payroll` | Falta `/community` | Completar con `RF-COM` |
 
 ---
 
@@ -778,6 +808,9 @@ contradictorio.
 | El registro de cruce tiene **«Estado del cruce»**: Prueba · Hecho · Repetidos | Pendiente, campo nuevo |
 | El registro de cruce captura la marca y las cintas **para toda la camada** | Pendiente; hoy solo se capturan por ejemplar |
 | El peso se muestra en **libras** | Pendiente; hoy en gramos |
+| La lista usa el estado **REGALADO** | No existe en el SRS: el catálogo es `active`/`sold`/`deceased`/`loaned`. Sin resolver |
+| La lista tiene pestañas **Todos · Camadas · Nacimientos** | Pendiente; hoy el filtro es por sexo y estado (`RF-REG-05`) |
+| La lista tiene alternador de **lista/cuadrícula** | Pendiente, vista nueva |
 
 **Aviso de cumplimiento:** el prototipo llama «trabas» al módulo de Comunidad —
 «Buscar trabas», `is('trabas')`, `is('trabaRequests')`— con 22 apariciones. Es

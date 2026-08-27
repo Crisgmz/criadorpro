@@ -24,6 +24,9 @@ import '../../features/evaluations/view/evaluation_form_view.dart';
 import '../../features/evaluations/view/evaluations_list_view.dart';
 import '../../features/onboarding/view/farm_setup_view.dart';
 import '../../features/onboarding/view/setup_done_view.dart';
+import '../../features/payroll/view/employee_form_view.dart';
+import '../../features/payroll/view/payment_form_view.dart';
+import '../../features/payroll/view/payroll_view.dart';
 import '../../features/pedigree/view/pedigree_view.dart';
 import '../../features/settings/view/settings_view.dart';
 import '../domain/sex.dart';
@@ -142,6 +145,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       _page(Routes.clutchNew, (context, state) => const ClutchFormView()),
       _page(Routes.accounting, (context, state) => const AccountingView()),
       _page(Routes.transactionNew, (context, state) => const TransactionFormView()),
+
+      // `/payroll/employee/new` antes que `/payroll/employee/:id`, para que
+      // "new" no se interprete como un identificador.
+      _page(Routes.payroll, (context, state) => const PayrollView()),
+      _page(Routes.employeeNew, (context, state) => const EmployeeFormView()),
+      _page(
+        '/payroll/employee/:id',
+        (context, state) => EmployeeFormView(employeeId: state.pathParameters['id']),
+      ),
+      _page(
+        '/payroll/pay/:employeeId',
+        (context, state) => PaymentFormView(employeeId: state.pathParameters['employeeId']!),
+      ),
       _page(
         Routes.evaluationNew,
         (context, state) => EvaluationFormView(birdId: state.uri.queryParameters['bird']),

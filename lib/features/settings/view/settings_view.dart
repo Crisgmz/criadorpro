@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/error/failure_messages.dart';
 import '../../../core/providers/providers.dart';
+import '../../../core/router/routes.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -74,6 +76,23 @@ class SettingsView extends ConsumerWidget {
             title: Text(l10n.settingsPlan),
             subtitle: Text(_planUsage(l10n, settings.plan, settings.birdCount)),
             trailing: Chip(label: Text(_planName(l10n, settings.plan))),
+          ),
+
+          const Divider(),
+          // `PRD §7` — contabilidad y empleomanía se abren desde Inicio y desde
+          // Mi cuenta, no desde la barra inferior.
+          _SectionHeader(l10n.settingsAdmin),
+          ListTile(
+            leading: const Icon(Icons.account_balance_wallet_outlined),
+            title: Text(l10n.accountingTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(Routes.accounting),
+          ),
+          ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: Text(l10n.payrollTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(Routes.payroll),
           ),
 
           const Divider(),

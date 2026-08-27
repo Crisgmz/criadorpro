@@ -527,9 +527,9 @@
   "sexFemale": "Hembra",
   "sexUnknown": "Sin definir",
 
-  "statusActive": "En criadero",
+  "statusActive": "Activo",
   "statusSold": "Vendido",
-  "statusDeceased": "Baja",
+  "statusDeceased": "Muerto",
   "statusLoaned": "Prestado",
 
   "ageYearsMonths": "{years} a · {months} m",
@@ -587,5 +587,74 @@
   "planUsageUnlimited": "{current} ejemplares · sin límite",
   "@planUsageUnlimited": {
     "placeholders": { "current": { "type": "int" } }
-  }
+  },
+
+  "birdsRecordCount": "{count, plural, =0{Sin registros} =1{1 registro} other{{count} registros}}",
+  "@birdsRecordCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "birdsPlateLabel": "Placa {plate}",
+  "@birdsPlateLabel": {
+    "placeholders": { "plate": { "type": "String" } }
+  },
+  "birdWingBandOf": "Cinta de ala {color}",
+  "@birdWingBandOf": {
+    "placeholders": { "color": { "type": "String" } }
+  },
+  "settingsAdmin": "Administración",
+  "payrollTitle": "Empleomanía",
+  "payrollPlanTitle": "Disponible con Élite",
+  "payrollPlanMessage": "Lleva tu plantilla, registra los pagos y deja que el gasto de nómina entre solo en la contabilidad del mes.",
+  "payrollEmptyTitle": "Sin empleados",
+  "payrollEmptyMessage": "Registra a quien trabaja contigo y podrás llevarle los pagos desde aquí.",
+  "payrollTeam": "PLANTILLA",
+  "payrollHistory": "PAGOS RECIENTES",
+  "payrollActive": "Activos",
+  "payrollMonthlyCost": "Costo mensual",
+  "payrollMonthlyCostEstimate": "Estimado a partir de los salarios activos",
+  "payrollPaidThisMonth": "Pagado este mes",
+  "payrollNewEmployee": "Agregar empleado",
+  "payrollEmployeeFormTitle": "Nuevo empleado",
+  "payrollEmployeeEditTitle": "Editar empleado",
+  "payrollFieldName": "Nombre",
+  "payrollFieldRole": "Puesto",
+  "payrollFieldPhone": "Teléfono",
+  "payrollFieldDocument": "Cédula",
+  "payrollFieldSalary": "Salario",
+  "payrollFieldFrequency": "Frecuencia",
+  "payrollDocumentWarning": "La cédula no parece válida. Puedes guardarla igual.",
+  "payrollInactive": "Inactivo",
+  "payrollDeactivate": "Dar de baja",
+  "payrollActivate": "Reactivar",
+  "payrollEmployeeSaved": "Empleado guardado",
+  "payrollPay": "Registrar pago",
+  "payrollPaymentTitle": "Pago de nómina",
+  "payrollFieldPeriod": "Período",
+  "payrollFieldPeriodStart": "Desde",
+  "payrollFieldPeriodEnd": "Hasta",
+  "payrollFieldBase": "Salario base",
+  "payrollFieldBonus": "Bonificación",
+  "payrollFieldDeductions": "Deducciones",
+  "payrollFieldMethod": "Forma de pago",
+  "payrollNet": "Neto a pagar",
+  "payrollNetNegative": "El neto no puede ser negativo.",
+  "payrollOverlapWarning": "Ya hay un pago registrado que cubre parte de este período.",
+  "payrollConfirmPayment": "Confirmar pago",
+  "payrollPaymentSaved": "Pago registrado y anotado como gasto",
+  "payrollVoidTitle": "¿Anular el pago?",
+  "payrollVoidMessage": "Se anulará también el gasto de nómina que generó.",
+  "payrollVoided": "Pago anulado",
+  "payrollPeriodRange": "{start} al {end}",
+  "@payrollPeriodRange": {
+    "placeholders": {
+      "start": { "type": "String" },
+      "end": { "type": "String" }
+    }
+  },
+  "frequencyWeekly": "Semanal",
+  "frequencyBiweekly": "Quincenal",
+  "frequencyMonthly": "Mensual",
+  "methodCash": "Efectivo",
+  "methodTransfer": "Transferencia",
+  "methodOther": "Otro"
 }

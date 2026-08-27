@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
 
+import '../../../core/accounting/payroll_expense_sink.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/db/app_database.dart';
 import '../../../core/db/daos/profiles_dao.dart';
@@ -17,7 +18,7 @@ import '../model/transaction.dart';
 ///
 /// Todos los totales salen de la base local (`RF-CON-08`): el criador cierra su
 /// mes sentado donde no hay señal.
-class TransactionsRepository implements RemotePuller {
+class TransactionsRepository implements RemotePuller, PayrollExpenseSink {
   TransactionsRepository({
     required AppDatabase database,
     required TransactionsDao transactionsDao,
@@ -268,6 +269,62 @@ class TransactionsRepository implements RemotePuller {
     // El día 0 del mes siguiente es el último del mes actual.
     final lastDayOfMonth = DateTime(year, month + 1, 0).day;
     return DateTime(year, month, date.day > lastDayOfMonth ? lastDayOfMonth : date.day);
+  }
+
+  /// `RS-06` — gasto de nómina generado al confirmar un pago.
+  ///
+  /// No pasa por `save()` a propósito: `save()` rechaza la categoría `payroll`
+  /// porque el criador no puede elegirla a mano, y esa comprobación tiene que
+  /// seguir en pie. Este camino es el único que la escribe, y solo lo alcanza
+  /// empleomanía a través de `PayrollExpenseSink`.
+  ///
+  /// Tampoco comprueba el plan: quien lo comprueba es el módulo que llama, y
+  /// empleomanía es de Élite, que ya incluye contabilidad. Comprobarlo aquí
+  /// abriría la puerta a un pago confirmado con su gasto rechazado — el
+  /// escenario que `RS-06` existe para evitar.
+  @override
+  Future<String> recordPayrollExpense({
+    required String ownerId,
+    required int amountCents,
+    required DateTime date,
+    required String description,
+    required DateTime now,
+  }) async {
+    final expense = Transaction(
+      id: _uuid.v4(),
+      ownerId: ownerId,
+      type: TransactionType.expense,
+      category: TransactionCategory.payroll,
+      amountCents: amountCents,
+      date: date,
+      description: description,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await _persist(expense, now);
+    return expense.id;
+  }
+
+  @override
+  Future<void> voidPayrollExpense({required String transactionId, required DateTime now}) async {
+    final existing = await _transactionsDao.findById(transactionId);
+    // Ya no está: lo borró otro dispositivo y el estado final es el que se
+    // buscaba. Fallar aquí dejaría el pago sin anular por algo que ya está bien.
+    if (existing == null || existing.isDeleted) return;
+
+    final deleted = Transaction.fromRow(existing).toRemoteJson()
+      ..['is_deleted'] = true
+      ..['updated_at'] = now.toUtc().toIso8601String();
+
+    await _transactionsDao.softDelete(transactionId, now);
+    await _syncQueue.enqueue(
+      entityTable: table,
+      entityId: transactionId,
+      operation: SyncOperation.delete,
+      payload: jsonEncode(deleted),
+      now: now,
+    );
   }
 
   Future<void> _persist(Transaction transaction, DateTime now) => _database.transaction(() async {
