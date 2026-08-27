@@ -147,7 +147,7 @@ void main() {
     );
   });
 
-  test('una membresía caducada se comporta como gratuita', () async {
+  test('recién caducada aguanta el margen de `RS-12`', () async {
     await enqueueProfileWrite();
 
     await repository.applyRemote(
@@ -157,6 +157,27 @@ void main() {
 
     final profile = await localProfile();
     expect(profile.plan, SubscriptionPlan.elite);
-    expect(profile.effectivePlan, SubscriptionPlan.free);
+    // La renovación de la tienda llega horas después del vencimiento: degradar
+    // en el instante le quitaría la empleomanía a un criadero que sí pagó.
+    // Con el reloj de la prueba y no con `DateTime.now()`: el margen son 72 h
+    // sobre un vencimiento fijo, así que la comprobación empezaría a fallar
+    // sola tres días después de escribirla.
+    expect(profile.effectivePlanAt(now), SubscriptionPlan.elite);
+  });
+
+  test('pasado el margen sí se comporta como gratuita', () async {
+    await enqueueProfileWrite();
+
+    final expiry = now.subtract(const Duration(days: 1));
+    await repository.applyRemote(
+      remoteRow(plan: 'elite', expiresAt: expiry),
+      ownerId: ownerId,
+    );
+
+    final profile = await localProfile();
+    expect(
+      profile.effectivePlanAt(expiry.add(AppConfig.planGracePeriod).add(const Duration(hours: 1))),
+      SubscriptionPlan.free,
+    );
   });
 }

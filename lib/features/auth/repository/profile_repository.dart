@@ -121,6 +121,39 @@ class ProfileRepository implements RemotePuller {
     }, (error, _) => DatabaseFailure(debugMessage: error.toString(), cause: error));
   }
 
+  /// Valida el recibo de tienda y refresca el plan — `RF-CTA`, `RS-12`.
+  ///
+  /// **El cliente nunca escribe su propio plan.** Manda el recibo, la Edge
+  /// Function `verify-receipt` lo comprueba contra Apple o Google y es ella
+  /// —con `service_role`— quien escribe `plan` y `plan_expires_at`. El
+  /// disparador `lock_plan_columns` impide que nadie más los toque, así que
+  /// intentarlo desde aquí no serviría de nada aunque se intentara.
+  ///
+  /// Tras validar se baja el perfil: el plan que vale es el que quedó en el
+  /// servidor, no el que la app supone por haber comprado.
+  Future<Result<Profile>> verifyReceipt({
+    required String ownerId,
+    required String platform,
+    required String productId,
+    required String receipt,
+  }) async {
+    if (!_supabase.isEnabled) {
+      return const Err(NetworkFailure(debugMessage: 'sin backend configurado'));
+    }
+
+    return guard(() async {
+      await _supabase.client.functions.invoke(
+        'verify-receipt',
+        body: {'platform': platform, 'productId': productId, 'receipt': receipt},
+      );
+
+      await pull(ownerId: ownerId);
+      final row = await _profilesDao.findById(ownerId);
+      if (row == null) throw StateError('perfil no encontrado tras validar');
+      return Profile.fromRow(row);
+    }, (error, _) => NetworkFailure(debugMessage: error.toString(), cause: error));
+  }
+
   @override
   Future<DateTime?> pull({required String ownerId, DateTime? since}) async {
     if (!_supabase.isEnabled) return null;

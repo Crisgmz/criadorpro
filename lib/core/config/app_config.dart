@@ -48,6 +48,14 @@ abstract final class AppConfig {
   /// reintentarse automáticamente y requiere sincronización manual.
   static const int maxSyncAttempts = 5;
 
+  /// `RS-12` — margen antes de degradar cuando el plan vence.
+  ///
+  /// Una suscripción que se renueva sola vence **antes** de que llegue el
+  /// recibo nuevo: la tienda cobra y confirma con horas de retraso. Sin este
+  /// margen, un criadero de Élite que pagó se queda sin empleomanía a media
+  /// mañana y vuelve sola por la tarde.
+  static const Duration planGracePeriod = Duration(hours: 72);
+
   static const int minPasswordLength = 8;
 
   /// Tiempo que se muestra la pantalla de entrada antes de derivar — `RF-AUT-01`.

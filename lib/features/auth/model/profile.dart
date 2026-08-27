@@ -130,12 +130,22 @@ class Profile {
     updatedAt: updatedAt ?? this.updatedAt,
   );
 
-  /// Un plan de pago caducado vuelve a comportarse como Free.
-  SubscriptionPlan get effectivePlan {
+  /// Plan que vale ahora mismo — `RS-12`.
+  ///
+  /// Un plan de pago caducado vuelve a Free, pero **no en el instante de
+  /// vencer**: se conserva [AppConfig.planGracePeriod]. Una suscripción que se
+  /// renueva sola vence antes de que llegue el recibo nuevo —la tienda cobra y
+  /// confirma con horas de retraso—, y sin margen un criadero de Élite que pagó
+  /// pierde la empleomanía a media mañana y la recupera por la tarde.
+  ///
+  /// Nada se borra al degradar (`RS-03`): lo que se bloquea es crear.
+  SubscriptionPlan effectivePlanAt(DateTime now) {
     final expiry = planExpiresAt;
     if (plan == SubscriptionPlan.free || expiry == null) return plan;
-    return expiry.isAfter(DateTime.now()) ? plan : SubscriptionPlan.free;
+    return now.isBefore(expiry.add(AppConfig.planGracePeriod)) ? plan : SubscriptionPlan.free;
   }
+
+  SubscriptionPlan get effectivePlan => effectivePlanAt(DateTime.now());
 
   ProfilesCompanion toCompanion() => ProfilesCompanion(
     isPublic: Value(isPublic),

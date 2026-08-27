@@ -207,7 +207,7 @@ onboarding y la app continúa desde ahí — así migra sin retranscribir su lib
 | `next_plate(p_owner, p_count)` | RPC | Reserva atómicamente un bloque de N placas y devuelve el rango |
 | `active_bird_count(p_owner)` | RPC | Conteo autoritativo para validar el límite de plan |
 | `delete_current_user()` | RPC | Borrado físico en cascada, irreversible (`RNF-20`). Borra **también las fotos del bucket**: Storage no cuelga de `auth.users` y el cascade no las alcanza |
-| `verify_receipt()` | Edge Function | Valida el recibo de tienda y escribe `plan` / `plan_expires_at`. **El cliente nunca escribe su propio plan.** |
+| `verify-receipt` | Edge Function | Valida el recibo contra Apple o Google y escribe `plan` / `plan_expires_at` con `service_role`. **El cliente nunca escribe su propio plan** — y ahora tampoco puede: `lock_plan_columns` revierte cualquier cambio que no venga del `service_role` |
 
 ### Catálogos cerrados
 
@@ -549,6 +549,37 @@ sobre el mismo período es legítimo.
 desglose, el neto destacado y espacio para la firma — se imprime y se guarda en
 papel, que es como se lleva la nómina en un criadero.
 
+### Membresías — el servidor, listo; las compras, no
+
+`verify-receipt` está en [supabase/functions/](supabase/functions/verify-receipt/):
+recibe el recibo, lo valida contra Apple o Google y escribe el plan con
+`service_role`. **Falla cerrado**: sin los secretos de tienda rechaza todo, y
+conceder el plan por las buenas convertiría la suscripción en un honor system.
+
+Contra Apple se prueba **primero producción y luego sandbox** si responde
+21007. Ese orden lo pide Apple: los revisores compran en sandbox contra el
+binario de producción, y probar solo contra producción hace que la revisión
+falle.
+
+**El agujero que había.** `profiles_update_own` dejaba al criador actualizar
+cualquier columna de su fila, `plan` incluida. La clave publicable es pública
+por diseño, así que bastaba un `PATCH` a `/rest/v1/profiles` con
+`{"plan":"elite"}` para darse Élite gratis. El cliente de la app no lo hacía
+—`toRemoteJson()` excluye el plan—, pero eso es que el cliente se porte bien, y
+`RS-13` dice que esto se impone en la base. El disparador `lock_plan_columns`
+revierte esas dos columnas para cualquier rol que no sea `service_role`.
+`next_plate` **no** se bloquea: el onboarding lo fija una vez desde el cliente.
+
+**Y `RS-12` no se estaba cumpliendo.** `effectivePlan` degradaba en el instante
+de vencer, y una suscripción que se renueva sola vence *antes* de que llegue el
+recibo nuevo —la tienda cobra y confirma con horas de retraso—. Un criadero de
+Élite que pagó perdía la empleomanía a media mañana y la recuperaba por la
+tarde. Ahora hay 72 horas de margen, que es lo que dice el requisito.
+
+Falta el flujo de compra en sí (`in_app_purchase`, listar productos, escuchar
+la cadena de compras): necesita productos dados de alta en App Store Connect y
+Play Console, y sin ellos no hay forma de comprobar que funcione.
+
 ### Borrado de cuenta — implementado
 
 `RF-CTA-11` y `RNF-20`. La RPC `delete_current_user()` existía desde la
@@ -664,7 +695,7 @@ primer trabajo de F1, porque todo lo demás cuelga de la placa:
 | Tabla `evaluations` | ✅ creada (esquema v4 + migración de Supabase) | — |
 | Tabla `transactions` | ✅ creada (esquema v5 + migración de Supabase) | — |
 | Tablas `employees`, `payroll_payments` | ✅ creadas (esquema v9 + migración de Supabase) | — |
-| Triggers y RPC del servidor | ✅ todos menos `verify_receipt()`, que va con las compras en F3 | — |
+| Triggers y RPC del servidor | ✅ completos, `verify-receipt` incluida | Falta desplegarla y darle los secretos de tienda |
 | Cifrado local (`RNF-15`) | ✅ SQLite3MultipleCiphers vía `hooks.user_defines` | — |
 | Tokens en Keychain/Keystore (`RNF-14`) | ✅ `SecureSessionStorage` | — |
 | Rutas `/tests`, `/community`, `/account`, `/accounting`, `/payroll` | ✅ completas | — |
