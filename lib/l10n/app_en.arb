@@ -556,6 +556,20 @@
   "@weightLoss": {
     "placeholders": { "value": { "type": "int" } }
   },
+  "exportPedigree": "Export pedigree as PDF",
+  "exportMonth": "Export month as PDF",
+  "exportReceipt": "Receipt as PDF",
+  "exportGeneratedOn": "Issued on {date}",
+  "@exportGeneratedOn": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "exportPlanTitle": "PDF export needs Pro",
+  "exportFailed": "The PDF could not be generated.",
+  "exportPedigreeTitle": "Pedigree",
+  "exportMonthTitle": "Monthly report",
+  "exportReceiptTitle": "Payment receipt",
+  "exportMovements": "Movements",
+  "exportSignature": "Employee signature",
   "settingsAdmin": "Administration",
   "payrollTitle": "Payroll",
   "payrollPlanTitle": "Available with Elite",

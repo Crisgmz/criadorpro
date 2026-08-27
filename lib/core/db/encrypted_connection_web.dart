@@ -15,12 +15,18 @@ import 'app_database.dart';
 /// [open] se ignora a propósito: fingir que se aplica sería peor que no
 /// cifrar, porque nadie volvería a mirarlo.
 abstract final class EncryptedConnection {
-  /// Mismo nombre que en el móvil para que la API no dependa de la plataforma.
-  /// El sufijo describe la base del teléfono, no esta.
-  static const String encryptedName = '${AppConfig.databaseName}_enc';
+  /// **El mismo nombre de siempre**, no el `_enc` del teléfono.
+  ///
+  /// El nombre es lo que identifica la base en IndexedDB: cambiarlo no migra
+  /// nada, abre una vacía. Quien ya hubiera registrado ejemplares en el
+  /// navegador los vería desaparecer en el siguiente despliegue, sin error y
+  /// sin forma de recuperarlos desde la interfaz. El sufijo `_enc` existe en
+  /// el móvil para distinguir el archivo cifrado del que había en claro, y
+  /// aquí no hay ni lo uno ni lo otro.
+  static const String databaseName = AppConfig.databaseName;
 
   static Future<QueryExecutor> open({required String key}) async =>
-      driftDatabase(name: encryptedName, web: AppDatabase.webOptions);
+      driftDatabase(name: databaseName, web: AppDatabase.webOptions);
 
   /// No hay base anterior sin cifrar que migrar: el navegador nunca tuvo una
   /// cifrada de la que distinguirla.

@@ -267,6 +267,14 @@ cambio guardado sin su entrada en la cola ni al revés.
 - **Descarga**: `updated_at > last_pull_at` por entidad, incluyendo filas con `is_deleted = true` para propagar borrados.
 - **Dispositivo nuevo**: descarga completa antes de habilitar la escritura (`RF-SIN-08`).
 - **Fotos**: se guardan primero en el sistema de archivos local y se suben como operación independiente, para que una foto pesada no bloquee la cola de datos.
+- **Conflictos**: una fila con escritura pendiente en la cola no se pisa con la
+  versión remota. La excepción es `profiles.plan` y `plan_expires_at`, que el
+  cliente **no escribe nunca** (`toRemoteJson()` los excluye; los fija
+  `verify_receipt()`): se aplican aunque haya una escritura del perfil en la
+  cola, y sin mover `updated_at`. Sin esa excepción, una entrada que agotara
+  sus cinco intentos congelaba la membresía hasta que alguien pulsara
+  «Sincronizar ahora» — el criador pagaba Élite y la app le seguía diciendo que
+  no le caben más ejemplares.
 
 ---
 
@@ -310,7 +318,7 @@ renegociar alcance).
 | **F1** | `RF-AUT` · `RF-ONB` · `RF-REG` · `RF-PED` · `RF-SIN` | ✅ Un criador migra su libro completo y consulta pedigrí sin conexión |
 | **F2** | `RF-PRU` · `RF-CON` · `RF-NOM` | ✅ Un mes contable se cierra íntegramente dentro de la app |
 | **F3** | `RF-CTA-04` a `RF-CTA-12` (membresías, compras, envío) | Suscripción cobrada y aprobación en ambas tiendas |
-| **F4** | `RF-COM` · `RF-PED-08` · `RF-CON-07` (exportación real a PDF) | Primer encuentro concretado y exportación real a PDF |
+| **F4** | `RF-COM` · `RF-PED-08` · `RF-CON-07` (exportación real a PDF) | ✅ exportación a PDF · falta el primer encuentro (`RF-COM`) |
 | **F5** | Multiusuario, roles, panel web | Un criadero operando con dos cuentas y permisos distintos |
 
 **Estamos en F1.** Fuera del MVP: notificaciones push, marketplace, panel web,
@@ -480,7 +488,8 @@ crear se comprueba qué fechas ya existen para esa plantilla. El mensual avanza
 por calendario con cuidado del desbordamiento —un movimiento del día 31 cae el
 30 en los meses de treinta, en vez de saltar al 1 del siguiente.
 
-Falta `RF-CON-07` (exportar a PDF), que es Opcional y va en F4.
+`RF-CON-07` ya está: el mes cerrado se exporta en PDF con sus totales, el
+desglose por categoría y la lista de movimientos.
 
 ### Pruebas de campo — implementado
 
@@ -536,7 +545,9 @@ pago que no se puede registrar por eso es peor que un número mal escrito. El
 solapamiento de períodos también advierte y no bloquea, porque un adelanto
 sobre el mismo período es legítimo.
 
-Falta `RF-NOM-04` (recibo en PDF), que va con las demás exportaciones en F4.
+`RF-NOM-04` ya está: el recibo del pago sale del menú de cada fila, con el
+desglose, el neto destacado y espacio para la firma — se imprime y se guarda en
+papel, que es como se lleva la nómina en un criadero.
 
 ### Genealogía — implementado
 
@@ -565,7 +576,12 @@ ancestro repetido **en el mismo camino** es un dato imposible y corta la rama
 (`RS-05`); el mismo ancestro por la rama paterna y por la materna es
 **endogamia**, información legítima del criadero, y se dibuja entero.
 
-`RF-PED-08` (exportar a PDF) es Opcional y va en F4.
+`RF-PED-08` ya está: el pedigrí impreso va en **rejilla**, no en el recorrido
+vertical de la pantalla —en A4 hay anchura de sobra y quien lo recibe con un
+ejemplar vendido quiere la línea entera de un vistazo—. Las generaciones
+enteras sin registrar **no se imprimen**: ocho casillas con un guion ocupan
+media página y hacen pensar que el documento salió mal. Un hueco intermedio sí
+se dibuja, porque es información.
 
 Con eso **F1 queda cerrado, Obligatorio y Esperado**.
 
@@ -627,10 +643,36 @@ ilustración caricaturesca.
 
 Fecha `dd/mm/aaaa` (almacenada ISO 8601 UTC) · fecha y hora `dd/mm/aaaa hh:mm`
 en 24 h · moneda con símbolo del país del perfil, separador de miles y dos
-decimales (`RD$ 12,450.00`), almacenada `numeric(12,2)` · peso en kg con dos
+decimales (`RD$ 12,450.00`), almacenada `numeric(12,2)`. **El patrón numérico
+es fijo, no el del idioma**: el español genérico agrupa a la europea
+(`45.000,00`) y en República Dominicana se escribe al revés — leer «45.000,00»
+como cuarenta y cinco pesos con mil es un error de lectura, no de formato.
+`intl` no trae datos de `es_DO` · peso en kg con dos
 decimales (o libras si el perfil lo indica), almacenado entero en gramos ·
 placa sin ceros a la izquierda, precedida de `#` · edad en meses hasta 24, luego
 años y meses · teléfono agrupado por país `(809) 555-1234`, almacenado E.164.
+
+### Exportación a PDF
+
+Los tres documentos (`RF-PED-08`, `RF-CON-07`, `RF-NOM-04`) viven en
+[lib/core/export/](lib/core/export/) y comparten cabecera, tipografía y pie: son
+del mismo criadero y se imprimen juntos.
+
+- Las **fuentes salen de los assets**, no de la red. `pdf` caería a Helvetica, y
+  esa codificación deja «Genealogía» como «GenealogÃ­a».
+- Los constructores de documento reciben **texto ya formateado**, no modelos:
+  el idioma, la moneda y las fechas los resuelve `Exporters`, y así los
+  documentos se prueban sin montar `AppL10n`.
+- Se abre la **hoja de compartir** del sistema en vez de guardar en una carpeta:
+  el criador manda el pedigrí por WhatsApp al comprador. Detrás de `ExportTarget`
+  para poder sustituirlo en pruebas — la hoja del sistema dejaría el test
+  esperando a un humano.
+- Exportar es **de Pro en adelante** (PRD §6). `CpExportButton` lo impone, y con
+  plan gratuito **muestra el aviso en vez de esconderse**.
+
+Cuidado con `pw.CrossAxisAlignment.stretch`: en `pdf` la altura de una fila sale
+de sus hijos, así que estirarlos a la altura de la fila es circular y
+`MultiPage` genera páginas hasta reventar.
 
 ### Piezas compartidas
 

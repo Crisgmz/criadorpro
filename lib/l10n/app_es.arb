@@ -637,6 +637,20 @@
   "@weightLoss": {
     "placeholders": { "value": { "type": "int" } }
   },
+  "exportPedigree": "Exportar pedigrí en PDF",
+  "exportMonth": "Exportar el mes en PDF",
+  "exportReceipt": "Recibo en PDF",
+  "exportGeneratedOn": "Emitido el {date}",
+  "@exportGeneratedOn": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "exportPlanTitle": "Exportar a PDF es de Pro",
+  "exportFailed": "No se pudo generar el PDF.",
+  "exportPedigreeTitle": "Pedigrí",
+  "exportMonthTitle": "Reporte mensual",
+  "exportReceiptTitle": "Recibo de pago",
+  "exportMovements": "Movimientos",
+  "exportSignature": "Firma del empleado",
   "settingsAdmin": "Administración",
   "payrollTitle": "Empleomanía",
   "payrollPlanTitle": "Disponible con Élite",

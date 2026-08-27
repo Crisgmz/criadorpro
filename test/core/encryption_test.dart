@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:criadorpro/core/db/encrypted_connection_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -125,6 +126,62 @@ void main() {
     expect(
       String.fromCharCodes(File(encryptedPath).readAsBytesSync().take(15)),
       isNot('SQLite format 3'),
+    );
+  });
+
+  test('la migración no deja atrás ninguna tabla del criadero', () async {
+    final plainPath = pathFor('plana_completa');
+    final encryptedPath = pathFor('cifrada_completa');
+    const key = 'clave-de-migracion';
+
+    // Un criadero con datos en todos los módulos, que es lo que tiene el
+    // teléfono de quien lleva meses usando la app. La copia se guiaba por una
+    // lista escrita a mano con cuatro nombres: `evaluations`, `transactions`,
+    // `employees`, `payroll_payments` y `weight_entries` se quedaban fuera y el
+    // criador perdía pruebas de campo, contabilidad, empleomanía y pesadas sin
+    // que nada fallara ni avisara.
+    const tables = [
+      'profiles',
+      'birds',
+      'clutches',
+      'evaluations',
+      'transactions',
+      'employees',
+      'payroll_payments',
+      'weight_entries',
+      'sync_queue_entries',
+    ];
+
+    final plain = sqlite3.open(plainPath);
+    for (final table in tables) {
+      plain
+        ..execute('create table $table (id text primary key, dato text);')
+        ..execute('insert into $table values (?, ?);', ['$table-1', 'valor']);
+    }
+    plain.execute('pragma user_version = 9;');
+    plain.close();
+
+    await EncryptedConnection.migrateFiles(
+      key: key,
+      plainFile: File(plainPath),
+      encryptedFile: File(encryptedPath),
+    );
+
+    final migrated = sqlite3.open(encryptedPath)..execute("pragma key = '$key';");
+    for (final table in tables) {
+      expect(
+        migrated.select('select dato from $table;').single['dato'],
+        'valor',
+        reason: '$table no llegó a la base cifrada',
+      );
+    }
+    expect(migrated.select('pragma user_version;').first.values.first, 9);
+    migrated.close();
+
+    expect(
+      File(plainPath).existsSync(),
+      isFalse,
+      reason: 'la plana se retira solo cuando la cifrada ya está escrita',
     );
   });
 }

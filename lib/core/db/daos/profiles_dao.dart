@@ -46,5 +46,23 @@ class ProfilesDao extends DatabaseAccessor<AppDatabase> with _$ProfilesDaoMixin 
     return first;
   }
 
+  /// Escribe la membresía que manda el servidor, y **solo** eso.
+  ///
+  /// El plan no es un dato del criador: lo fija `verify_receipt()` al validar
+  /// el recibo (`RS-12`), y `Profile.toRemoteJson()` lo excluye a propósito.
+  /// Por eso se puede aplicar aunque haya una escritura local pendiente del
+  /// perfil: no compiten por el mismo campo.
+  ///
+  /// No toca `updated_at`. Anotar aquí la hora haría que esta fila ganara la
+  /// resolución de conflictos (`RS-09`) contra una edición real hecha en otro
+  /// dispositivo, y lo que ha pasado no es una edición del criador.
+  Future<void> applyRemotePlan({
+    required String ownerId,
+    required String plan,
+    required DateTime? expiresAt,
+  }) => (update(profiles)..where((t) => t.id.equals(ownerId))).write(
+    ProfilesCompanion(plan: Value(plan), planExpiresAt: Value(expiresAt)),
+  );
+
   Future<void> clear() => delete(profiles).go();
 }

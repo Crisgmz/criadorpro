@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -29,10 +30,17 @@ abstract final class EncryptedConnection {
   /// también se cifra, así que basta leerla para saber cuál es cuál.
   static const String _plainHeader = 'SQLite format 3';
 
-  /// Orden de copia en la migración. `profiles` primero por si algún día se
-  /// activan las claves foráneas; `sync_queue` al final porque es lo único que
-  /// se puede perder sin consecuencias.
-  static const List<String> _tables = ['profiles', 'birds', 'clutches', 'sync_queue_entries'];
+  /// Orden de copia. Las tablas con dependientes van primero, por si algún día
+  /// se activan las claves foráneas.
+  ///
+  /// Esta lista **no decide qué se copia**: eso lo dice la base de origen. Aquí
+  /// solo se declara qué va antes; lo que no esté nombrado se copia después.
+  /// Era una lista cerrada —`profiles`, `birds`, `clutches` y la cola— y por
+  /// tanto se quedó atrás en cuanto llegaron pruebas de campo, contabilidad,
+  /// empleomanía y pesadas: un teléfono que migrara hoy perdería esos cuatro
+  /// módulos enteros, en silencio y sin nada que fallara. Deducirlo del origen
+  /// es lo único que no puede quedarse viejo.
+  static const List<String> _copyFirst = ['profiles', 'birds', 'clutches', 'employees'];
 
   /// Abre la base cifrada, migrando la anterior sin cifrar si la hubiera.
   static Future<QueryExecutor> open({required String key}) async {
@@ -59,9 +67,25 @@ abstract final class EncryptedConnection {
   /// queda con sus datos donde estaban.
   static Future<void> migratePlainDatabase({required String key}) async {
     final directory = await getApplicationDocumentsDirectory();
-    final plainFile = File(p.join(directory.path, '${AppConfig.databaseName}.sqlite'));
-    final encryptedFile = File(p.join(directory.path, '$encryptedName.sqlite'));
+    await migrateFiles(
+      key: key,
+      plainFile: File(p.join(directory.path, '${AppConfig.databaseName}.sqlite')),
+      encryptedFile: File(p.join(directory.path, '$encryptedName.sqlite')),
+    );
+  }
 
+  /// El cuerpo de la migración, con los archivos ya resueltos.
+  ///
+  /// Se separa de [migratePlainDatabase] para poder probarlo: resolver la
+  /// carpeta de documentos exige el plugin `path_provider`, y sin este corte la
+  /// prueba tenía que reimplementar la copia en vez de ejercitarla — que es
+  /// justo cómo una lista de tablas incompleta pasó desapercibida.
+  @visibleForTesting
+  static Future<void> migrateFiles({
+    required String key,
+    required File plainFile,
+    required File encryptedFile,
+  }) async {
     if (!plainFile.existsSync()) return;
     // Si ya hay base cifrada, la plana es un resto de una migración anterior
     // que no llegó a borrarla. Se retira sin copiar nada: sus datos ya están.
@@ -76,22 +100,30 @@ abstract final class EncryptedConnection {
       destination = sqlite3.open(encryptedFile.path)..execute("pragma key = '$key';");
       destination.execute("attach database '${plainFile.path}' as plain key '';");
 
-      for (final table in _tables) {
-        // El esquema se copia tal cual está en la base vieja, sin pasar por las
-        // migraciones de Drift: se copian los datos que había, y Drift ya
-        // actualizará el esquema al abrir si su versión ha cambiado.
-        final create = destination.select(
-          "select sql from plain.sqlite_master where type = 'table' and name = ?;",
-          [table],
-        );
-        if (create.isEmpty) continue;
+      // El esquema se copia tal cual está en la base vieja, sin pasar por las
+      // migraciones de Drift: se copian los datos que había, y Drift ya
+      // actualizará el esquema al abrir si su versión ha cambiado.
+      //
+      // `sqlite_%` deja fuera las tablas internas de SQLite —`sqlite_sequence`
+      // entre ellas—, que se recrean solas y no admiten un CREATE explícito.
+      final found = destination.select(
+        'select name, sql from plain.sqlite_master '
+        "where type = 'table' and name not like 'sqlite_%' and sql is not null;",
+      );
+      final schema = {for (final row in found) row['name'] as String: row['sql'] as String};
 
-        final sql = create.first['sql'] as String?;
-        if (sql == null) continue;
+      final order = [
+        ..._copyFirst.where(schema.containsKey),
+        ...schema.keys.where((name) => !_copyFirst.contains(name)),
+      ];
 
+      for (final table in order) {
         destination
           ..execute(
-            sql.replaceFirst(RegExp('CREATE TABLE ', caseSensitive: false), 'CREATE TABLE main.'),
+            schema[table]!.replaceFirst(
+              RegExp('CREATE TABLE ', caseSensitive: false),
+              'CREATE TABLE main.',
+            ),
           )
           ..execute('insert into main."$table" select * from plain."$table";');
       }

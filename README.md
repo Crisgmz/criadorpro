@@ -233,6 +233,13 @@ exigen `RNF-01`–`RNF-06` solo se mide en un teléfono.
    La clave publicable es pública por diseño: viaja dentro del bundle y
    cualquiera puede leerla. Lo que protege los datos es la RLS (`RS-13`), no el
    secreto de la clave. **Nunca** pongas aquí la `service_role`.
+
+   Si falta cualquiera de las dos, o si no están marcadas como variables de
+   construcción, **la imagen no se construye**: el Dockerfile lo comprueba
+   antes de compilar y vuelve a comprobarlo después, buscando las credenciales
+   dentro de `main.dart.js`. Sin esas dos guardas el resultado era una app que
+   arrancaba perfectamente y decía «La app no tiene configurado el servidor»,
+   que parece rota en vez de mal configurada.
 5. Añade el dominio del despliegue a **Supabase → Authentication → URL
    Configuration → Redirect URLs**, o la verificación por correo rebotará.
 
@@ -255,6 +262,11 @@ exigen `RNF-01`–`RNF-06` solo se mide en un teléfono.
   `flutter test` corren contra la VM de Dart, donde `dart:ffi` sí existe: sin
   ese paso, un import nativo aprueba las dos comprobaciones y rompe el
   despliegue con un error que no nombra ni un archivo del proyecto.
+- **Nada se cachea a un año.** Flutter web no pone hash en los nombres:
+  `main.dart.js` se llama igual en cada despliegue. Servido como `immutable`
+  —como estaba— el navegador que ya visitó el sitio seguía ejecutando el
+  bundle anterior sin preguntar, así que una corrección publicada se veía
+  igual de rota. Ahora todo revalida y se responde con 304 lo que no cambió.
 
 ### Comprobar un despliegue
 
@@ -262,8 +274,16 @@ exigen `RNF-01`–`RNF-06` solo se mide en un teléfono.
 curl -sI https://<dominio>/                       # 200
 curl -s -o /dev/null -w '%{http_code}\n' https://<dominio>/birds/1/pedigree   # 200, no 404
 curl -s -o /dev/null -w '%{content_type}\n' https://<dominio>/sqlite3.wasm    # application/wasm
+
+# Las credenciales viajan dentro del bundle: si esto no encuentra nada, lo
+# servido se compiló sin ellas y la app arrancará en modo solo local.
+curl -s https://<dominio>/main.dart.js | grep -c 'supabase.co'                 # ≥ 1
 ```
 
 Si `sqlite3.wasm` sale como `application/octet-stream`, la base local no
 arranca y la app queda sin datos.
+
+Si el `grep` encuentra la URL y el navegador sigue diciendo que falta el
+servidor, lo que estás viendo es el bundle guardado de una visita anterior:
+recarga forzando (`⇧⌘R`) o mira la pestaña Red con «Disable cache».
 # criadorpro

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/base/view_state.dart';
 import '../../../core/error/failure_messages.dart';
+import '../../../core/export/export_button.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -217,6 +218,25 @@ class _Tree extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           CpInfoCard(message: l10n.pedigreeEmptyNotice),
         ],
+
+        // `RF-PED-08` — el pedigrí se imprime y viaja con el ejemplar vendido.
+        const SizedBox(height: AppSpacing.lg),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+          child: CpExportButton(
+            label: l10n.exportPedigree,
+            onExport: () => ref
+                .read(exportersProvider)
+                .pedigree(
+                  l10n: l10n,
+                  locale: Localizations.localeOf(context).toLanguageTag(),
+                  farmName: ref.read(currentProfileProvider).value?.farmName ?? l10n.appName,
+                  root: root,
+                  depth: viewModel.depth,
+                  now: DateTime.now(),
+                ),
+          ),
+        ),
       ],
     );
   }

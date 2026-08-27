@@ -30,12 +30,36 @@ abstract final class Formatters {
       NumberFormat.decimalPattern(locale).format(value);
 
   /// Moneda con símbolo del país del perfil, separador de miles y dos
-  /// decimales — PRD §6: `RD$ 12,450.00`.
+  /// decimales — PRD §9: `RD$ 12,450.00`.
   ///
-  /// El símbolo se pasa desde fuera y no se deduce del locale: la app se puede
+  /// El símbolo se pasa desde fuera y no se deduce del idioma: la app se puede
   /// usar en inglés en República Dominicana, y el dinero seguiría siendo pesos.
-  static String currency(num value, String locale, {String symbol = 'RD\$'}) =>
-      NumberFormat.currency(locale: locale, symbol: '\$symbol ', decimalDigits: 2).format(value);
+  ///
+  /// El **patrón numérico sí sale del país**, no del idioma. El español
+  /// genérico agrupa a la europea —`45.000,00`— y en República Dominicana se
+  /// escribe al revés: `45,000.00`. Con `es` a secas el balance sale con los
+  /// separadores cambiados, que es peor que no formatear.
+  static String currency(num value, String locale, {String symbol = r'RD$'}) {
+    // El signo va delante del símbolo: «RD$ -1,280.00» se lee como si el
+    // símbolo fuera parte del importe, y un balance en pérdidas tiene que
+    // cantar a la primera (`RF-CON-04`).
+    final sign = value.isNegative ? '-' : '';
+    return '$sign$symbol ${_moneyPattern.format(value.abs())}';
+  }
+
+  /// Patrón fijo `12,450.00`, **no el del idioma de la interfaz**.
+  ///
+  /// El PRD §9 especifica la forma exacta, y delegarla al locale la rompe: el
+  /// español genérico agrupa a la europea —`45.000,00`— y además coloca el
+  /// símbolo detrás. En República Dominicana se escribe al revés, y el criador
+  /// leyendo «45.000,00» entiende cuarenta y cinco pesos con mil.
+  ///
+  /// Va contra `en_US` porque es la única tabla de símbolos que `intl` trae
+  /// siempre cargada; `es_DO` no existe en sus datos y cae a `es`.
+  ///
+  /// Cuando se cierre la moneda fuera de República Dominicana (§13 de las
+  /// decisiones abiertas), esto es lo que hay que hacer variable.
+  static final NumberFormat _moneyPattern = NumberFormat('#,##0.00', 'en_US');
 
   /// Nombre del mes y año, para la navegación del cierre contable.
   static String monthYear(DateTime value, String locale) => DateFormat.yMMMM(locale).format(value);

@@ -39,6 +39,7 @@ import '../../features/pedigree/repository/pedigree_repository.dart';
 import '../../features/pedigree/viewmodel/pedigree_viewmodel.dart';
 import '../../features/settings/viewmodel/app_settings_viewmodel.dart';
 import '../../features/settings/viewmodel/settings_viewmodel.dart';
+import '../config/app_config.dart';
 import '../db/app_database.dart';
 import '../db/daos/birds_dao.dart';
 import '../db/daos/clutches_dao.dart';
@@ -50,6 +51,7 @@ import '../db/daos/transactions_dao.dart';
 import '../db/daos/weights_dao.dart';
 import '../domain/bird_traits.dart';
 import '../domain/sex.dart';
+import '../export/exporters.dart';
 import '../media/photo_service.dart';
 import '../media/photo_sync.dart';
 import '../network/connectivity_service.dart';
@@ -235,6 +237,18 @@ final currentOwnerIdProvider = Provider<String>((ref) {
 /// guardia del router lo consulta para decidir si toca la configuración
 /// inicial, así que distinguir «no hay» de «aún no sé» importa: con `null` no
 /// se mueve al usuario de sitio.
+/// Exportación a PDF — `RF-PED-08`, `RF-CON-07`, `RF-NOM-04`.
+final exportersProvider = Provider<Exporters>((ref) => const Exporters());
+
+/// Plan vigente del criadero.
+///
+/// Se deriva del perfil y no se guarda aparte: el plan lo escribe el servidor
+/// tras validar el recibo (`RS-12`), y tener una segunda copia en el cliente
+/// sería tener dos fuentes de verdad para lo que se puede y no se puede hacer.
+final currentPlanProvider = Provider<SubscriptionPlan>(
+  (ref) => ref.watch(currentProfileProvider).value?.plan ?? SubscriptionPlan.free,
+);
+
 final currentProfileProvider = StreamProvider<Profile?>((ref) {
   final ownerId = ref.watch(currentOwnerIdProvider);
   if (ownerId.isEmpty) return Stream<Profile?>.value(null);

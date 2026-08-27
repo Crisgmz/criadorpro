@@ -63,6 +63,25 @@ COPY . .
 RUN dart run build_runner build --delete-conflicting-outputs \
  && flutter gen-l10n
 
+# Sin credenciales la app **compila igual** y arranca en modo solo local: sin
+# login ni sincronización, mostrando «La app no tiene configurado el servidor».
+# Eso es lo correcto al clonar el repositorio y es inútil en un despliegue,
+# donde parece una app rota en vez de una mal configurada. Así que aquí se
+# corta.
+#
+# El olvido típico es no marcar **Build Variable** en Coolify: sin esa marca
+# las variables llegan al contenedor en ejecución, y para entonces
+# `String.fromEnvironment` ya se resolvió —al compilar— con la cadena vacía.
+#
+# Va aquí y no junto a los `ARG`: un `RUN` que menciona una variable se
+# reconstruye cada vez que esa variable cambia, y puesto arriba arrastraría
+# consigo la capa de `flutter pub get`, que es justo la que interesa conservar.
+RUN test -n "$SUPABASE_URL" && test -n "$SUPABASE_ANON_KEY" || { \
+      echo "ERROR: faltan SUPABASE_URL o SUPABASE_ANON_KEY."; \
+      echo "En Coolify: Environment Variables -> marca «Build Variable» en las dos."; \
+      exit 1; \
+    }
+
 # `--no-web-resources-cdn` empaqueta CanvasKit en la propia imagen en lugar de
 # traerlo de gstatic al arrancar: en un servidor propio no tiene sentido que
 # cada visita dependa de una CDN de terceros.
@@ -71,12 +90,32 @@ RUN flutter build web --release \
       --dart-define=SUPABASE_URL="$SUPABASE_URL" \
       --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
 
+# Que el argumento llegara no prueba que acabara dentro del bundle. `dart2js`
+# deja las constantes como literales, así que basta buscarlas: si no están, el
+# `--dart-define` no llegó a `String.fromEnvironment` y la imagen serviría una
+# app sin backend con toda la apariencia de estar bien.
+RUN grep -qF -e "$SUPABASE_URL" build/web/main.dart.js \
+ && grep -qF -e "$SUPABASE_ANON_KEY" build/web/main.dart.js || { \
+      echo "ERROR: las credenciales no quedaron dentro de build/web/main.dart.js."; \
+      exit 1; \
+    }
+
 # --- Servicio ---------------------------------------------------------------
 
 FROM nginx:1.29-alpine AS runtime
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Las cabeceras de seguridad van aparte para poder repetirlas en cada
+# `location`; ver el comentario en el propio archivo. La extensión importa:
+# nginx carga solo los `*.conf` de este directorio, así que un `.inc` no se
+# interpreta como un servidor más.
+COPY security-headers.inc /etc/nginx/conf.d/security-headers.inc
 COPY --from=build /app/build/web /usr/share/nginx/html
+
+# Una errata en la configuración deja el contenedor reiniciándose y a Coolify
+# anunciando un despliegue que nunca sirvió una página. Comprobarla aquí
+# convierte eso en un fallo de construcción, que sí se lee.
+RUN nginx -t
 
 EXPOSE 80
 

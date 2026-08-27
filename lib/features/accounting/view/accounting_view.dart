@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/base/view_state.dart';
+import '../../../core/export/export_button.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -85,6 +86,28 @@ class _AccountingViewState extends ConsumerState<AccountingView> {
                         const Divider(height: AppSpacing.xl),
                         for (final transaction in viewModel.transactions)
                           _TransactionTile(transaction: transaction, locale: locale),
+
+                        // `RF-CON-07` — el mes cerrado, para el contable o
+                        // para el archivo del criador.
+                        const SizedBox(height: AppSpacing.lg),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+                          child: CpExportButton(
+                            label: l10n.exportMonth,
+                            onExport: () => ref
+                                .read(exportersProvider)
+                                .monthlyReport(
+                                  l10n: l10n,
+                                  locale: locale,
+                                  farmName:
+                                      ref.read(currentProfileProvider).value?.farmName ??
+                                      l10n.appName,
+                                  balance: viewModel.balance,
+                                  transactions: viewModel.transactions,
+                                  now: DateTime.now(),
+                                ),
+                          ),
+                        ),
                       ],
                     ),
             ),

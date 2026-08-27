@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import '../../../core/db/app_database.dart';
 import '../../../core/db/daos/profiles_dao.dart';
 import '../../../core/db/daos/sync_queue_dao.dart';
@@ -99,12 +101,42 @@ class ProfileRepository implements RemotePuller {
     final rows = await _supabase.client.from(table).select().eq('id', ownerId).limit(1);
     if (rows.isEmpty) return null;
 
+    return applyRemote(rows.first, ownerId: ownerId);
+  }
+
+  /// Escribe en Drift la fila que llega del servidor y resuelve el conflicto
+  /// con lo que aún no se ha subido.
+  ///
+  /// Separado de [pull] para poder probarlo: lo que importa es la regla que
+  /// decide qué gana, y ejercitarla no debería exigir un backend.
+  @visibleForTesting
+  Future<DateTime?> applyRemote(Map<String, dynamic> row, {required String ownerId}) async {
+    final profile = Profile.fromRemoteJson(row);
+
     // Un cambio local sin sincronizar gana sobre lo que llega: si no, la bajada
     // pisaría el criadero que el usuario acaba de escribir sin conexión.
     final pending = await _syncQueue.pendingIdsFor(table);
-    if (pending.contains(ownerId)) return null;
+    if (pending.contains(ownerId)) {
+      // El plan es la excepción, y no por comodidad: el cliente **no lo
+      // escribe nunca** —`toRemoteJson()` lo deja fuera y quien lo fija es
+      // `verify_receipt()` (`RS-12`)—, así que una escritura local pendiente
+      // no puede estar en conflicto con él.
+      //
+      // Rechazar la fila entera dejaba la membresía congelada mientras esa
+      // entrada siguiera en la cola. Y una que agota sus cinco intentos se
+      // queda ahí hasta que alguien pulse «Sincronizar ahora» (`RS-11`): en la
+      // práctica, para siempre. El criador pagaba Élite y la app seguía
+      // diciéndole que no le caben más ejemplares, sin nada que mirar.
+      await _profilesDao.applyRemotePlan(
+        ownerId: ownerId,
+        plan: profile.plan.id,
+        expiresAt: profile.planExpiresAt,
+      );
+      // Sin marca de agua: del resto del perfil sigue mandando lo local, y hay
+      // que volver a preguntar en la próxima pasada.
+      return null;
+    }
 
-    final profile = Profile.fromRemoteJson(rows.first);
     await _profilesDao.upsert(profile.toCompanion());
     return profile.updatedAt;
   }

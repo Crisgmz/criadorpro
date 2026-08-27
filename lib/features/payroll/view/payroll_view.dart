@@ -256,6 +256,33 @@ class _PaymentTile extends ConsumerWidget {
   final String? employeeName;
   final String locale;
 
+  /// `RF-NOM-04` — el recibo que el empleado se lleva.
+  ///
+  /// No pasa por `CpExportButton` porque el módulo entero es de Élite, y Élite
+  /// ya incluye exportación: aquí la restricción de plan sería redundante.
+  Future<void> _exportReceipt(BuildContext context, WidgetRef ref, String locale) async {
+    final l10n = AppL10n.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final employee = await ref.read(payrollRepositoryProvider).findEmployee(payment.employeeId);
+    if (employee == null) return;
+
+    try {
+      await ref
+          .read(exportersProvider)
+          .payrollReceipt(
+            l10n: l10n,
+            locale: locale,
+            farmName: ref.read(currentProfileProvider).value?.farmName ?? l10n.appName,
+            employee: employee,
+            payment: payment,
+            now: DateTime.now(),
+          );
+    } on Object catch (error, stackTrace) {
+      debugPrint('Recibo no se generó: $error\n$stackTrace');
+      messenger.showSnackBar(SnackBar(content: Text(l10n.exportFailed)));
+    }
+  }
+
   Future<void> _confirmVoid(BuildContext context, WidgetRef ref) async {
     final l10n = AppL10n.of(context);
 
@@ -303,13 +330,23 @@ class _PaymentTile extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(Formatters.currency(payment.net, locale), style: theme.textTheme.titleSmall),
-          IconButton(
-            tooltip: l10n.payrollVoidTitle,
-            icon: const Icon(Icons.close),
-            onPressed: () => _confirmVoid(context, ref),
+          // Menú y no dos iconos sueltos: el recibo se pide de vez en cuando y
+          // anular es raro; en la fila competirían con el importe, que es lo
+          // que el criador viene a leer.
+          PopupMenuButton<_PaymentAction>(
+            onSelected: (action) => switch (action) {
+              _PaymentAction.receipt => _exportReceipt(context, ref, locale),
+              _PaymentAction.cancel => _confirmVoid(context, ref),
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(value: _PaymentAction.receipt, child: Text(l10n.exportReceipt)),
+              PopupMenuItem(value: _PaymentAction.cancel, child: Text(l10n.payrollVoidTitle)),
+            ],
           ),
         ],
       ),
     );
   }
 }
+
+enum _PaymentAction { receipt, cancel }
