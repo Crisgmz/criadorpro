@@ -140,6 +140,40 @@ class AuthRepository {
     return const Ok(null);
   }
 
+  /// Borra la cuenta y todo lo que cuelga de ella — `RNF-20`, `RF-CTA-11`.
+  ///
+  /// **Es irreversible y no hay copia.** El servidor borra la fila de
+  /// `auth.users`, y con ella —por `on delete cascade`— el perfil, los
+  /// ejemplares, las camadas, las pruebas, los movimientos, la nómina, las
+  /// pesadas y las solicitudes. Las fotos del bucket las borra la misma función
+  /// antes, porque Storage no cuelga de `auth.users` y el cascade no las
+  /// alcanzaría.
+  ///
+  /// Exige conexión a propósito: sin ella el borrado se quedaría en local y el
+  /// criador creería haber eliminado unos datos que siguen en el servidor. Es
+  /// lo contrario de lo que promete el botón.
+  ///
+  /// La app también lo ofrece porque App Store lo exige a toda app que permita
+  /// crear una cuenta: sin esto no pasa revisión.
+  Future<Result<void>> deleteAccount() async {
+    if (!isEnabled) {
+      return const Err(NetworkFailure(debugMessage: 'sin backend configurado'));
+    }
+
+    final result = await _run(() async {
+      await _supabase.client.rpc<void>('delete_current_user');
+      await _supabase.client.auth.signOut();
+    });
+    if (result case Err(:final failure)) return Err(failure);
+
+    // Lo local se va **después** de que el servidor confirme. Al revés, un
+    // fallo de red dejaría el teléfono vacío y la cuenta viva: el criador
+    // perdería su libro sin haber borrado nada.
+    await _wipeLocalData();
+    await _preferences.forgetOwner();
+    return const Ok(null);
+  }
+
   /// Deja la base local lista para quien acaba de entrar.
   ///
   /// Si es otro criadero, se borra todo lo del anterior. Las consultas ya

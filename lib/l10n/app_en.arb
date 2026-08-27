@@ -608,6 +608,16 @@
   "statusAccepted": "Accepted",
   "statusDeclined": "Declined",
   "statusCancelled": "Withdrawn",
+  "accountDelete": "Delete my account",
+  "accountDeleteTitle": "Delete your account?",
+  "accountDeleteMessage": "Your farm, your {count} birds, their tests, your books and your photos will be deleted. There is no way to get them back.",
+  "@accountDeleteMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "accountDeleteConfirmHint": "Type DELETE to confirm",
+  "accountDeleteConfirmWord": "DELETE",
+  "accountDeleteDone": "Account deleted",
+  "accountDeleteNeedsConnection": "Deleting your account needs a connection: what is on the server has to go too.",
   "settingsAdmin": "Administration",
   "payrollTitle": "Payroll",
   "payrollPlanTitle": "Available with Elite",

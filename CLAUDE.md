@@ -206,7 +206,7 @@ onboarding y la app continúa desde ahí — así migra sin retranscribir su lib
 | `touch_updated_at()` | Trigger | `updated_at = now()` en cada escritura — base de la resolución de conflictos |
 | `next_plate(p_owner, p_count)` | RPC | Reserva atómicamente un bloque de N placas y devuelve el rango |
 | `active_bird_count(p_owner)` | RPC | Conteo autoritativo para validar el límite de plan |
-| `delete_account()` | Edge Function | Borrado físico en cascada, irreversible (`RNF-20`) |
+| `delete_current_user()` | RPC | Borrado físico en cascada, irreversible (`RNF-20`). Borra **también las fotos del bucket**: Storage no cuelga de `auth.users` y el cascade no las alcanza |
 | `verify_receipt()` | Edge Function | Valida el recibo de tienda y escribe `plan` / `plan_expires_at`. **El cliente nunca escribe su propio plan.** |
 
 ### Catálogos cerrados
@@ -549,6 +549,26 @@ sobre el mismo período es legítimo.
 desglose, el neto destacado y espacio para la firma — se imprime y se guarda en
 papel, que es como se lleva la nómina en un criadero.
 
+### Borrado de cuenta — implementado
+
+`RF-CTA-11` y `RNF-20`. La RPC `delete_current_user()` existía desde la
+migración inicial pero **nada la llamaba**: la app no ofrecía borrar la cuenta,
+y App Store lo exige a toda app que permita crearla.
+
+La función confiaba en el `on delete cascade` de cada tabla, y para las tablas
+basta. **Para las fotos no**: `storage.objects` no tiene clave foránea contra
+`auth.users`, así que el bucket conservaba las imágenes del criadero después de
+borrar la cuenta. Ahora las borra primero, dentro de la misma transacción: si
+eso falla, la cuenta no se borra — una cuenta borrada a medias con las fotos
+vivas es peor que un borrado que hay que reintentar.
+
+En el cliente, **lo local se borra después de que el servidor confirme**. Al
+revés, un fallo de red dejaría el teléfono vacío y la cuenta viva: el criador
+perdería su libro sin haber borrado nada.
+
+La confirmación pide **escribir una palabra**. Un diálogo de dos botones se
+acepta sin leerlo, y esto no tiene vuelta atrás ni copia.
+
 ### Comunidad — implementado
 
 `RF-COM` en [lib/features/community/](lib/features/community/): directorio de
@@ -644,7 +664,7 @@ primer trabajo de F1, porque todo lo demás cuelga de la placa:
 | Tabla `evaluations` | ✅ creada (esquema v4 + migración de Supabase) | — |
 | Tabla `transactions` | ✅ creada (esquema v5 + migración de Supabase) | — |
 | Tablas `employees`, `payroll_payments` | ✅ creadas (esquema v9 + migración de Supabase) | — |
-| Triggers y RPC del servidor | ✅ `handle_new_user()`, `touch_updated_at()`, `next_plate()`, `active_bird_count()`; falta `delete_account()` y `verify_receipt()` | Implementar los dos restantes |
+| Triggers y RPC del servidor | ✅ todos menos `verify_receipt()`, que va con las compras en F3 | — |
 | Cifrado local (`RNF-15`) | ✅ SQLite3MultipleCiphers vía `hooks.user_defines` | — |
 | Tokens en Keychain/Keystore (`RNF-14`) | ✅ `SecureSessionStorage` | — |
 | Rutas `/tests`, `/community`, `/account`, `/accounting`, `/payroll` | ✅ completas | — |

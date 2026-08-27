@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -63,12 +65,12 @@ class AppDrawer extends ConsumerWidget {
               // el criador toca a diario.
               leading: const Icon(Icons.account_balance_wallet_outlined),
               title: Text(l10n.accountingTitle),
-              onTap: () => _go(context, Routes.accounting),
+              onTap: () => _open(context, Routes.accounting),
             ),
             ListTile(
               leading: const Icon(Icons.badge_outlined),
               title: Text(l10n.payrollTitle),
-              onTap: () => _go(context, Routes.payroll),
+              onTap: () => _open(context, Routes.payroll),
             ),
 
             const Divider(height: AppSpacing.xl),
@@ -84,11 +86,24 @@ class AppDrawer extends ConsumerWidget {
     );
   }
 
-  /// Cierra el panel antes de navegar: dejarlo abierto sobre la pantalla nueva
-  /// obligaría al usuario a descartarlo a mano.
+  /// Va a una pestaña del shell. Cierra el panel antes de navegar: dejarlo
+  /// abierto sobre la pantalla nueva obligaría al usuario a descartarlo a mano.
   void _go(BuildContext context, String route) {
+    final router = GoRouter.of(context);
     Navigator.of(context).pop();
-    context.go(route);
+    router.go(route);
+  }
+
+  /// Abre un módulo administrativo **apilándolo**.
+  ///
+  /// Contabilidad y empleomanía no son pestañas (PRD §7), así que no tienen
+  /// barra inferior con la que volver. Con `go` sustituían la pila entera y la
+  /// cabecera se quedaba sin flecha: se entraba y no había salida más que
+  /// volviendo a abrir el panel.
+  void _open(BuildContext context, String route) {
+    final router = GoRouter.of(context);
+    Navigator.of(context).pop();
+    unawaited(router.push(route));
   }
 }
 

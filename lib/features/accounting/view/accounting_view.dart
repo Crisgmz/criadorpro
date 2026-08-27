@@ -46,9 +46,24 @@ class _AccountingViewState extends ConsumerState<AccountingView> {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final viewModel = ref.watch(accountingViewModelProvider);
 
+    // El estado vacío ya ofrece «registrar movimiento» en el centro de la
+    // pantalla: repetirlo abajo son dos botones idénticos a un dedo de
+    // distancia. El flotante solo tiene sentido cuando la lista tapa el sitio
+    // donde estaría esa acción.
+    final showFab = viewModel.isAvailable && viewModel.transactions.isNotEmpty;
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.accountingTitle)),
-      floatingActionButton: !viewModel.isAvailable
+      appBar: AppBar(
+        title: Text(l10n.accountingTitle),
+        // Contabilidad no es pestaña (PRD §7): no tiene barra inferior con la
+        // que volver. Si se llega sin pila que desapilar —recargando en
+        // `/accounting`, o por enlace— la flecha implícita no aparece y la
+        // pantalla se convierte en un callejón sin salida.
+        leading: context.canPop()
+            ? null
+            : IconButton(icon: const Icon(Icons.close), onPressed: () => context.go(Routes.home)),
+      ),
+      floatingActionButton: !showFab
           ? null
           : FloatingActionButton.extended(
               onPressed: _create,

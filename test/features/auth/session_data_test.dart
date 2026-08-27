@@ -1,8 +1,10 @@
 import 'package:criadorpro/core/db/app_database.dart';
 import 'package:criadorpro/core/domain/sex.dart';
+import 'package:criadorpro/core/error/failure.dart';
 import 'package:criadorpro/core/network/connectivity_service.dart';
 import 'package:criadorpro/core/network/supabase_service.dart';
 import 'package:criadorpro/core/sync/sync_service.dart';
+import 'package:criadorpro/core/utils/result.dart';
 import 'package:criadorpro/features/auth/repository/auth_preferences.dart';
 import 'package:criadorpro/features/auth/repository/auth_repository.dart';
 import 'package:criadorpro/features/birds/model/bird.dart';
@@ -137,5 +139,30 @@ void main() {
 
     expect(await countBirds(), 1);
     expect(preferences.lastOwnerId, 'criador-1');
+  });
+
+  group('RF-CTA-11 · borrar la cuenta', () {
+    test('sin backend configurado no borra nada en local', () async {
+      // Es el caso que importa: si el borrado local se hiciera primero, un
+      // fallo de red dejaría el teléfono vacío y la cuenta viva en el servidor
+      // —el criador perdería su libro sin haber borrado nada.
+      await givenLocalData();
+
+      final result = await repository.deleteAccount();
+
+      expect((result as Err).failure, isA<NetworkFailure>());
+      expect(await database.birdsDao.countForOwner('criador-1'), 1);
+      expect(await database.profilesDao.findById('criador-1'), isNotNull);
+    });
+
+    test('el propietario recordado tampoco se olvida si falla', () async {
+      await preferences.rememberOwner('criador-1');
+
+      await repository.deleteAccount();
+
+      // Olvidarlo haría que la próxima entrada del mismo criadero se tomara
+      // por «entra otro» y borrara su libro (`RF-AUT-15`).
+      expect(preferences.lastOwnerId, 'criador-1');
+    });
   });
 }

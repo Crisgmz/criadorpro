@@ -66,6 +66,25 @@ class SettingsViewModel extends BaseViewModel {
 
   Future<void> syncNow() => _sync.retryFailed();
 
+  /// Borra la cuenta — `RNF-20`, `RF-CTA-11`. Devuelve `true` si se borró.
+  ///
+  /// Irreversible y sin copia. Quien pregunta antes es la View, con una
+  /// confirmación proporcional: aquí ya no hay vuelta atrás.
+  Future<bool> deleteAccount() async {
+    setLoading();
+    final result = await _auth.deleteAccount();
+    return result.fold(
+      ok: (_) {
+        setReady();
+        return true;
+      },
+      err: (failure) {
+        setFailure(failure);
+        return false;
+      },
+    );
+  }
+
   /// `true` si la sesión se cerró. Cierra sesión aunque queden cambios sin
   /// subir: la View debe avisarlo antes con [hasPendingChanges].
   Future<bool> signOut() async {

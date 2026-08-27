@@ -47,4 +47,9 @@ class AuthPreferences {
   String? get lastOwnerId => _preferences.getString(_lastOwnerKey);
 
   Future<void> rememberOwner(String ownerId) => _preferences.setString(_lastOwnerKey, ownerId);
+
+  /// Olvida al último propietario. Solo al borrar la cuenta: al cerrar sesión
+  /// se conserva, porque es lo que distingue «vuelve el mismo criadero» de
+  /// «entra otro» y decide si hay que limpiar la base (`RF-AUT-15`).
+  Future<void> forgetOwner() => _preferences.remove(_lastOwnerKey);
 }

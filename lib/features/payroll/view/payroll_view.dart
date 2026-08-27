@@ -39,9 +39,21 @@ class _PayrollViewState extends ConsumerState<PayrollView> {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final viewModel = ref.watch(payrollViewModelProvider);
 
+    // Mismo criterio que en contabilidad: con la plantilla vacía, el estado
+    // vacío ya ofrece «nuevo empleado» en el centro y el flotante repetiría el
+    // mismo botón unos centímetros más abajo.
+    final showFab = viewModel.isAvailable && viewModel.hasEmployees;
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.payrollTitle)),
-      floatingActionButton: !viewModel.isAvailable
+      appBar: AppBar(
+        title: Text(l10n.payrollTitle),
+        // Empleomanía tampoco es pestaña (PRD §7): sin esto, llegar sin pila
+        // que desapilar deja la pantalla sin forma de salir.
+        leading: context.canPop()
+            ? null
+            : IconButton(icon: const Icon(Icons.close), onPressed: () => context.go(Routes.home)),
+      ),
+      floatingActionButton: !showFab
           ? null
           : FloatingActionButton.extended(
               onPressed: () => context.push(Routes.employeeNew),

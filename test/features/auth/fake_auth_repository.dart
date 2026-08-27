@@ -26,6 +26,7 @@ class FakeAuthRepository implements AuthRepository {
   int signInCalls = 0;
   int signUpCalls = 0;
   int signOutCalls = 0;
+  int deleteAccountCalls = 0;
   int verifyCalls = 0;
   int resendCalls = 0;
   int sendResetCalls = 0;
@@ -85,6 +86,13 @@ class FakeAuthRepository implements AuthRepository {
   Future<Result<void>> signOut() async {
     signOutCalls++;
     callOrder.add('signOut');
+    return const Ok(null);
+  }
+
+  @override
+  Future<Result<void>> deleteAccount() async {
+    deleteAccountCalls++;
+    callOrder.add('deleteAccount');
     return const Ok(null);
   }
 

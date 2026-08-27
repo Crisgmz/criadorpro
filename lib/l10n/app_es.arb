@@ -689,6 +689,16 @@
   "statusAccepted": "Aceptada",
   "statusDeclined": "Rechazada",
   "statusCancelled": "Retirada",
+  "accountDelete": "Eliminar mi cuenta",
+  "accountDeleteTitle": "¿Eliminar tu cuenta?",
+  "accountDeleteMessage": "Se borrarán tu criadero, tus {count} ejemplares, sus pruebas, tu contabilidad y tus fotos. No hay forma de recuperarlo.",
+  "@accountDeleteMessage": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "accountDeleteConfirmHint": "Escribe ELIMINAR para confirmar",
+  "accountDeleteConfirmWord": "ELIMINAR",
+  "accountDeleteDone": "Cuenta eliminada",
+  "accountDeleteNeedsConnection": "Eliminar la cuenta necesita conexión: hay que borrar también lo que está en el servidor.",
   "settingsAdmin": "Administración",
   "payrollTitle": "Empleomanía",
   "payrollPlanTitle": "Disponible con Élite",
