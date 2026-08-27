@@ -24,6 +24,14 @@ abstract interface class RemotePuller {
   Future<DateTime?> pull({required String ownerId, DateTime? since});
 }
 
+/// Un recorrido de archivos que acompaña a la sincronización de datos.
+///
+/// Va aparte de la cola porque la cola es FIFO estricta: una foto pesada
+/// bloquearía detrás de sí el alta de un ejemplar (§5 del proyecto).
+abstract interface class MediaSyncer {
+  Future<void> sync(String ownerId);
+}
+
 enum SyncStatus { idle, syncing, done, failed, offline }
 
 /// Drena la cola de escrituras y baja los cambios remotos.
@@ -37,7 +45,9 @@ class SyncService {
     required ConnectivityService connectivity,
     required SharedPreferences preferences,
     required List<RemotePuller> pullers,
+    List<MediaSyncer> media = const [],
   }) : _queue = queue,
+       _media = media,
        _supabase = supabase,
        _connectivity = connectivity,
        _preferences = preferences,
@@ -48,6 +58,7 @@ class SyncService {
   final ConnectivityService _connectivity;
   final SharedPreferences _preferences;
   final List<RemotePuller> _pullers;
+  final List<MediaSyncer> _media;
 
   final StreamController<SyncStatus> _status = StreamController<SyncStatus>.broadcast();
   StreamSubscription<bool>? _connectivitySubscription;
@@ -105,6 +116,9 @@ class SyncService {
     try {
       await _push();
       await _pull(ownerId);
+      // Los archivos al final: los datos del criadero valen más que sus fotos,
+      // y con red de galpón conviene que lleguen antes.
+      await _syncMedia(ownerId);
       _emit(SyncStatus.done);
     } catch (error, stackTrace) {
       debugPrint('SyncService falló: $error\n$stackTrace');
@@ -147,6 +161,18 @@ class SyncService {
       final latest = await puller.pull(ownerId: ownerId, since: since);
       if (latest != null) {
         await _preferences.setString(_key(puller.table), latest.toUtc().toIso8601String());
+      }
+    }
+  }
+
+  Future<void> _syncMedia(String ownerId) async {
+    for (final syncer in _media) {
+      try {
+        await syncer.sync(ownerId);
+      } catch (error, stackTrace) {
+        // Una foto que no sube no puede marcar como fallida una
+        // sincronización de datos que sí terminó.
+        debugPrint('Sincronización de archivos falló: $error\n$stackTrace');
       }
     }
   }

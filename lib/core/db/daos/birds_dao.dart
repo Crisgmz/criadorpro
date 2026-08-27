@@ -217,6 +217,34 @@ class BirdsDao extends DatabaseAccessor<AppDatabase> with _$BirdsDaoMixin {
     );
   }
 
+  /// Fotos que están en el teléfono y no en Storage — `RF-REG-15`.
+  Future<List<BirdRow>> photosPendingUpload(String ownerId) =>
+      (select(birds)..where(
+            (t) =>
+                t.ownerId.equals(ownerId) &
+                t.isDeleted.equals(false) &
+                t.photoPath.isNotNull() &
+                t.photoUrl.isNull(),
+          ))
+          .get();
+
+  /// Fotos que están en Storage y no en el teléfono: el caso del dispositivo
+  /// nuevo, donde la fila baja con su `photo_url` y sin archivo detrás.
+  Future<List<BirdRow>> photosPendingDownload(String ownerId) =>
+      (select(birds)..where(
+            (t) =>
+                t.ownerId.equals(ownerId) &
+                t.isDeleted.equals(false) &
+                t.photoUrl.isNotNull() &
+                t.photoPath.isNull(),
+          ))
+          .get();
+
+  /// Ruta local de la foto. **No se sincroniza**: una ruta de este teléfono no
+  /// significa nada en otro, por eso se escribe sin marcar la fila como sucia.
+  Future<void> setPhotoPath(String id, String? path) =>
+      (update(birds)..where((t) => t.id.equals(id))).write(BirdsCompanion(photoPath: Value(path)));
+
   Future<void> upsert(BirdsCompanion bird) => into(birds).insertOnConflictUpdate(bird);
 
   Future<void> upsertAll(List<BirdsCompanion> rows) => batch((batch) {

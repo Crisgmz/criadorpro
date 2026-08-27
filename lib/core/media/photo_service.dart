@@ -90,6 +90,19 @@ class PhotoService {
     return img.encodeJpg(decoded, quality: _fallbackQuality);
   }
 
+  /// Guarda en disco una foto que llegó de Storage.
+  ///
+  /// Mismo destino que las capturadas: para el resto de la app una foto bajada
+  /// y una tomada aquí son la misma cosa.
+  Future<String> saveDownloaded(Uint8List bytes) async {
+    final directory = Directory(p.join((await getApplicationDocumentsDirectory()).path, _folder));
+    if (!directory.existsSync()) await directory.create(recursive: true);
+
+    final file = File(p.join(directory.path, '${_uuid.v4()}.jpg'));
+    await file.writeAsBytes(bytes);
+    return file.path;
+  }
+
   /// Borra el archivo de una foto sustituida o retirada.
   ///
   /// Nunca lanza: perder el archivo es intrascendente comparado con perder el

@@ -38,6 +38,7 @@ pueden volver a ejecutar sin romper nada, así que ante la duda, ejecútalas.
 | 6 | [`20260815010000_transactions.sql`](supabase/migrations/20260815010000_transactions.sql) | `transactions` — contabilidad (`RF-CON`) |
 | 7 | [`20260816000000_bird_markings.sql`](supabase/migrations/20260816000000_bird_markings.sql) | `birth_mark`, `wing_band_left`, `wing_band_right` y `comb` en `birds` |
 | 8 | [`20260826000000_payroll.sql`](supabase/migrations/20260826000000_payroll.sql) | `employees` y `payroll_payments` — empleomanía (`RF-NOM`) |
+| 9 | [`20260827000000_bird_photos.sql`](supabase/migrations/20260827000000_bird_photos.sql) | El bucket privado `bird-photos` y sus políticas — `RF-REG-15` |
 
 #### Cuáles te faltan
 
@@ -56,10 +57,13 @@ union all select 'payroll_payments', to_regclass('public.payroll_payments') is n
 union all select 'birds.comb',       exists (
   select 1 from information_schema.columns
   where table_schema = 'public' and table_name = 'birds' and column_name = 'comb'
+)
+union all select 'bucket bird-photos', exists (
+  select 1 from storage.buckets where id = 'bird-photos'
 );
 ```
 
-Cada `false` es la migración de esa fila: 5, 6, 8, 8 y 7 respectivamente.
+Cada `false` es la migración de esa fila: 5, 6, 8, 8, 7 y 9 respectivamente.
 
 ### 2. Cambia las plantillas de correo
 

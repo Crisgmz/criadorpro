@@ -47,6 +47,7 @@ import '../db/daos/transactions_dao.dart';
 import '../domain/bird_traits.dart';
 import '../domain/sex.dart';
 import '../media/photo_service.dart';
+import '../media/photo_sync.dart';
 import '../network/connectivity_service.dart';
 import '../network/supabase_service.dart';
 import '../security/secure_store.dart';
@@ -93,6 +94,16 @@ final connectivityServiceProvider = Provider<ConnectivityService>((ref) => Conne
 
 /// Captura y almacenamiento local de fotos — `RF-REG-15`.
 final photoServiceProvider = Provider<PhotoService>((ref) => PhotoService());
+
+/// Subida y bajada de fotos, fuera de la cola de datos — `RF-REG-15`.
+final photoSyncProvider = Provider<PhotoSyncService>(
+  (ref) => PhotoSyncService(
+    birdsDao: ref.watch(birdsDaoProvider),
+    photos: ref.watch(photoServiceProvider),
+    supabase: ref.watch(supabaseServiceProvider),
+    birds: ref.watch(birdsRepositoryProvider),
+  ),
+);
 
 /// Almacén seguro del sistema — `RNF-14`. Lo construye `main()` porque la
 /// clave de la base hace falta antes de que exista el contenedor.
@@ -158,6 +169,7 @@ final syncServiceProvider = Provider<SyncService>((ref) {
       ref.watch(payrollRepositoryProvider).employeesPuller,
       ref.watch(payrollRepositoryProvider).paymentsPuller,
     ],
+    media: [ref.watch(photoSyncProvider)],
   );
   ref.onDispose(service.dispose);
   return service;

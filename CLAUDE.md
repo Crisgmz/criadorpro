@@ -414,17 +414,43 @@ redimensionado lo hace el selector en código nativo; solo si aun así se pasa d
 2 MB se recomprime en un isolate. Se ve en el formulario, en la ficha y como
 miniatura en la lista.
 
-**La foto todavía no sube a Storage.** Vive en el área privada de la app y
-`birds.photo_path` no viaja en el payload de sincronización —una ruta local no
-significa nada en otro dispositivo—. Falta el bucket en Supabase y la operación
-de subida independiente que describe §5.
+**La foto ya sube y baja** ([lib/core/media/photo_sync.dart](lib/core/media/photo_sync.dart)),
+en un recorrido **fuera de la cola de datos**, como manda §5: la cola es FIFO
+estricta y una foto de dos megas por red de galpón bloquearía detrás de sí el
+alta de un ejemplar que pesa dos kilobytes. Los datos van primero; las fotos,
+al final del ciclo.
+
+No hay cola de fotos: **el trabajo pendiente se deduce del estado**. Con ruta
+local y sin URL está por subir; con URL y sin ruta, por bajar —el caso del
+dispositivo nuevo—. Así nada puede desincronizarse entre cola y datos, y
+reintentar es volver a pasar.
+
+`birds.photo_path` sigue sin viajar —una ruta local no significa nada en otro
+teléfono—; lo que viaja es `photo_url`, con la ruta del objeto en el bucket
+privado `bird-photos`. Es determinista (`{owner}/{bird}.jpg`), así que volver a
+subir **sustituye**: con nombres aleatorios, cambiar cinco veces la foto de un
+ejemplar dejaría cuatro huérfanas. El primer segmento es el propietario porque
+es lo que compara la política de Storage.
+
+Dos cuidados que no son obvios:
+
+- Cambiar o quitar la foto **suelta `photo_url`**, porque la que había describe
+  a la anterior. Sin eso el ejemplar se queda para siempre con la foto vieja en
+  los demás dispositivos y aquí no falla nada.
+- Anotar la subida **no mueve `updated_at`**. Si lo moviera, esa fila ganaría
+  la resolución de conflictos (`RS-09`) contra una edición real hecha en otro
+  dispositivo mientras tanto.
+
+**Queda pendiente borrar el objeto de Storage** cuando el criador quita la foto:
+hoy se suelta la URL y el archivo se queda en el bucket hasta que otra foto del
+mismo ejemplar lo sustituya. Es un objeto por ejemplar como mucho, pero es dato
+del usuario que él cree haber borrado.
 
 Falta de `RF-REG`:
 
 | ID | Qué falta | Prioridad |
 |---|---|---|
 | `RF-REG-14` | Editar cualquier campo y **registrar pesos sucesivos con su fecha**. Exige tabla nueva. | Esperado |
-| `RF-REG-15` | Subida de la foto a Storage (la captura ya está). | Esperado |
 
 ### Contabilidad — implementado
 
@@ -517,8 +543,8 @@ ancestro repetido **en el mismo camino** es un dato imposible y corta la rama
 
 `RF-PED-08` (exportar a PDF) es Opcional y va en F4.
 
-Con eso **F1 queda cerrado en lo Obligatorio**. Fuera quedan, con prioridad
-Esperado, `RF-REG-14` y `RF-REG-15`.
+Con eso **F1 queda cerrado en lo Obligatorio**. Fuera queda, con prioridad
+Esperado, `RF-REG-14`.
 
 **El esquema implementado diverge de la especificación.** Corregirlo es el
 primer trabajo de F1, porque todo lo demás cuelga de la placa:

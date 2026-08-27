@@ -10,6 +10,7 @@ import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/domain/bird_traits.dart';
 import '../../../core/domain/sex.dart';
 import '../../../core/error/failure.dart';
+import '../../../core/media/photo_sync.dart';
 import '../../../core/network/supabase_service.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/utils/result.dart';
@@ -17,7 +18,7 @@ import '../model/bird.dart';
 
 /// Acceso a ejemplares. Escribe siempre primero en Drift y encola el cambio;
 /// nunca espera a la red para dar por buena una operación.
-class BirdsRepository implements RemotePuller {
+class BirdsRepository implements RemotePuller, PhotoUrlSink {
   BirdsRepository({
     required AppDatabase database,
     required BirdsDao birdsDao,
@@ -138,11 +139,20 @@ class BirdsRepository implements RemotePuller {
 
     final now = _clock();
     final name = draft.name?.trim();
+
+    // Si la foto local cambió, la URL que había describe a la anterior. Se
+    // suelta para que la sincronización de fotos la vuelva a subir: dejarla
+    // puesta haría que el ejemplar se quedara para siempre con la foto vieja
+    // en los demás dispositivos, sin que nada fallara aquí (`RF-REG-15`).
+    final stored = draft.isNew ? null : await _birdsDao.findById(draft.id);
+    final photoChanged = stored != null && stored.photoPath != draft.photoPath;
+
     final bird = draft.copyWith(
       id: draft.isNew ? _uuid.v4() : draft.id,
       // El nombre es opcional: en blanco se guarda como nulo para no tener que
       // distinguir «sin nombre» de «nombre vacío» en cada consulta.
       name: () => (name == null || name.isEmpty) ? null : name,
+      photoUrl: photoChanged ? () => null : null,
       updatedAt: now,
     );
 
@@ -163,6 +173,34 @@ class BirdsRepository implements RemotePuller {
       });
       return bird;
     }, (error, _) => DatabaseFailure(debugMessage: error.toString(), cause: error));
+  }
+
+  /// `RF-REG-15` — anota la foto ya subida a Storage.
+  ///
+  /// La escritura va con su entrada en la cola, como cualquier otra: es la URL
+  /// lo que hace que la foto aparezca en el otro teléfono del criadero, y sin
+  /// encolarla se quedaría en este.
+  ///
+  /// No toca `updated_at`: la foto no es un cambio que el criador hizo, y
+  /// moverlo haría que esta fila ganara la resolución de conflictos (`RS-09`)
+  /// contra una edición real hecha en otro dispositivo mientras tanto.
+  @override
+  Future<void> setPhotoUrl({required String birdId, required String objectPath}) async {
+    final existing = await _birdsDao.findById(birdId);
+    if (existing == null) return;
+
+    final bird = Bird.fromRow(existing).copyWith(photoUrl: () => objectPath);
+
+    await _database.transaction(() async {
+      await _birdsDao.upsert(bird.toCompanion(dirty: true));
+      await _syncQueue.enqueue(
+        entityTable: table,
+        entityId: bird.id,
+        operation: SyncOperation.upsert,
+        payload: jsonEncode(bird.toRemoteJson()),
+        now: bird.updatedAt,
+      );
+    });
   }
 
   /// Borrado lógico: desaparece de las listas pero viaja al resto de
