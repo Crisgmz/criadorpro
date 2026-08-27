@@ -116,12 +116,12 @@ class BirdDetailViewModel extends BaseViewModel {
     _childrenSubscription = _repository.watchChildren(_birdId).listen((children) async {
       _offspring = await _groupByClutch(children);
       safeNotify();
-    }, onError: (Object _) {});
+    }, onError: _reportStreamError);
 
     _evaluationsSubscription = _evaluationsRepository.watchForBird(_birdId).listen((evaluations) {
       _evaluations = evaluations;
       safeNotify();
-    }, onError: (Object _) {});
+    }, onError: _reportStreamError);
   }
 
   /// Agrupa por camada y ordena por fecha, lo más reciente arriba. Las crías
@@ -180,6 +180,12 @@ class BirdDetailViewModel extends BaseViewModel {
     final result = await _repository.findById(id);
     return result.valueOrNull;
   }
+
+  /// Un stream que falla no puede quedarse callado: la pantalla mostraría un
+  /// vacío que se lee como «no hay datos» cuando en realidad la consulta se
+  /// rompió. Así llega al estado y la vista lo cuenta.
+  void _reportStreamError(Object error) =>
+      setFailure(DatabaseFailure(debugMessage: error.toString(), cause: error));
 
   @override
   void dispose() {

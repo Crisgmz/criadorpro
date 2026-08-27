@@ -5,6 +5,7 @@ import '../../../../core/domain/bird_traits.dart';
 import '../../../../core/providers/providers.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/cp_button.dart';
+import '../../../../core/widgets/cp_empty_state.dart';
 import '../../../../core/widgets/cp_text_field.dart';
 import '../../../../l10n/generated/app_l10n.dart';
 
@@ -141,7 +142,13 @@ class _TraitSheetState extends ConsumerState<_TraitSheet> {
           Expanded(
             child: options.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, _) => const SizedBox.shrink(),
+              // Nunca en blanco: una hoja vacía sin explicación se lee como
+              // «no hay nada» cuando en realidad la consulta falló.
+              error: (error, _) => CpEmptyState(
+                icon: Icons.error_outline,
+                title: l10n.errorUnknown,
+                message: '$error',
+              ),
               data: (values) {
                 // El recién creado aún no lo usa ningún ejemplar, así que no
                 // llega en la consulta: se antepone a mano.

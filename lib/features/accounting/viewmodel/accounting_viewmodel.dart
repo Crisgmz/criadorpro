@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../../../core/base/base_viewmodel.dart';
+import '../../../core/error/failure.dart';
 import '../model/transaction.dart';
 import '../repository/transactions_repository.dart';
 
@@ -99,15 +100,21 @@ class AccountingViewModel extends BaseViewModel {
     _subscription = _repository.watchMonth(ownerId: _ownerId, month: _month).listen((rows) {
       _transactions = rows;
       safeNotify();
-    }, onError: (Object _) {});
+    }, onError: _reportStreamError);
 
     _balanceSubscription = _repository.watchBalance(ownerId: _ownerId, month: _month).listen((
       balance,
     ) {
       _balance = balance;
       safeNotify();
-    }, onError: (Object _) {});
+    }, onError: _reportStreamError);
   }
+
+  /// Un stream que falla no puede quedarse callado: la pantalla mostraría un
+  /// vacío que se lee como «no hay datos» cuando en realidad la consulta se
+  /// rompió. Así llega al estado y la vista lo cuenta.
+  void _reportStreamError(Object error) =>
+      setFailure(DatabaseFailure(debugMessage: error.toString(), cause: error));
 
   @override
   void dispose() {

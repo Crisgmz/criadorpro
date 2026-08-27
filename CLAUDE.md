@@ -655,6 +655,17 @@ Un dispositivo que ya tuviera la app con base sin cifrar se migra al arrancar,
 copiando tabla por tabla —`sqlcipher_export` no existe en sqlite3mc— y **sin
 borrar la original hasta que la cifrada está escrita**.
 
+**La migración copia también `user_version`.** Sin eso la base cifrada nace en
+cero, Drift la toma por nueva, ejecuta `onCreate` sobre unas tablas que ya
+existen —y que `createAll` no toca— y a partir de ahí no aplica ninguna
+migración: la tabla se congela con el esquema viejo y cualquier columna añadida
+después falla con «no such column», meses más tarde y en una pantalla sin
+relación aparente con la causa. Pasó de verdad.
+
+Como red de seguridad, `beforeOpen` compara las columnas declaradas con las que
+tiene la base y añade las que falten (`_repairMissingColumns`). Solo añade
+—nunca borra ni cambia tipos— y repara las bases que quedaran dañadas.
+
 ## 12. Convenciones de código
 
 - **Español** en comentarios, nombres de dominio y documentación; el código sigue las convenciones de Dart.

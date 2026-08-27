@@ -66,7 +66,7 @@ class EvaluationsListViewModel extends BaseViewModel {
     _statsSubscription = _repository.watchStats(_ownerId).listen((stats) {
       _stats = stats;
       safeNotify();
-    }, onError: (Object _) {});
+    }, onError: _reportStreamError);
   }
 
   void _subscribeToList() {
@@ -79,6 +79,12 @@ class EvaluationsListViewModel extends BaseViewModel {
           setFailure(DatabaseFailure(debugMessage: error.toString(), cause: error)),
     );
   }
+
+  /// Un stream que falla no puede quedarse callado: la pantalla mostraría un
+  /// vacío que se lee como «no hay datos» cuando en realidad la consulta se
+  /// rompió. Así llega al estado y la vista lo cuenta.
+  void _reportStreamError(Object error) =>
+      setFailure(DatabaseFailure(debugMessage: error.toString(), cause: error));
 
   @override
   void dispose() {

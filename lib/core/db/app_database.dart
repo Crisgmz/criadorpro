@@ -118,6 +118,47 @@ class AppDatabase extends _$AppDatabase {
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
+      await _repairMissingColumns();
     },
   );
+
+  /// Red de seguridad: añade las columnas que el esquema declara y la base no
+  /// tiene.
+  ///
+  /// Existe por un fallo real: la migración a base cifrada copiaba las tablas
+  /// pero no `user_version`, así que Drift tomaba la base por nueva, no
+  /// aplicaba ninguna migración y las columnas añadidas después nunca llegaban.
+  /// La consulta fallaba con «no such column» en una pantalla concreta, meses
+  /// más tarde y sin relación aparente con la causa.
+  ///
+  /// Solo añade columnas —nunca borra ni cambia tipos— y todas las del esquema
+  /// son nulas o con valor por omisión, así que es seguro y repetible.
+  /// SQLite es de tipado laxo, así que basta con la afinidad correcta. Se mapea
+  /// a mano en lugar de pedírselo a Drift: su API para esto necesita un
+  /// contexto de generación que aquí no existe.
+  static String _sqlType(GeneratedColumn<Object> column) => switch (column) {
+    GeneratedColumn<int>() => 'INTEGER',
+    GeneratedColumn<bool>() => 'INTEGER',
+    GeneratedColumn<double>() => 'REAL',
+    GeneratedColumn<DateTime>() => 'INTEGER',
+    GeneratedColumn<Uint8List>() => 'BLOB',
+    _ => 'TEXT',
+  };
+
+  Future<void> _repairMissingColumns() async {
+    for (final table in allTables) {
+      final existing = {
+        for (final row in await customSelect('PRAGMA table_info(${table.actualTableName})').get())
+          row.read<String>('name'),
+      };
+      if (existing.isEmpty) continue;
+
+      for (final column in table.$columns) {
+        if (existing.contains(column.name)) continue;
+        await customStatement(
+          'ALTER TABLE ${table.actualTableName} ADD COLUMN ${column.name} ${_sqlType(column)}',
+        );
+      }
+    }
+  }
 }

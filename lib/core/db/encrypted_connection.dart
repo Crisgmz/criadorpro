@@ -91,7 +91,15 @@ abstract final class EncryptedConnection {
           ..execute('insert into main."$table" select * from plain."$table";');
       }
 
-      destination.execute('detach database plain;');
+      // **Imprescindible**: sin copiar la versión del esquema, la base cifrada
+      // nace en 0. Drift la toma por nueva, ejecuta `onCreate` sobre unas
+      // tablas que ya existen —y que `createAll` no toca— y a partir de ahí no
+      // aplica ninguna migración. La tabla se queda con el esquema viejo para
+      // siempre y cualquier columna nueva falla con «no such column».
+      final version = destination.select('pragma plain.user_version;').first.values.first;
+      destination
+        ..execute('pragma user_version = $version;')
+        ..execute('detach database plain;');
     } on SqliteException {
       // Migración fallida: se retira la copia a medias y se deja intacta la
       // base original. Peor que no migrar es quedarse con las dos incompletas.

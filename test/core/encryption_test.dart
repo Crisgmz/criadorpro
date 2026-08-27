@@ -77,6 +77,9 @@ void main() {
     // Base como la que tendría un dispositivo con la app ya instalada.
     final plain = sqlite3.open(plainPath);
     plain.execute('create table birds (id text primary key, plate integer);');
+    // La versión del esquema es parte de los datos: sin ella, Drift toma la
+    // base migrada por nueva y no vuelve a aplicar ninguna migración.
+    plain.execute('pragma user_version = 7;');
     for (var i = 1; i <= 5; i++) {
       plain.execute('insert into birds values (?, ?);', ['b$i', i]);
     }
@@ -102,11 +105,20 @@ void main() {
     destination
       ..execute(create.replaceFirst('CREATE TABLE ', 'CREATE TABLE main.'))
       ..execute('insert into main.birds select * from plain.birds;')
+      ..execute(
+        'pragma user_version = '
+        '${destination.select('pragma plain.user_version;').first.values.first};',
+      )
       ..execute('detach database plain;')
       ..close();
 
     final migrated = sqlite3.open(encryptedPath)..execute("pragma key = '$key';");
     expect(migrated.select('select count(*) c from birds;').first['c'], 5);
+    expect(
+      migrated.select('pragma user_version;').first.values.first,
+      7,
+      reason: 'la versión de esquema viaja con los datos',
+    );
     migrated.close();
 
     // Y el resultado está cifrado de verdad.
