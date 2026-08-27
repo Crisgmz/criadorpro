@@ -11,6 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../support/still.dart';
+
 /// Recorre las pantallas de `RF-AUT` navegando con el router real y con el
 /// árbol de semántica activo.
 ///
@@ -40,7 +42,7 @@ void main() {
     addTearDown(container.dispose);
 
     await tester.pumpWidget(
-      UncontrolledProviderScope(container: container, child: const CriadorProApp()),
+      still(UncontrolledProviderScope(container: container, child: const CriadorProApp())),
     );
     await tester.pump(AppConfig.splashDuration);
     await tester.pumpAndSettle();

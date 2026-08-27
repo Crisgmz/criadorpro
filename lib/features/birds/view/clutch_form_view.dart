@@ -11,6 +11,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/cp_button.dart';
 import '../../../core/widgets/cp_text_field.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/navy_surface.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../model/clutch.dart';
@@ -106,7 +107,7 @@ class _ClutchFormViewState extends ConsumerState<ClutchFormView> {
     final limit = viewModel.planLimit!;
     final fits = viewModel.planLimitFits;
 
-    final accepted = await showDialog<bool>(
+    final accepted = await showCpDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.info_outline, size: 40),
@@ -143,7 +144,7 @@ class _ClutchFormViewState extends ConsumerState<ClutchFormView> {
   Future<void> _celebrate(ClutchRegistration registration) async {
     final l10n = AppL10n.of(context);
 
-    final again = await showDialog<bool>(
+    final again = await showCpDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.egg_outlined, size: 48),

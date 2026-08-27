@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_spacing.dart';
+import 'motion.dart';
 
 enum CpButtonVariant { primary, secondary, text, danger }
 
@@ -63,13 +64,18 @@ class CpButton extends StatelessWidget {
       CpButtonVariant.text => TextButton(onPressed: enabled ? onPressed : null, child: child),
     };
 
+    // Se hunde al tocarlo, no al soltarlo: la tinta de Material llega tarde
+    // para confirmar que el toque entró. Solo cuando está activo — un botón
+    // deshabilitado que responde al dedo promete algo que no va a pasar.
+    final pressable = enabled ? CpPressable(child: button) : button;
+
     // El ancho lo declara el botón, no el tema: un `minimumSize` infinito en el
     // tema estiraría también a los botones que viven dentro de una Row o de las
     // acciones de un diálogo, y ahí el layout no admite ancho infinito.
-    if (expanded) return SizedBox(width: double.infinity, child: button);
+    if (expanded) return SizedBox(width: double.infinity, child: pressable);
     return Align(
       alignment: Alignment.centerLeft,
-      child: IntrinsicWidth(child: button),
+      child: IntrinsicWidth(child: pressable),
     );
   }
 }

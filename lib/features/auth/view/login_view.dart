@@ -7,6 +7,7 @@ import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/widgets/cp_alert.dart';
 import '../../../core/widgets/cp_button.dart';
 import '../../../core/widgets/cp_text_field.dart';
 import '../../../l10n/generated/app_l10n.dart';
@@ -39,19 +40,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   Future<void> _submit() async {
-    final l10n = AppL10n.of(context);
     final viewModel = ref.read(loginViewModelProvider);
-    final signedIn = await viewModel.submit();
     // Con la sesión abierta no hay nada que hacer aquí: el router redirige solo.
-    if (!mounted || signedIn) return;
-
-    final failure = viewModel.failure;
-    if (failure != null) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(failureMessage(l10n, failure))));
-      viewModel.clearFailure();
-    }
+    // El fallo lo pinta la propia pantalla, encima de los campos (`CpAlert`).
+    await viewModel.submit();
   }
 
   @override
@@ -68,6 +60,14 @@ class _LoginViewState extends ConsumerState<LoginView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // `E-AUTH-01`: mensaje único que no revela si el correo existe.
+              // Va arriba y no en un `SnackBar` porque el criador tiene que
+              // leerlo junto a los campos que va a corregir.
+              if (viewModel.failure != null)
+                CpAlert(
+                  message: failureMessage(l10n, viewModel.failure!),
+                  onClose: viewModel.clearFailure,
+                ),
               ValidateOnBlur(
                 onBlur: viewModel.validateEmail,
                 builder: (context, focusNode) => CpTextField(

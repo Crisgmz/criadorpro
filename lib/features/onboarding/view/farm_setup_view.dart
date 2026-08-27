@@ -8,6 +8,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/cp_button.dart';
 import '../../../core/widgets/cp_text_field.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../../auth/view/widgets/auth_scaffold.dart';
 import '../viewmodel/farm_setup_viewmodel.dart';
@@ -74,11 +75,17 @@ class _FarmSetupViewState extends ConsumerState<FarmSetupView> {
           progress: viewModel.progress,
         ),
         const SizedBox(height: AppSpacing.lg),
-        switch (viewModel.step) {
-          FarmSetupStep.profile => _ProfileStep(viewModel: viewModel),
-          FarmSetupStep.numbering => _NumberingStep(viewModel: viewModel),
-          FarmSetupStep.plan => _PlanStep(onChoose: _finish),
-        },
+        // Cada paso entra desde abajo, como en el prototipo: el formulario es
+        // el mismo y no cambia de pantalla, así que no se desliza de lado.
+        CpFadeUp(
+          key: ValueKey(viewModel.step),
+          duration: const Duration(milliseconds: 300),
+          child: switch (viewModel.step) {
+            FarmSetupStep.profile => _ProfileStep(viewModel: viewModel),
+            FarmSetupStep.numbering => _NumberingStep(viewModel: viewModel),
+            FarmSetupStep.plan => _PlanStep(onChoose: _finish),
+          },
+        ),
         const SizedBox(height: AppSpacing.xl),
         if (viewModel.step != FarmSetupStep.plan)
           CpButton(

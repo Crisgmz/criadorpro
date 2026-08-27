@@ -9,6 +9,7 @@ import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/brand.dart';
+import '../../../core/widgets/cp_alert.dart';
 import '../../../core/widgets/cp_button.dart';
 import '../../../l10n/generated/app_l10n.dart';
 
@@ -61,10 +62,10 @@ class WelcomeView extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.xxl),
 
-                  if (!isBackendConfigured) ...[
-                    _BackendWarning(message: l10n.errorAuthNotConfigured),
-                    const SizedBox(height: AppSpacing.md),
-                  ],
+                  // Un solo componente de aviso en toda la app: el mismo que
+                  // usa el error del inicio de sesión, en tono de advertencia.
+                  if (!isBackendConfigured)
+                    CpAlert(message: l10n.errorAuthNotConfigured, tone: CpAlertTone.warning),
 
                   CpButton(
                     label: l10n.welcomeCreateAccount,
@@ -131,38 +132,6 @@ class _OrDivider extends StatelessWidget {
         ),
         const Expanded(child: Divider()),
       ],
-    );
-  }
-}
-
-class _BackendWarning extends StatelessWidget {
-  const _BackendWarning({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: scheme.tertiaryContainer,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.warning_amber_rounded, color: scheme.onTertiaryContainer),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              message,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: scheme.onTertiaryContainer),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

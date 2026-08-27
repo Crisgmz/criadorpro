@@ -12,6 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../support/still.dart';
+
 import '../auth/fake_auth_repository.dart';
 
 /// Las pantallas 11–14 pintadas con el router real y la semántica activa.
@@ -47,7 +49,7 @@ void main() {
     addTearDown(container.dispose);
 
     await tester.pumpWidget(
-      UncontrolledProviderScope(container: container, child: const CriadorProApp()),
+      still(UncontrolledProviderScope(container: container, child: const CriadorProApp())),
     );
     // Pumps acotados, no `pumpAndSettle`: el indicador de carga del splash gira
     // de forma indefinida y dejaría a `pumpAndSettle` esperando para siempre.

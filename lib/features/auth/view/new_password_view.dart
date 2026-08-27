@@ -11,6 +11,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/cp_button.dart';
 import '../../../core/widgets/cp_text_field.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import 'widgets/auth_scaffold.dart';
 import 'widgets/password_strength_bar.dart';
@@ -50,11 +51,26 @@ class _NewPasswordViewState extends ConsumerState<NewPasswordView> {
   Future<void> _showSuccessDialog() {
     final l10n = AppL10n.of(context);
 
-    return showDialog<void>(
+    return showCpDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        icon: Icon(Icons.check_circle_outline, color: context.semantic.male, size: 56),
+        // Disco verde claro con la palomita dibujándose dentro, como el
+        // prototipo: la confirmación se ve ocurrir, no aparece ya hecha.
+        icon: SizedBox(
+          height: 76,
+          width: 76,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Color.alphaBlend(
+                context.semantic.male.withValues(alpha: 0.14),
+                Theme.of(context).colorScheme.surface,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Center(child: CpDrawCheck(color: context.semantic.male, size: 38)),
+          ),
+        ),
         title: Text(l10n.newPasswordSuccessTitle, textAlign: TextAlign.center),
         content: Text(l10n.newPasswordSuccessBody, textAlign: TextAlign.center),
         actions: [

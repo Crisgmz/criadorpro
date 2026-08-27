@@ -7,6 +7,7 @@ import '../../../core/providers/providers.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../../dashboard/view/widgets/app_drawer.dart';
 
@@ -17,7 +18,7 @@ class SettingsView extends ConsumerWidget {
     final l10n = AppL10n.of(context);
     final viewModel = ref.read(settingsViewModelProvider);
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showCpDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.authSignOutConfirmTitle),

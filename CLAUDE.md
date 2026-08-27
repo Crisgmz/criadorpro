@@ -553,6 +553,41 @@ decimales (o libras si el perfil lo indica), almacenado entero en gramos ·
 placa sin ceros a la izquierda, precedida de `#` · edad en meses hasta 24, luego
 años y meses · teléfono agrupado por país `(809) 555-1234`, almacenado E.164.
 
+### Movimiento
+
+Cinco gestos, cada uno con un significado, en
+[lib/core/widgets/motion.dart](lib/core/widgets/motion.dart). Salen del
+prototipo, con sus tiempos: **no se inventan animaciones nuevas** — si algo
+tiene que moverse, se mueve con uno de estos.
+
+| Gesto | Qué dice | Dónde | Tiempo |
+|---|---|---|---|
+| `CpPageTransition` | «vienes de otra pantalla» | toda ruta apilada, en el router | 350 ms, 7 % desde la derecha |
+| `CpFadeUp` | «esto acaba de aparecer» | pestañas, pasos de un formulario, filas de lista | 250 ms, 10 px desde abajo |
+| `CpPop` | «ha salido bien» | confirmaciones, `showCpDialog` | 400 ms con rebote |
+| `CpFloat` | «esto está vivo» | ilustraciones del onboarding | 4 s de ida y vuelta |
+| `CpDrawCheck` | «hecho» | palomita de éxito | trazo de 500 ms tras 200 ms |
+
+Más `CpPressable`, que hunde el botón **al tocarlo** y no al soltarlo: con el
+teléfono a un brazo y guantes puestos, esa confirmación es la diferencia entre
+pulsar una vez o tres.
+
+Los diálogos van por `showCpDialog` y no por `showDialog`, para que entren
+todos igual y sobre el velo navy del prototipo.
+
+**Todos respetan «reducir movimiento» del sistema** — y no solo al pintar: los
+que repiten no arrancan su ciclo y los que esperan no programan el
+temporizador. Un `Ticker` infinito mantiene despierto el aparato y deja el
+árbol sin quedarse quieto nunca, lo que además cuelga `pumpAndSettle`. Las
+pruebas de widget montan la app con
+[test/support/still.dart](test/support/still.dart) por ese motivo; el
+movimiento se prueba aparte en [test/core/motion_test.dart](test/core/motion_test.dart).
+
+Un aviso en línea es `CpAlert` ([lib/core/widgets/cp_alert.dart](lib/core/widgets/cp_alert.dart)),
+nunca un `SnackBar`: el prototipo pone el error del inicio de sesión encima de
+los campos que hay que corregir, y una franja al pie tapa el teclado y se va
+sola antes de que el criador levante la vista.
+
 ### Estados no felices
 
 Sin conexión → franja ámbar permanente, todo sigue funcionando · límite de plan

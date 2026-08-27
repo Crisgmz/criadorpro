@@ -8,6 +8,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/cp_button.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../l10n/generated/app_l10n.dart';
 
 /// Pantalla 14 — «¡Todo listo, Criador!».
@@ -40,11 +41,32 @@ class SetupDoneView extends ConsumerWidget {
             child: Column(
               children: [
                 const Spacer(),
-                Container(
-                  height: 96,
-                  width: 96,
-                  decoration: const BoxDecoration(color: AppColors.male, shape: BoxShape.circle),
-                  child: const Icon(Icons.check_rounded, size: 56, color: Colors.white),
+                // Dos anillos, como el prototipo: un halo tenue de 110 y el
+                // disco verde de 78 dentro. El halo es lo que separa el verde
+                // del navy sin ponerle un borde.
+                const CpPop(
+                  child: SizedBox(
+                    height: 110,
+                    width: 110,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(color: Color(0x14FFFFFF), shape: BoxShape.circle),
+                      child: Center(
+                        child: SizedBox(
+                          height: 78,
+                          width: 78,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: AppColors.male,
+                              shape: BoxShape.circle,
+                            ),
+                            // La palomita se dibuja después del rebote: leído
+                            // en orden, dice «hecho» al final y no de entrada.
+                            child: Center(child: CpDrawCheck(color: Colors.white, size: 40)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 Text(

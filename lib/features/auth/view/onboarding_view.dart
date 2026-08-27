@@ -6,6 +6,7 @@ import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/cp_button.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../viewmodel/onboarding_viewmodel.dart';
 
@@ -114,14 +115,16 @@ class _Slide extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            height: 160,
-            width: 160,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.secondaryContainer,
-              shape: BoxShape.circle,
+          CpFloat(
+            child: Container(
+              height: 160,
+              width: 160,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 72, color: theme.colorScheme.onSecondaryContainer),
             ),
-            child: Icon(icon, size: 72, color: theme.colorScheme.onSecondaryContainer),
           ),
           const SizedBox(height: AppSpacing.xl),
           Text(title, style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),

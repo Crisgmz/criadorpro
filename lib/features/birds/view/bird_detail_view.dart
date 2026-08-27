@@ -9,11 +9,14 @@ import '../../../core/domain/markings.dart';
 import '../../../core/error/failure_messages.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/brand.dart';
 import '../../../core/widgets/cp_empty_state.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/sex_badge.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../../evaluations/model/evaluation.dart';
@@ -36,7 +39,7 @@ class BirdDetailView extends ConsumerWidget {
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final l10n = AppL10n.of(context);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showCpDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.birdDeleteTitle),
@@ -72,34 +75,8 @@ class BirdDetailView extends ConsumerWidget {
     final bird = viewModel.bird;
 
     final scaffold = Scaffold(
-      appBar: AppBar(
-        // La placa y no el nombre: el nombre es opcional y muchos ejemplares no
-        // lo tienen, así que la barra se quedaría en blanco.
-        title: Text(bird == null ? '' : Formatters.plate(bird.plate)),
-        actions: [
-          if (bird != null) ...[
-            IconButton(
-              tooltip: l10n.commonEdit,
-              icon: const Icon(Icons.edit_outlined),
-              onPressed: () => context.push(Routes.birdEdit(birdId)),
-            ),
-            IconButton(
-              tooltip: l10n.commonDelete,
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => _confirmDelete(context, ref),
-            ),
-          ],
-        ],
-        bottom: bird == null
-            ? null
-            : TabBar(
-                tabs: [
-                  Tab(text: l10n.birdTabData),
-                  Tab(text: l10n.birdTabTests),
-                  Tab(text: l10n.birdTabOffspring),
-                ],
-              ),
-      ),
+      // Sin barra superior: la cabecera navy del prototipo la sustituye, y una
+      // barra clara encima le robaría el aire que la hace funcionar.
       body: switch (viewModel.state) {
         ViewState.loading => const Center(child: CircularProgressIndicator()),
         ViewState.error => CpEmptyState(
@@ -109,9 +86,21 @@ class BirdDetailView extends ConsumerWidget {
         _ when bird == null => const SizedBox.shrink(),
         _ => Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
-              child: _Header(bird: bird),
+            BirdRecordHeader(
+              bird: bird,
+              onClose: () => context.canPop() ? context.pop() : context.go(Routes.birds),
+              onEdit: () => context.push(Routes.birdEdit(birdId)),
+              onDelete: () => _confirmDelete(context, ref),
+            ),
+            Material(
+              color: Theme.of(context).colorScheme.surface,
+              child: TabBar(
+                tabs: [
+                  Tab(text: l10n.birdTabData),
+                  Tab(text: l10n.birdTabTests),
+                  Tab(text: l10n.birdTabOffspring),
+                ],
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             Expanded(
@@ -143,6 +132,233 @@ class BirdDetailView extends ConsumerWidget {
     // común no se encuentran.
     return DefaultTabController(length: 3, child: scaffold);
   }
+}
+
+/// Cabecera navy — pantalla 22 del prototipo.
+///
+/// El navy va aquí y no en la barra superior: el PRD reserva el color de marca
+/// a bloques de contenido, y esta cabecera **es** contenido — identifica al
+/// ejemplar mientras se cambia de pestaña.
+class BirdRecordHeader extends StatelessWidget {
+  const BirdRecordHeader({
+    required this.bird,
+    super.key,
+    required this.onClose,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final Bird bird;
+  final VoidCallback onClose;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final theme = Theme.of(context);
+    final photo = bird.photoPath == null ? null : File(bird.photoPath!);
+    final hasPhoto = photo != null && photo.existsSync();
+
+    final subtitle = [Formatters.plate(bird.plate), if (bird.line != null) bird.line!].join(' · ');
+
+    return Container(
+      width: double.infinity,
+      color: AppColors.navy,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          child: Stack(
+            children: [
+              // Marca de agua al 6 %, como en el prototipo: da cuerpo al navy
+              // sin competir con el nombre.
+              Positioned(
+                right: -28,
+                bottom: -24,
+                child: BrandSymbol(size: 128, onDark: true, opacity: 0.06),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      _HeaderButton(icon: Icons.close, tooltip: l10n.commonClose, onTap: onClose),
+                      Expanded(
+                        child: Text(
+                          l10n.birdRecordTitle,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                      _HeaderButton(
+                        icon: Icons.edit_outlined,
+                        tooltip: l10n.commonEdit,
+                        onTap: onEdit,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      _HeaderButton(
+                        icon: Icons.delete_outline,
+                        tooltip: l10n.commonDelete,
+                        onTap: onDelete,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _HeaderPhoto(photo: hasPhoto ? photo : null),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              bird.displayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.55),
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Wrap(
+                              spacing: AppSpacing.xs,
+                              runSpacing: AppSpacing.xs,
+                              children: [
+                                _HeaderChip(
+                                  label: statusLabel(l10n, bird.status).toUpperCase(),
+                                  // El verde solo para el ejemplar en activo: un
+                                  // vendido o fallecido en verde diría lo
+                                  // contrario de lo que pasa.
+                                  color: bird.status == BirdStatus.active
+                                      ? AppColors.male
+                                      : Colors.white.withValues(alpha: 0.14),
+                                ),
+                                // El prototipo rotula aquí «GALLO». Es
+                                // vocabulario prohibido (BRD §8): va el sexo.
+                                _HeaderChip(
+                                  label: sexLabel(l10n, bird.sex).toUpperCase(),
+                                  color: Colors.white.withValues(alpha: 0.14),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderButton extends StatelessWidget {
+  const _HeaderButton({required this.icon, required this.tooltip, required this.onTap});
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: tooltip,
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: Container(
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+        ),
+        child: Icon(icon, size: 18, color: Colors.white),
+      ),
+    ),
+  );
+}
+
+class _HeaderPhoto extends StatelessWidget {
+  const _HeaderPhoto({this.photo});
+
+  final File? photo;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final theme = Theme.of(context);
+
+    return Container(
+      width: 78,
+      height: 78,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: photo != null
+            ? null
+            : Border.all(color: Colors.white.withValues(alpha: 0.28), width: 1.5),
+      ),
+      child: photo != null
+          ? Image.file(photo!, fit: BoxFit.cover)
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                BrandSymbol(size: 26, onDark: true, opacity: 0.5),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  l10n.birdPhotoPlaceholder,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 8.5,
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _HeaderChip extends StatelessWidget {
+  const _HeaderChip({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
+    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(AppRadius.pill)),
+    child: Text(
+      label,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white),
+    ),
+  );
 }
 
 /// Pantalla 20 — pestaña por defecto.
@@ -396,51 +612,6 @@ class _ChickTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       trailing: const Icon(Icons.chevron_right),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({required this.bird});
-
-  final Bird bird;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppL10n.of(context);
-    final color = SexBadge.colorOf(context, bird.sex);
-
-    // `RF-REG-15`: con foto, manda la foto. El icono de sexo no se pierde —
-    // sigue en la insignia de debajo, que además lleva su etiqueta textual.
-    final photo = bird.photoPath == null ? null : File(bird.photoPath!);
-    final hasPhoto = photo != null && photo.existsSync();
-
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 32,
-          backgroundColor: color.withValues(alpha: 0.16),
-          foregroundImage: hasPhoto ? FileImage(photo) : null,
-          child: Icon(SexBadge.iconOf(bird.sex), size: 32, color: color),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(bird.displayName, style: Theme.of(context).textTheme.headlineSmall),
-              Text(
-                Formatters.plate(bird.plate),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              SexBadge(sex: bird.sex, label: sexLabel(l10n, bird.sex)),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

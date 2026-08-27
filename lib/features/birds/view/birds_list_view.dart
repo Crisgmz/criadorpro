@@ -14,6 +14,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/brand.dart';
 import '../../../core/widgets/cp_empty_state.dart';
 import '../../../core/widgets/cp_text_field.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/sex_badge.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../../dashboard/view/widgets/app_drawer.dart';
@@ -148,7 +149,13 @@ class _BirdsList extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 96),
       itemCount: birds.length,
       separatorBuilder: (_, _) => const Divider(height: 1, indent: AppSpacing.md),
-      itemBuilder: (context, index) => _BirdTile(bird: birds[index]),
+      // Las primeras filas entran escalonadas: la lista se lee de arriba
+      // abajo en vez de aparecer de golpe. De la décima en adelante entran ya
+      // colocadas, para que desplazarse no arrastre un retardo por fila.
+      itemBuilder: (context, index) => CpFadeUp(
+        delay: cpStagger(index),
+        child: _BirdTile(bird: birds[index]),
+      ),
     );
   }
 }

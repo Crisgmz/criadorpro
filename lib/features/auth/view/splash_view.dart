@@ -8,6 +8,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/brand.dart';
+import '../../../core/widgets/motion.dart';
 import '../viewmodel/splash_viewmodel.dart';
 
 /// Pantalla 1 — fondo navy, logotipo centrado, indicador de carga.
@@ -60,7 +61,10 @@ class _SplashViewState extends ConsumerState<SplashView> {
             children: [
               // El lockup ya incluye el nombre del producto: repetirlo debajo
               // sería decir dos veces lo mismo.
-              const BrandLockup(width: 200, onDark: true),
+              const CpFadeUp(
+                duration: Duration(milliseconds: 600),
+                child: BrandLockup(width: 200, onDark: true),
+              ),
               const SizedBox(height: AppSpacing.xl),
               const SizedBox(
                 height: 24,

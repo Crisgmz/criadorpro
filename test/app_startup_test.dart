@@ -12,6 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/still.dart';
+
 /// Prueba de humo del arranque: valida que el árbol entero —tema, router,
 /// traducciones y providers— se compone sin backend, y de paso comprueba las
 /// tres derivaciones de `RF-AUT-01`.
@@ -33,7 +35,7 @@ void main() {
         supabaseServiceProvider.overrideWithValue(SupabaseService(null)),
         appDatabaseProvider.overrideWithValue(database),
       ],
-      child: const CriadorProApp(),
+      child: still(const CriadorProApp()),
     );
   }
 

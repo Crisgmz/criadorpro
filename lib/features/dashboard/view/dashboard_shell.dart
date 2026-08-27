@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/routes.dart';
 import '../../../core/widgets/brand.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/offline_banner.dart';
 import '../../../l10n/generated/app_l10n.dart';
 
@@ -34,7 +35,12 @@ class DashboardShell extends StatelessWidget {
       body: Column(
         children: [
           const OfflineBanner(),
-          Expanded(child: child),
+          // Cambiar de pestaña no apila una pantalla, así que no se desliza
+          // como las apiladas: el contenido entra desde abajo, que es lo que
+          // el prototipo usa cuando algo se sustituye en su sitio.
+          Expanded(
+            child: CpFadeUp(key: ValueKey(_selectedIndex), child: child),
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBar(

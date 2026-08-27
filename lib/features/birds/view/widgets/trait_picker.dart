@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/cp_button.dart';
 import '../../../../core/widgets/cp_empty_state.dart';
 import '../../../../core/widgets/cp_text_field.dart';
+import '../../../../core/widgets/motion.dart';
 import '../../../../l10n/generated/app_l10n.dart';
 
 /// Campo de color de plumaje o de cresta.
@@ -77,7 +78,7 @@ class _TraitSheetState extends ConsumerState<_TraitSheet> {
     final l10n = AppL10n.of(context);
     final controller = TextEditingController();
 
-    final name = await showDialog<String>(
+    final name = await showCpDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(widget.trait == BirdTrait.plumage ? l10n.traitNewPlumage : l10n.traitNewComb),

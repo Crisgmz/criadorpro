@@ -2,8 +2,13 @@ import 'dart:io';
 
 import 'package:criadorpro/core/domain/bird_traits.dart';
 import 'package:criadorpro/core/domain/markings.dart';
+import 'package:criadorpro/core/domain/sex.dart';
 import 'package:criadorpro/core/providers/providers.dart';
 import 'package:criadorpro/core/theme/app_theme.dart';
+import 'package:criadorpro/core/widgets/cp_alert.dart';
+import 'package:criadorpro/core/widgets/motion.dart';
+import 'package:criadorpro/features/birds/model/bird.dart';
+import 'package:criadorpro/features/birds/view/bird_detail_view.dart';
 import 'package:criadorpro/features/birds/view/widgets/marking_fields.dart';
 import 'package:criadorpro/features/birds/view/widgets/trait_picker.dart';
 import 'package:criadorpro/l10n/generated/app_l10n.dart';
@@ -168,6 +173,55 @@ void main() {
     await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/hoja_plumaje.png'));
   });
 
+  testWidgets('cabecera navy de la ficha', (tester) async {
+    tester.view
+      ..physicalSize = const Size(390 * 3, 320 * 3)
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    final bird = Bird(
+      id: 'b1',
+      ownerId: 'o1',
+      plate: 1188,
+      name: 'Giro Colorado',
+      line: 'Línea Sabanera',
+      sex: Sex.male,
+      status: BirdStatus.active,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [currentOwnerIdProvider.overrideWithValue('o1')],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          locale: const Locale('es'),
+          localizationsDelegates: const [
+            AppL10n.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppL10n.supportedLocales,
+          home: Scaffold(
+            body: Column(
+              children: [
+                BirdRecordHeader(bird: bird, onClose: () {}, onEdit: () {}, onDelete: () {}),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await expectLater(
+      find.byType(BirdRecordHeader),
+      matchesGoldenFile('goldens/ficha_cabecera.png'),
+    );
+  });
+
   testWidgets('marca de nacimiento en oscuro', (tester) async {
     tester.view
       ..physicalSize = const Size(390 * 3, 700 * 3)
@@ -183,5 +237,73 @@ void main() {
     await tester.pumpAndSettle();
 
     await expectLater(find.byType(BirthMarkPicker), matchesGoldenFile('goldens/marca_oscuro.png'));
+  });
+
+  testWidgets('aviso en línea · los tres tonos', (tester) async {
+    tester.view
+      ..physicalSize = const Size(390 * 3, 320 * 3)
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      host(
+        const Column(
+          children: [
+            CpAlert(message: 'Correo o contraseña incorrectos.'),
+            CpAlert(
+              message: 'Te quedan 5 ejemplares de los 25 de tu plan.',
+              tone: CpAlertTone.warning,
+            ),
+            CpAlert(
+              message: 'Sin conexión. Todo lo que registres se guarda igual.',
+              tone: CpAlertTone.info,
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(find.byType(Column).first, matchesGoldenFile('goldens/aviso.png'));
+  });
+
+  testWidgets('confirmación · disco y palomita dibujada', (tester) async {
+    tester.view
+      ..physicalSize = const Size(390 * 3, 260 * 3)
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: const ColoredBox(
+          color: Color(0xFF0E2A47),
+          child: Center(
+            child: CpPop(
+              child: SizedBox(
+                height: 110,
+                width: 110,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: Color(0x14FFFFFF), shape: BoxShape.circle),
+                  child: Center(
+                    child: SizedBox(
+                      height: 78,
+                      width: 78,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(color: Color(0xFF1E7A4C), shape: BoxShape.circle),
+                        child: Center(child: CpDrawCheck(color: Colors.white, size: 40)),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(find.byType(CpPop), matchesGoldenFile('goldens/confirmacion.png'));
   });
 }

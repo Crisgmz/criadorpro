@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -28,6 +28,7 @@ import '../../features/pedigree/view/pedigree_view.dart';
 import '../../features/settings/view/settings_view.dart';
 import '../domain/sex.dart';
 import '../providers/providers.dart';
+import '../widgets/motion.dart';
 import 'routes.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -82,36 +83,39 @@ final routerProvider = Provider<GoRouter>((ref) {
       return isPublic ? Routes.home : null;
     },
     routes: [
+      // Todas las rutas entran con la transición del prototipo (`slideIn`).
+      // Las pestañas son la excepción: no se apilan, así que animan su
+      // contenido dentro del shell en vez de deslizarse.
       // --- Entrada y autenticación (pantallas 1–10) ------------------------
-      GoRoute(path: Routes.splash, builder: (context, state) => const SplashView()),
-      GoRoute(path: Routes.onboarding, builder: (context, state) => const OnboardingView()),
-      GoRoute(path: Routes.welcome, builder: (context, state) => const WelcomeView()),
-      GoRoute(path: Routes.login, builder: (context, state) => const LoginView()),
+      _page(Routes.splash, (context, state) => const SplashView()),
+      _page(Routes.onboarding, (context, state) => const OnboardingView()),
+      _page(Routes.welcome, (context, state) => const WelcomeView()),
+      _page(Routes.login, (context, state) => const LoginView()),
 
       // `/signup/verify` se declara antes que `/signup` para que gane el path
       // completo y no se interprete «verify» como parte del alta.
-      GoRoute(
-        path: Routes.verifyEmail,
-        builder: (context, state) => VerifyCodeView(
+      _page(
+        Routes.verifyEmail,
+        (context, state) => VerifyCodeView(
           email: state.uri.queryParameters['email'] ?? '',
           purpose: VerificationPurpose.signUp,
         ),
       ),
-      GoRoute(path: Routes.signUp, builder: (context, state) => const SignUpView()),
+      _page(Routes.signUp, (context, state) => const SignUpView()),
 
-      GoRoute(
-        path: Routes.recoverCode,
-        builder: (context, state) => VerifyCodeView(
+      _page(
+        Routes.recoverCode,
+        (context, state) => VerifyCodeView(
           email: state.uri.queryParameters['email'] ?? '',
           purpose: VerificationPurpose.passwordRecovery,
         ),
       ),
-      GoRoute(path: Routes.recoverPassword, builder: (context, state) => const NewPasswordView()),
-      GoRoute(path: Routes.recover, builder: (context, state) => const ForgotPasswordView()),
+      _page(Routes.recoverPassword, (context, state) => const NewPasswordView()),
+      _page(Routes.recover, (context, state) => const ForgotPasswordView()),
 
       // --- Configuración inicial (pantallas 11–14) -------------------------
-      GoRoute(path: Routes.farmSetup, builder: (context, state) => const FarmSetupView()),
-      GoRoute(path: Routes.onboardingDone, builder: (context, state) => const SetupDoneView()),
+      _page(Routes.farmSetup, (context, state) => const FarmSetupView()),
+      _page(Routes.onboardingDone, (context, state) => const SetupDoneView()),
 
       // --- Pestañas principales --------------------------------------------
       // Comparten shell, barra inferior y aviso sin conexión.
@@ -119,58 +123,67 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) =>
             DashboardShell(location: state.matchedLocation, child: child),
         routes: [
-          GoRoute(path: Routes.home, builder: (context, state) => const DashboardView()),
-          GoRoute(path: Routes.birds, builder: (context, state) => const BirdsListView()),
-          GoRoute(
-            path: Routes.evaluations,
-            builder: (context, state) => const EvaluationsListView(),
-          ),
-          GoRoute(path: Routes.settings, builder: (context, state) => const SettingsView()),
+          // Sin transición de página: cambiar de pestaña no es apilar. El
+          // movimiento lo pone el shell sobre el contenido.
+          _tab(Routes.home, (context, state) => const DashboardView()),
+          _tab(Routes.birds, (context, state) => const BirdsListView()),
+          _tab(Routes.evaluations, (context, state) => const EvaluationsListView()),
+          _tab(Routes.settings, (context, state) => const SettingsView()),
         ],
       ),
 
       // Pantalla completa, apiladas sobre el shell. `/birds/new` va antes que
       // `/birds/:id` para que "new" no se interprete como un id.
-      GoRoute(
-        path: Routes.birdNew,
-        builder: (context, state) =>
-            BirdFormView(returnsResult: state.uri.queryParameters['return'] == '1'),
+      _page(
+        Routes.birdNew,
+        (context, state) => BirdFormView(returnsResult: state.uri.queryParameters['return'] == '1'),
       ),
       // Antes que `/birds/:id`: si no, `clutch` se tomaría por un id.
-      GoRoute(path: Routes.clutchNew, builder: (context, state) => const ClutchFormView()),
-      GoRoute(path: Routes.accounting, builder: (context, state) => const AccountingView()),
-      GoRoute(
-        path: Routes.transactionNew,
-        builder: (context, state) => const TransactionFormView(),
+      _page(Routes.clutchNew, (context, state) => const ClutchFormView()),
+      _page(Routes.accounting, (context, state) => const AccountingView()),
+      _page(Routes.transactionNew, (context, state) => const TransactionFormView()),
+      _page(
+        Routes.evaluationNew,
+        (context, state) => EvaluationFormView(birdId: state.uri.queryParameters['bird']),
       ),
-      GoRoute(
-        path: Routes.evaluationNew,
-        builder: (context, state) => EvaluationFormView(birdId: state.uri.queryParameters['bird']),
+      _page(
+        '/birds/:id/pedigree',
+        (context, state) => PedigreeView(birdId: state.pathParameters['id']!),
       ),
-      GoRoute(
-        path: '/birds/:id/pedigree',
-        builder: (context, state) => PedigreeView(birdId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/birds/parent/:sex',
-        builder: (context, state) => ParentPickerView(
+      _page(
+        '/birds/parent/:sex',
+        (context, state) => ParentPickerView(
           sex: Sex.fromId(state.pathParameters['sex']),
           excludeId: state.uri.queryParameters['exclude'],
         ),
       ),
       GoRoute(
         path: '/birds/:id',
-        builder: (context, state) => BirdDetailView(birdId: state.pathParameters['id']!),
+        pageBuilder: (context, state) => CpPageTransition(
+          key: state.pageKey,
+          child: BirdDetailView(birdId: state.pathParameters['id']!),
+        ),
         routes: [
-          GoRoute(
-            path: 'edit',
-            builder: (context, state) => BirdFormView(birdId: state.pathParameters['id']),
-          ),
+          _page('edit', (context, state) => BirdFormView(birdId: state.pathParameters['id'])),
         ],
       ),
     ],
   );
 });
+
+/// Ruta apilada con la transición del prototipo.
+GoRoute _page(String path, Widget Function(BuildContext, GoRouterState) build) => GoRoute(
+  path: path,
+  pageBuilder: (context, state) =>
+      CpPageTransition(key: state.pageKey, child: build(context, state)),
+);
+
+/// Pestaña del shell: sin transición propia.
+GoRoute _tab(String path, Widget Function(BuildContext, GoRouterState) build) => GoRoute(
+  path: path,
+  pageBuilder: (context, state) =>
+      NoTransitionPage(key: state.pageKey, child: build(context, state)),
+);
 
 /// Puente entre los providers que condicionan la navegación y el
 /// `refreshListenable` de go_router, que espera un `Listenable`.
