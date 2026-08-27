@@ -36,7 +36,12 @@ String _flutterRoot() {
 }
 
 void main() {
-  Widget host(Widget child, {Brightness brightness = Brightness.light}) => ProviderScope(
+  Widget host(
+    Widget child, {
+    Brightness brightness = Brightness.light,
+    bool scroll = true,
+    EdgeInsets padding = const EdgeInsets.all(16),
+  }) => ProviderScope(
     overrides: [
       currentOwnerIdProvider.overrideWithValue('owner-1'),
       traitOptionsProvider.overrideWith(
@@ -61,9 +66,11 @@ void main() {
       ],
       supportedLocales: AppL10n.supportedLocales,
       home: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(padding: const EdgeInsets.all(16), child: child),
-        ),
+        body: scroll
+            ? SafeArea(
+                child: SingleChildScrollView(padding: padding, child: child),
+              )
+            : Padding(padding: padding, child: child),
       ),
     ),
   );
@@ -386,5 +393,58 @@ void main() {
     await tester.pumpAndSettle();
 
     await expectLater(find.byType(PedigreePreview), matchesGoldenFile('goldens/pedigri.png'));
+  });
+
+  testWidgets('ficha del ejemplar · pestaña de datos', (tester) async {
+    tester.view
+      ..physicalSize = const Size(390 * 3, 844 * 3)
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    Bird b(int plate, String name, Sex sex) => Bird(
+      id: 'b$plate',
+      ownerId: 'o1',
+      plate: plate,
+      name: name,
+      sex: sex,
+      status: BirdStatus.active,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    final bird = Bird(
+      id: 'b1',
+      ownerId: 'o1',
+      plate: 1188,
+      name: 'Giro Colorado',
+      line: 'Línea Sabanera',
+      sex: Sex.male,
+      status: BirdStatus.active,
+      birthDate: DateTime(2025, 2, 14),
+      weightG: 1840,
+      birthMark: '1,4',
+      wingBandLeft: 'red',
+      wingBandRight: 'blue',
+      color: 'Giro',
+      comb: 'Motón',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    await tester.pumpWidget(
+      host(
+        BirdRecordPreview(
+          bird: bird,
+          locale: 'es',
+          father: b(912, 'Giro Real', Sex.male),
+          mother: b(944, 'Pinta Vieja', Sex.female),
+        ),
+        scroll: false,
+        padding: EdgeInsets.zero,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(find.byType(BirdRecordPreview), matchesGoldenFile('goldens/ficha_datos.png'));
   });
 }

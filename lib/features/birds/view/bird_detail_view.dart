@@ -99,7 +99,7 @@ class BirdDetailView extends ConsumerWidget {
               color: Theme.of(context).colorScheme.surface,
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.screen,
-                AppSpacing.md,
+                AppSpacing.sm,
                 AppSpacing.screen,
                 AppSpacing.md,
               ),
@@ -348,7 +348,7 @@ class _DataTab extends StatelessWidget {
           onTap: () => context.push(Routes.birdPedigree(bird.id)),
         ),
 
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         CpDataCard(
           rows: [
             CpDataRow(
@@ -633,6 +633,60 @@ class _ChickTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       trailing: const Icon(Icons.chevron_right),
+    );
+  }
+}
+
+/// Solo para las capturas de `test/ui_preview_test.dart`: la ficha real vive
+/// detrás de la autenticación y de una base con datos.
+@visibleForTesting
+class BirdRecordPreview extends StatelessWidget {
+  const BirdRecordPreview({
+    required this.bird,
+    required this.locale,
+    super.key,
+    this.father,
+    this.mother,
+  });
+
+  final Bird bird;
+  final Bird? father;
+  final Bird? mother;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        children: [
+          BirdRecordHeader(bird: bird, onClose: () {}, onEdit: () {}),
+          Container(
+            color: Theme.of(context).colorScheme.surface,
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screen,
+              AppSpacing.sm,
+              AppSpacing.screen,
+              AppSpacing.md,
+            ),
+            child: _RecordTabs(
+              labels: [l10n.birdTabData, l10n.birdTabTests, l10n.birdTabOffspring],
+            ),
+          ),
+          Expanded(
+            child: _DataTab(
+              bird: bird,
+              father: father,
+              mother: mother,
+              locale: locale,
+              pedigreeDepth: 2,
+              onDelete: () {},
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

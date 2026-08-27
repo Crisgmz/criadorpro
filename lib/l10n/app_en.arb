@@ -315,7 +315,7 @@
 
   "birdTabData": "Details",
   "birdTabTests": "Trials",
-  "birdTabOffspring": "Offspring",
+  "birdTabOffspring": "Chicks",
   "birdTestsEmptyTitle": "No trials logged",
   "birdTestsEmptyMessage": "This is where the field-trial history for this bird will appear, with its result and date.",
   "birdOffspringEmptyTitle": "No offspring",

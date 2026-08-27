@@ -29,7 +29,7 @@ class CpSectionLabel extends StatelessWidget {
           padding ??
           const EdgeInsets.fromLTRB(
             AppSpacing.screen,
-            AppSpacing.lg,
+            AppSpacing.md,
             AppSpacing.screen,
             AppSpacing.sm,
           ),
@@ -97,7 +97,7 @@ class CpBirdCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.card),
         child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             border: Border.all(color: accent.withValues(alpha: isEmpty ? 0.4 : 0.35)),
             borderRadius: BorderRadius.circular(AppRadius.card),
@@ -126,7 +126,7 @@ class CpBirdCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.xs),
               ],
               Text(
                 name,
@@ -195,16 +195,22 @@ class CpDataRow extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      // 12 y no 16: con 16, ocho filas ocupaban pantalla y media y el criador
+      // tenía que desplazarse para ver datos que caben de una vez.
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
       child: Row(
         children: [
           Expanded(
             child: Text(
               label,
-              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           const SizedBox(width: AppSpacing.md),
+          // El valor va a tamaño de cuerpo y la etiqueta a secundario: el dato
+          // es el contenido, el rótulo solo lo nombra.
           Flexible(
             child: Text(
               value,
@@ -292,7 +298,7 @@ class CpActionCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppRadius.card),
           child: Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               // Borde de marca y no gris: es la acción principal de la
               // pestaña, y con el borde normal se perdería entre las tarjetas
@@ -303,8 +309,8 @@ class CpActionCard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 40,
+                  height: 40,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: brand.withValues(alpha: 0.10),
