@@ -20,7 +20,15 @@ class DashboardShell extends StatelessWidget {
   final Widget child;
   final String location;
 
-  static const _tabs = [Routes.home, Routes.birds, Routes.evaluations, Routes.settings];
+  /// Los cinco destinos del PRD §7. Contabilidad y empleomanía **no** están:
+  /// son administración y se abren a pantalla completa.
+  static const _tabs = [
+    Routes.home,
+    Routes.birds,
+    Routes.evaluations,
+    Routes.community,
+    Routes.settings,
+  ];
 
   int get _selectedIndex {
     final index = _tabs.indexWhere((tab) => location.startsWith(tab));
@@ -67,6 +75,11 @@ class DashboardShell extends StatelessWidget {
             icon: const Icon(Icons.assignment_outlined),
             selectedIcon: const Icon(Icons.assignment),
             label: l10n.navTests,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.groups_outlined),
+            selectedIcon: const Icon(Icons.groups),
+            label: l10n.navCommunity,
           ),
           NavigationDestination(
             icon: const Icon(Icons.settings_outlined),

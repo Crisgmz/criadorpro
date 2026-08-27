@@ -92,6 +92,35 @@ class ProfileRepository implements RemotePuller {
     }, (error, _) => DatabaseFailure(debugMessage: error.toString(), cause: error));
   }
 
+  /// Publica o retira el criadero del directorio de Comunidad — `RF-COM`.
+  ///
+  /// Es **opt-in** y vive en el perfil, no en Comunidad: el interruptor tiene
+  /// que poder pulsarse sin señal y sobrevivir hasta que haya. Comunidad sí
+  /// exige conexión (`RNF-08`), pero decidir publicarse no.
+  Future<Result<Profile>> setPublic({required String ownerId, required bool isPublic}) async {
+    final existing = await _profilesDao.findById(ownerId);
+    if (existing == null) {
+      return const Err(NotFoundFailure(debugMessage: 'perfil no encontrado'));
+    }
+
+    final now = _clock();
+    final profile = Profile.fromRow(existing).copyWith(isPublic: isPublic, updatedAt: now);
+
+    return guard(() async {
+      await _database.transaction(() async {
+        await _profilesDao.upsert(profile.toCompanion());
+        await _syncQueue.enqueue(
+          entityTable: table,
+          entityId: profile.id,
+          operation: SyncOperation.upsert,
+          payload: jsonEncode(profile.toRemoteJson()),
+          now: now,
+        );
+      });
+      return profile;
+    }, (error, _) => DatabaseFailure(debugMessage: error.toString(), cause: error));
+  }
+
   @override
   Future<DateTime?> pull({required String ownerId, DateTime? since}) async {
     if (!_supabase.isEnabled) return null;

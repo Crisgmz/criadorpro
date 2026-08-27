@@ -46,6 +46,24 @@ class SettingsViewModel extends BaseViewModel {
   SyncStatus get syncStatus => _syncStatus;
   bool get isSyncAvailable => _auth.isEnabled;
 
+  /// Aparece en el directorio de Comunidad — `RF-COM`. Opt-in.
+  bool get isPublic => _profile?.isPublic ?? false;
+
+  /// Publica o retira el criadero del directorio.
+  ///
+  /// Se escribe en el perfil y se encola: el interruptor tiene que poder
+  /// pulsarse sin señal aunque Comunidad no funcione sin ella (`RNF-08`).
+  Future<bool> setPublic({required bool value}) async {
+    final result = await _profiles.setPublic(ownerId: _ownerId, isPublic: value);
+    return result.fold(
+      ok: (_) => true,
+      err: (failure) {
+        setFailure(failure);
+        return false;
+      },
+    );
+  }
+
   Future<void> syncNow() => _sync.retryFailed();
 
   /// `true` si la sesión se cerró. Cierra sesión aunque queden cambios sin

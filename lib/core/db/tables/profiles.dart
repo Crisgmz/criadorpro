@@ -35,6 +35,15 @@ class Profiles extends Table {
   TextColumn get plan => text().withDefault(const Constant('free'))();
   DateTimeColumn get planExpiresAt => dateTime().nullable()();
 
+  /// Aparece en el directorio de Comunidad — `RF-COM`.
+  ///
+  /// **Opt-in**: nace en falso. Nadie se publica por haberse registrado, y
+  /// publicarse es una decisión del criador.
+  BoolColumn get isPublic => boolean().withDefault(const Constant(false))();
+
+  /// Presentación del criadero en el directorio.
+  TextColumn get publicBio => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();

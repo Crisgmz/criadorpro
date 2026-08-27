@@ -22,9 +22,13 @@ class Profile {
     this.phone,
     this.avatarUrl,
     this.planExpiresAt,
+    this.isPublic = false,
+    this.publicBio,
   });
 
   factory Profile.fromRow(ProfileRow row) => Profile(
+    isPublic: row.isPublic,
+    publicBio: row.publicBio,
     id: row.id,
     plan: SubscriptionPlan.fromId(row.plan),
     nextPlate: row.nextPlate,
@@ -42,6 +46,8 @@ class Profile {
   );
 
   factory Profile.fromRemoteJson(Map<String, dynamic> json) => Profile(
+    isPublic: json['is_public'] as bool? ?? false,
+    publicBio: json['public_bio'] as String?,
     id: json['id'] as String,
     plan: SubscriptionPlan.fromId(json['plan'] as String?),
     nextPlate: (json['next_plate'] as num?)?.toInt() ?? 1,
@@ -85,6 +91,12 @@ class Profile {
   /// Pasar `null` conserva el valor actual en lugar de borrarlo: ningún campo
   /// del perfil se vacía desde la app —se sustituye o se deja como estaba—, así
   /// que distinguir «no lo toques» de «ponlo a nulo» no aportaría nada.
+  /// Aparece en el directorio de Comunidad — `RF-COM`. Opt-in.
+  final bool isPublic;
+
+  /// Presentación del criadero en el directorio.
+  final String? publicBio;
+
   Profile copyWith({
     String? fullName,
     String? farmName,
@@ -96,6 +108,8 @@ class Profile {
     int? nextPlate,
     SubscriptionPlan? plan,
     DateTime? planExpiresAt,
+    bool? isPublic,
+    String? publicBio,
     DateTime? updatedAt,
   }) => Profile(
     id: id,
@@ -110,6 +124,8 @@ class Profile {
     phone: phone ?? this.phone,
     avatarUrl: avatarUrl ?? this.avatarUrl,
     planExpiresAt: planExpiresAt ?? this.planExpiresAt,
+    isPublic: isPublic ?? this.isPublic,
+    publicBio: publicBio ?? this.publicBio,
     createdAt: createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -122,6 +138,8 @@ class Profile {
   }
 
   ProfilesCompanion toCompanion() => ProfilesCompanion(
+    isPublic: Value(isPublic),
+    publicBio: Value(publicBio),
     id: Value(id),
     email: Value(email),
     fullName: Value(fullName),
@@ -145,6 +163,8 @@ class Profile {
   /// solo la RPC `next_plate()` (`RS-01`). Enviarlos sería, además de inútil,
   /// una invitación a creer que el cliente manda sobre ellos.
   Map<String, dynamic> toRemoteJson() => {
+    'is_public': isPublic,
+    'public_bio': publicBio,
     'id': id,
     'email': email,
     'full_name': fullName,

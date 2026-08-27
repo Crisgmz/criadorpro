@@ -19,6 +19,8 @@ import '../../features/birds/view/birds_list_view.dart';
 import '../../features/birds/view/clutch_form_view.dart';
 import '../../features/birds/view/parent_picker_view.dart';
 import '../../features/birds/view/weight_form_view.dart';
+import '../../features/community/view/community_view.dart';
+import '../../features/community/view/meeting_request_view.dart';
 import '../../features/dashboard/view/dashboard_shell.dart';
 import '../../features/dashboard/view/dashboard_view.dart';
 import '../../features/evaluations/view/evaluation_form_view.dart';
@@ -132,6 +134,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           _tab(Routes.home, (context, state) => const DashboardView()),
           _tab(Routes.birds, (context, state) => const BirdsListView()),
           _tab(Routes.evaluations, (context, state) => const EvaluationsListView()),
+          _tab(Routes.community, (context, state) => const CommunityView()),
           _tab(Routes.settings, (context, state) => const SettingsView()),
         ],
       ),
@@ -144,6 +147,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // Antes que `/birds/:id`: si no, `clutch` se tomaría por un id.
       _page(Routes.clutchNew, (context, state) => const ClutchFormView()),
+      _page(
+        '/community/request/:owner',
+        (context, state) => MeetingRequestView(toOwner: state.pathParameters['owner']!),
+      ),
       _page(Routes.accounting, (context, state) => const AccountingView()),
       _page(Routes.transactionNew, (context, state) => const TransactionFormView()),
 

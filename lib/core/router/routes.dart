@@ -36,6 +36,14 @@ abstract final class Routes {
   /// Contabilidad — `RF-CON`. **No ocupa pestaña** (PRD §7): es un módulo
   /// administrativo que se abre a pantalla completa desde Inicio y Mi cuenta.
   /// La barra inferior se reserva a lo que el criador toca a diario.
+  /// Comunidad — `RF-COM`. Pestaña propia: es de lo poco que el criador abre
+  /// sin venir a registrar nada.
+  static const String community = '/community';
+
+  /// Solicitud de encuentro a un criadero concreto. El destinatario va en la
+  /// ruta porque la pantalla no existe sin él.
+  static String meetingRequestFor(String ownerId) => '/community/request/$ownerId';
+
   static const String accounting = '/accounting';
 
   static const String transactionNew = '/accounting/new';

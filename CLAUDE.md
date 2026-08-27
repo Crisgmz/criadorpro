@@ -318,7 +318,7 @@ renegociar alcance).
 | **F1** | `RF-AUT` · `RF-ONB` · `RF-REG` · `RF-PED` · `RF-SIN` | ✅ Un criador migra su libro completo y consulta pedigrí sin conexión |
 | **F2** | `RF-PRU` · `RF-CON` · `RF-NOM` | ✅ Un mes contable se cierra íntegramente dentro de la app |
 | **F3** | `RF-CTA-04` a `RF-CTA-12` (membresías, compras, envío) | Suscripción cobrada y aprobación en ambas tiendas |
-| **F4** | `RF-COM` · `RF-PED-08` · `RF-CON-07` (exportación real a PDF) | ✅ exportación a PDF · falta el primer encuentro (`RF-COM`) |
+| **F4** | `RF-COM` · `RF-PED-08` · `RF-CON-07` (exportación real a PDF) | ✅ construido · falta abrir Comunidad al público (necesita política de moderación) |
 | **F5** | Multiusuario, roles, panel web | Un criadero operando con dos cuentas y permisos distintos |
 
 **Estamos en F1.** Fuera del MVP: notificaciones push, marketplace, panel web,
@@ -549,6 +549,48 @@ sobre el mismo período es legítimo.
 desglose, el neto destacado y espacio para la firma — se imprime y se guarda en
 papel, que es como se lleva la nómina en un criadero.
 
+### Comunidad — implementado
+
+`RF-COM` en [lib/features/community/](lib/features/community/): directorio de
+criaderos publicados, solicitud de encuentro y bandeja con las recibidas y las
+enviadas. `/community` ya es la quinta pestaña de la barra inferior.
+
+**Es el único módulo que exige conexión** —`RNF-08` lo permite— y el único que
+no toca Drift ni la cola. Un directorio de criaderos ajenos no es el libro del
+criador: guardarlo en local mostraría desconocidos que ya se dieron de baja, y
+una solicitud escrita sin señal que se queda en una cola invisible es peor que
+decir que ahora no se puede. Sin red la pantalla **lo dice**, en vez de enseñar
+un vacío que se leería como «no hay nadie».
+
+También es **el único sitio donde el aislamiento de `RS-13` se relaja**, con dos
+cuidados:
+
+- **Opt-in.** `profiles.is_public` nace en falso; el interruptor vive en Mi
+  cuenta y se encola como cualquier cambio de perfil, así que pulsarlo sin
+  señal funciona aunque Comunidad no.
+- **Se expone por vista, no por política.** La RLS es por fila, no por columna:
+  una segunda política de `select` sobre `profiles` dejaría ver el correo, el
+  teléfono y el plan de quien se publicó. La vista `public_profiles` solo
+  enseña nombre, ubicación, país, avatar y presentación.
+
+Una solicitud es el único registro del producto que pertenece a **dos**
+criaderos, así que no lleva `owner_id` sino `from_owner` y `to_owner`. Quién
+puede hacer qué se comprueba en el repositorio **y** en la política: aceptar y
+rechazar es de quien la recibe, retirarla de quien la mandó.
+
+Lo que está mal en la solicitud se dice **antes** de mirar la red: decir «sin
+conexión» a quien escribió una fecha pasada le manda a buscar señal para
+encontrarse el mismo error.
+
+**Denunciar y bloquear** están porque App Store y Play los exigen para cualquier
+contenido de usuarios: sin ellos el módulo no pasa revisión por bien que
+funcione lo demás. Las **reglas** de moderación siguen sin aprobarse (§13) —
+esto es el mecanismo, no la política, y el módulo no debería abrirse al público
+hasta tenerla.
+
+El prototipo llamaba «trabas» a este módulo. No queda ni una: el término es
+«solicitud de encuentro» (BRD §8).
+
 ### Genealogía — implementado
 
 `RF-PED-01` a `RF-PED-07` y `RF-PED-09` en
@@ -605,7 +647,7 @@ primer trabajo de F1, porque todo lo demás cuelga de la placa:
 | Triggers y RPC del servidor | ✅ `handle_new_user()`, `touch_updated_at()`, `next_plate()`, `active_bird_count()`; falta `delete_account()` y `verify_receipt()` | Implementar los dos restantes |
 | Cifrado local (`RNF-15`) | ✅ SQLite3MultipleCiphers vía `hooks.user_defines` | — |
 | Tokens en Keychain/Keystore (`RNF-14`) | ✅ `SecureSessionStorage` | — |
-| Rutas `/tests`, `/community`, `/account`, `/accounting`, `/payroll` | Falta `/community` | Completar con `RF-COM` |
+| Rutas `/tests`, `/community`, `/account`, `/accounting`, `/payroll` | ✅ completas | — |
 
 ---
 
@@ -936,11 +978,9 @@ contradictorio.
 | La lista tiene pestañas **Todos · Camadas · Nacimientos** | Pendiente; hoy el filtro es por sexo y estado (`RF-REG-05`) |
 | La lista tiene alternador de **lista/cuadrícula** | Pendiente, vista nueva |
 
-**Aviso de cumplimiento:** el prototipo llama «trabas» al módulo de Comunidad —
-«Buscar trabas», `is('trabas')`, `is('trabaRequests')`— con 22 apariciones. Es
-vocabulario prohibido por el BRD §8 y **no puede pasar al código ni a los
-`.arb`**. La compuerta de compilación lo rechazaría. Al implementar `RF-COM` hay
-que renombrarlo: «solicitud de encuentro» es el término del glosario.
+**Aviso de cumplimiento — resuelto.** El prototipo llamaba «trabas» al módulo de
+Comunidad, con 22 apariciones. En el código implementado no queda ninguna: el
+término es «solicitud de encuentro», y `grep` sobre los `.arb` lo confirma.
 
 ## 13. Decisiones abiertas
 
@@ -953,4 +993,4 @@ Pendientes de aprobación; no las cierres por tu cuenta.
 | Moneda por defecto fuera de República Dominicana | Por definir: seguir el país del perfil o elección manual |
 | Límite de almacenamiento de fotos por plan | Por definir |
 | Precio anual con descuento | Fuera del MVP; evaluar tras medir la conversión mensual |
-| Reglas de moderación en Comunidad | Requiere política aprobada antes de abrir el módulo al público |
+| Reglas de moderación en Comunidad | **Bloqueante para publicar.** El mecanismo (denunciar y bloquear) ya está; falta la política que dice qué es denunciable y qué se hace con una denuncia. App Store la exige por escrito |

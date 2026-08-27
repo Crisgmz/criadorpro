@@ -26,6 +26,9 @@ import '../../features/birds/viewmodel/birds_list_viewmodel.dart';
 import '../../features/birds/viewmodel/clutch_form_viewmodel.dart';
 import '../../features/birds/viewmodel/parent_picker_viewmodel.dart';
 import '../../features/birds/viewmodel/weight_form_viewmodel.dart';
+import '../../features/community/repository/community_repository.dart';
+import '../../features/community/viewmodel/community_viewmodel.dart';
+import '../../features/community/viewmodel/meeting_request_viewmodel.dart';
 import '../../features/dashboard/viewmodel/dashboard_viewmodel.dart';
 import '../../features/evaluations/repository/evaluations_repository.dart';
 import '../../features/evaluations/viewmodel/evaluation_form_viewmodel.dart';
@@ -523,5 +526,32 @@ final weightFormViewModelProvider = ChangeNotifierProvider.autoDispose
         repository: ref.watch(weightsRepositoryProvider),
         ownerId: ref.watch(currentOwnerIdProvider),
         birdId: birdId,
+      ),
+    );
+
+// --- Comunidad (RF-COM) ------------------------------------------------------
+
+/// Comunidad es el **único** repositorio que exige conexión (`RNF-08`): no
+/// escribe en Drift ni encola nada, lee del servidor y avisa si no hay red.
+final communityRepositoryProvider = Provider<CommunityRepository>(
+  (ref) => CommunityRepository(
+    supabase: ref.watch(supabaseServiceProvider),
+    connectivity: ref.watch(connectivityServiceProvider),
+  ),
+);
+
+final communityViewModelProvider = ChangeNotifierProvider.autoDispose<CommunityViewModel>(
+  (ref) => CommunityViewModel(
+    repository: ref.watch(communityRepositoryProvider),
+    ownerId: ref.watch(currentOwnerIdProvider),
+  ),
+);
+
+final meetingRequestViewModelProvider = ChangeNotifierProvider.autoDispose
+    .family<MeetingRequestViewModel, String>(
+      (ref, toOwner) => MeetingRequestViewModel(
+        repository: ref.watch(communityRepositoryProvider),
+        ownerId: ref.watch(currentOwnerIdProvider),
+        toOwner: toOwner,
       ),
     );

@@ -68,7 +68,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -165,6 +165,13 @@ class AppDatabase extends _$AppDatabase {
           FROM birds
           WHERE weight_g IS NOT NULL AND weight_g > 0 AND is_deleted = 0
         ''');
+      }
+
+      // v11 — Comunidad (`RF-COM`). El perfil gana el interruptor del
+      // directorio, que nace en falso: nadie se publica por registrarse.
+      if (from < 11) {
+        await m.addColumn(profiles, profiles.isPublic);
+        await m.addColumn(profiles, profiles.publicBio);
       }
     },
     beforeOpen: (details) async {

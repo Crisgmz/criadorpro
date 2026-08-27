@@ -78,6 +78,17 @@ class SettingsView extends ConsumerWidget {
             trailing: Chip(label: Text(_planName(l10n, settings.plan))),
           ),
 
+          // Publicarse en Comunidad es **opt-in** y vive aquí, junto al resto
+          // de lo que el criador decide sobre su cuenta. Nadie aparece en el
+          // directorio por haberse registrado.
+          SwitchListTile(
+            secondary: const Icon(Icons.groups_outlined),
+            title: Text(l10n.communityPublicToggle),
+            subtitle: Text(l10n.communityPublicToggleHint),
+            value: settings.isPublic,
+            onChanged: (value) => ref.read(settingsViewModelProvider).setPublic(value: value),
+          ),
+
           const Divider(),
           // `PRD §7` — contabilidad y empleomanía se abren desde Inicio y desde
           // Mi cuenta, no desde la barra inferior.
