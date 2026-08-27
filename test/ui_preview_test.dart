@@ -12,6 +12,8 @@ import 'package:criadorpro/features/birds/view/bird_detail_view.dart';
 import 'package:criadorpro/features/birds/view/birds_list_view.dart';
 import 'package:criadorpro/features/birds/view/widgets/marking_fields.dart';
 import 'package:criadorpro/features/birds/view/widgets/trait_picker.dart';
+import 'package:criadorpro/features/pedigree/model/pedigree_node.dart';
+import 'package:criadorpro/features/pedigree/view/pedigree_view.dart';
 import 'package:criadorpro/l10n/generated/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -207,9 +209,7 @@ void main() {
           supportedLocales: AppL10n.supportedLocales,
           home: Scaffold(
             body: Column(
-              children: [
-                BirdRecordHeader(bird: bird, onClose: () {}, onEdit: () {}, onDelete: () {}),
-              ],
+              children: [BirdRecordHeader(bird: bird, onClose: () {}, onEdit: () {})],
             ),
           ),
         ),
@@ -349,5 +349,42 @@ void main() {
       find.byType(BirdsListPreview),
       matchesGoldenFile('goldens/lista_ejemplares.png'),
     );
+  });
+
+  testWidgets('pedigrí vertical', (tester) async {
+    tester.view
+      ..physicalSize = const Size(390 * 3, 900 * 3)
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    Bird b(int plate, String name, Sex sex, [String? line]) => Bird(
+      id: 'b$plate',
+      ownerId: 'o1',
+      plate: plate,
+      name: name,
+      line: line,
+      sex: sex,
+      status: BirdStatus.active,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    final root = PedigreeNode(
+      bird: b(1188, 'Giro Colorado', Sex.male, 'Línea Sabanera'),
+      father: PedigreeNode(
+        bird: b(912, 'Giro Real', Sex.male),
+        father: PedigreeNode(bird: b(640, 'Giro Bravo', Sex.male)),
+        mother: PedigreeNode(bird: b(871, 'Cenizo Viejo', Sex.female)),
+      ),
+      mother: PedigreeNode(
+        bird: b(944, 'Pinta Vieja', Sex.female),
+        father: PedigreeNode(bird: b(655, 'Pinta Real', Sex.male)),
+      ),
+    );
+
+    await tester.pumpWidget(host(PedigreePreview(root: root, depth: 2)));
+    await tester.pumpAndSettle();
+
+    await expectLater(find.byType(PedigreePreview), matchesGoldenFile('goldens/pedigri.png'));
   });
 }

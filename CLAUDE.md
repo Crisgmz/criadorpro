@@ -527,10 +527,20 @@ Falta `RF-NOM-04` (recibo en PDF), que va con las demás exportaciones en F4.
 ### Genealogía — implementado
 
 `RF-PED-01` a `RF-PED-07` y `RF-PED-09` en
-[lib/features/pedigree/](lib/features/pedigree/): pantalla 23 con árbol
-horizontal, desplazamiento y zoom, selector de 2/3/4 generaciones y apertura de
-la ficha desde cualquier nodo. El plan gratuito se queda en dos generaciones y
-la pantalla lo dice (`RF-PED-03`).
+[lib/features/pedigree/](lib/features/pedigree/): pantalla 23 con el recorrido
+**vertical por generaciones** del diseño, selector de 2/3/4 y apertura de la
+ficha desde cualquier nodo. El plan gratuito se queda en dos generaciones y la
+pantalla lo dice (`RF-PED-03`).
+
+El árbol horizontal con zoom que había antes obligaba a arrastrar y ampliar
+para leer un nombre; en un teléfono, a un brazo de distancia y con sol, eso no
+se hace. El vertical cabe entero en la anchura y se recorre con el gesto que el
+criador ya usa en el resto de la app.
+
+Las dos columnas son **ramas, no orden de nivel**: a la izquierda todo lo que
+cuelga del padre, a la derecha lo de la madre. Emparejar por orden de nivel
+pondría al abuelo paterno junto a la abuela paterna, y la columna dejaría de
+significar nada a partir de la segunda generación.
 
 El algoritmo es el del DDT §7 y **no se debe cambiar por uno recursivo por
 nodo**: recolecta identificadores nivel a nivel y luego lee todo el árbol de
@@ -608,6 +618,27 @@ decimales (`RD$ 12,450.00`), almacenada `numeric(12,2)` · peso en kg con dos
 decimales (o libras si el perfil lo indica), almacenado entero en gramos ·
 placa sin ceros a la izquierda, precedida de `#` · edad en meses hasta 24, luego
 años y meses · teléfono agrupado por país `(809) 555-1234`, almacenado E.164.
+
+### Piezas compartidas
+
+El diseño tiene un vocabulario, y vive en `core/widgets/` para que las
+pantallas no se separen con el tiempo. **Antes de inventar un widget de
+pantalla, mira si ya está aquí.**
+
+| Pieza | Qué es | Dónde |
+|---|---|---|
+| `CpSubjectCard` | Bloque navy con foto, nombre, placa e insignias | Cabecera de la ficha · encabezado del pedigrí |
+| `CpBirdCard` | Tarjeta de un ejemplar teñida por sexo, con rol y placa | Pedigrí · reproductores de la ficha |
+| `CpSegmented` | Píldora con la opción activa en blanco elevado | Pestañas de la ficha · generaciones del pedigrí |
+| `CpSectionLabel` | Rótulo de sección en versalitas y gris | Todas |
+| `CpDataCard` · `CpDataRow` | Etiqueta izquierda, valor derecha, con separadores | Ficha |
+| `CpActionCard` | Icono en cuadro teñido, título, apoyo y chevrón | «Ver pedigrí completo» |
+| `CpInfoCard` | Explica cómo leer la pantalla; no es un error | Pedigrí |
+| `CpAlert` | Aviso que hay que atender, en línea sobre el formulario | Login · formularios |
+
+`CpAlert` y `CpInfoCard` no son lo mismo: el primero señala algo que corregir y
+va teñido; el segundo explica lo que se está viendo y no debe llamar la
+atención.
 
 ### Movimiento
 
@@ -829,7 +860,8 @@ contradictorio.
 
 | Qué | Estado |
 |---|---|
-| La ficha lleva **cabecera navy** con la foto y las insignias dentro | Pendiente |
+| La ficha lleva **cabecera navy** con la foto y las insignias dentro | ✅ hecho (`CpSubjectCard`) |
+| El pedigrí colorea **por rama**: columna izquierda verde, derecha azul | **No se copia.** Verde macho / azul hembra es convención cerrada (§9) y no puede significar dos cosas. Se copia la disposición, no el color |
 | Sus pestañas se llaman «Datos · Evaluaciones · Crías» | Pendiente — choca con la decisión abierta de terminología |
 | El registro de cruce tiene **«Estado del cruce»**: Prueba · Hecho · Repetidos | Pendiente, campo nuevo |
 | El registro de cruce captura la marca y las cintas **para toda la camada** | Pendiente; hoy solo se capturan por ejemplar |

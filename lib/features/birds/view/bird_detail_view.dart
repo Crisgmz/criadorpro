@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/base/view_state.dart';
 import '../../../core/domain/markings.dart';
+import '../../../core/domain/sex.dart';
 import '../../../core/error/failure_messages.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/routes.dart';
@@ -14,17 +13,19 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/formatters.dart';
-import '../../../core/widgets/brand.dart';
+import '../../../core/widgets/cp_button.dart';
+import '../../../core/widgets/cp_cards.dart';
 import '../../../core/widgets/cp_empty_state.dart';
+import '../../../core/widgets/cp_segmented.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/sex_badge.dart';
+import '../../../core/widgets/subject_card.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../../evaluations/model/evaluation.dart';
 import '../../evaluations/view/evaluation_labels.dart';
 import '../model/bird.dart';
 import '../viewmodel/bird_detail_viewmodel.dart';
 import 'bird_labels.dart';
-import 'widgets/form_fields.dart';
 import 'widgets/marking_fields.dart';
 
 /// Ficha del ejemplar — pantallas 20 a 22, `RF-REG-12`.
@@ -90,19 +91,22 @@ class BirdDetailView extends ConsumerWidget {
               bird: bird,
               onClose: () => context.canPop() ? context.pop() : context.go(Routes.birds),
               onEdit: () => context.push(Routes.birdEdit(birdId)),
-              onDelete: () => _confirmDelete(context, ref),
             ),
-            Material(
+            // Píldora y no la `TabBar` de Material: el diseño lee la pestaña
+            // activa como una tarjeta que sale hacia el usuario, y es el mismo
+            // control que el selector de generaciones del pedigrí.
+            Container(
               color: Theme.of(context).colorScheme.surface,
-              child: TabBar(
-                tabs: [
-                  Tab(text: l10n.birdTabData),
-                  Tab(text: l10n.birdTabTests),
-                  Tab(text: l10n.birdTabOffspring),
-                ],
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.md,
+                AppSpacing.screen,
+                AppSpacing.md,
+              ),
+              child: _RecordTabs(
+                labels: [l10n.birdTabData, l10n.birdTabTests, l10n.birdTabOffspring],
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
             Expanded(
               child: TabBarView(
                 children: [
@@ -111,6 +115,8 @@ class BirdDetailView extends ConsumerWidget {
                     father: viewModel.father,
                     mother: viewModel.mother,
                     locale: locale,
+                    pedigreeDepth: viewModel.pedigreeDepth,
+                    onDelete: () => _confirmDelete(context, ref),
                   ),
                   _TestsTab(
                     birdId: birdId,
@@ -134,142 +140,78 @@ class BirdDetailView extends ConsumerWidget {
   }
 }
 
-/// Cabecera navy — pantalla 22 del prototipo.
+/// Cabecera navy — pantalla 22 del diseño.
 ///
-/// El navy va aquí y no en la barra superior: el PRD reserva el color de marca
-/// a bloques de contenido, y esta cabecera **es** contenido — identifica al
-/// ejemplar mientras se cambia de pestaña.
+/// Comparte pieza con la tarjeta del pedigrí ([CpSubjectCard]): en las dos
+/// pantallas lo primero que hay que resolver es de qué ave se habla, y
+/// resolverlo igual evita reorientarse al pasar de una a otra.
 class BirdRecordHeader extends StatelessWidget {
   const BirdRecordHeader({
     required this.bird,
-    super.key,
     required this.onClose,
     required this.onEdit,
-    required this.onDelete,
+    super.key,
   });
 
   final Bird bird;
   final VoidCallback onClose;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
     final theme = Theme.of(context);
-    final photo = bird.photoPath == null ? null : File(bird.photoPath!);
-    final hasPhoto = photo != null && photo.existsSync();
 
-    final subtitle = [Formatters.plate(bird.plate), if (bird.line != null) bird.line!].join(' · ');
-
-    return Container(
-      width: double.infinity,
+    return ColoredBox(
       color: AppColors.navy,
       child: SafeArea(
         bottom: false,
-        child: Padding(
+        child: CpSubjectCard(
+          title: bird.displayName,
+          subtitle: [
+            l10n.birdsPlateLabel(Formatters.plate(bird.plate)),
+            if ((bird.line ?? '').isNotEmpty) bird.line!,
+          ].join(' · '),
+          photoPath: bird.photoPath,
+          showWatermark: true,
+          borderRadius: 0,
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
+            AppSpacing.screen,
             AppSpacing.sm,
-            AppSpacing.md,
-            AppSpacing.md,
+            AppSpacing.screen,
+            AppSpacing.lg,
           ),
-          child: Stack(
+          leading: _HeaderButton(icon: Icons.close, tooltip: l10n.commonClose, onTap: onClose),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Marca de agua al 6 %, como en el prototipo: da cuerpo al navy
-              // sin competir con el nombre.
-              Positioned(
-                right: -28,
-                bottom: -24,
-                child: BrandSymbol(size: 128, onDark: true, opacity: 0.06),
+              Text(
+                l10n.birdRecordTitle.toUpperCase(),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  letterSpacing: 1.2,
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      _HeaderButton(icon: Icons.close, tooltip: l10n.commonClose, onTap: onClose),
-                      Expanded(
-                        child: Text(
-                          l10n.birdRecordTitle,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ),
-                      _HeaderButton(
-                        icon: Icons.edit_outlined,
-                        tooltip: l10n.commonEdit,
-                        onTap: onEdit,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      _HeaderButton(
-                        icon: Icons.delete_outline,
-                        tooltip: l10n.commonDelete,
-                        onTap: onDelete,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _HeaderPhoto(photo: hasPhoto ? photo : null),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              bird.displayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              subtitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.55),
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Wrap(
-                              spacing: AppSpacing.xs,
-                              runSpacing: AppSpacing.xs,
-                              children: [
-                                _HeaderChip(
-                                  label: statusLabel(l10n, bird.status).toUpperCase(),
-                                  // El verde solo para el ejemplar en activo: un
-                                  // vendido o fallecido en verde diría lo
-                                  // contrario de lo que pasa.
-                                  color: bird.status == BirdStatus.active
-                                      ? AppColors.male
-                                      : Colors.white.withValues(alpha: 0.14),
-                                ),
-                                // El prototipo rotula aquí «GALLO». Es
-                                // vocabulario prohibido (BRD §8): va el sexo.
-                                _HeaderChip(
-                                  label: sexLabel(l10n, bird.sex).toUpperCase(),
-                                  color: Colors.white.withValues(alpha: 0.14),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+              const SizedBox(width: AppSpacing.md),
+              _HeaderButton(icon: Icons.edit_outlined, tooltip: l10n.commonEdit, onTap: onEdit),
             ],
           ),
+          badges: [
+            _HeaderChip(
+              label: statusLabel(l10n, bird.status).toUpperCase(),
+              // El verde solo para el ejemplar en activo: un vendido o muerto
+              // en verde diría lo contrario de lo que pasa.
+              color: bird.status == BirdStatus.active
+                  ? AppColors.male
+                  : Colors.white.withValues(alpha: 0.14),
+            ),
+            // El diseño rotula aquí «GALLO». Es vocabulario prohibido
+            // (BRD §8) y la compuerta de compilación lo rechazaría: va el sexo.
+            _HeaderChip(
+              label: sexLabel(l10n, bird.sex).toUpperCase(),
+              color: Colors.white.withValues(alpha: 0.14),
+            ),
+          ],
         ),
       ),
     );
@@ -286,60 +228,69 @@ class _HeaderButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Tooltip(
     message: tooltip,
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      child: Container(
-        width: 36,
-        height: 36,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+    child: Material(
+      color: Colors.white.withValues(alpha: 0.10),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: SizedBox(
+          width: AppSizes.minTouchTarget,
+          height: AppSizes.minTouchTarget,
+          child: Icon(icon, size: 20, color: Colors.white),
         ),
-        child: Icon(icon, size: 18, color: Colors.white),
       ),
     ),
   );
 }
 
-class _HeaderPhoto extends StatelessWidget {
-  const _HeaderPhoto({this.photo});
+/// Pestañas de la ficha, con el aspecto de píldora del diseño.
+///
+/// Se ata al `DefaultTabController` en lugar de llevar su propio estado: la
+/// `TabBarView` de debajo también responde al deslizamiento lateral, y dos
+/// fuentes de verdad se desincronizarían en cuanto el criador arrastrara.
+class _RecordTabs extends StatefulWidget {
+  const _RecordTabs({required this.labels});
 
-  final File? photo;
+  final List<String> labels;
+
+  @override
+  State<_RecordTabs> createState() => _RecordTabsState();
+}
+
+class _RecordTabsState extends State<_RecordTabs> {
+  TabController? _controller;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final controller = DefaultTabController.of(context);
+    if (identical(controller, _controller)) return;
+    _controller?.removeListener(_onChanged);
+    _controller = controller..addListener(_onChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_onChanged);
+    super.dispose();
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppL10n.of(context);
-    final theme = Theme.of(context);
+    final controller = _controller;
+    if (controller == null) return const SizedBox.shrink();
 
-    return Container(
-      width: 78,
-      height: 78,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: photo != null
-            ? null
-            : Border.all(color: Colors.white.withValues(alpha: 0.28), width: 1.5),
-      ),
-      child: photo != null
-          ? Image.file(photo!, fit: BoxFit.cover)
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                BrandSymbol(size: 26, onDark: true, opacity: 0.5),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  l10n.birdPhotoPlaceholder,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    fontSize: 8.5,
-                  ),
-                ),
-              ],
-            ),
+    return CpSegmented<int>(
+      segments: [
+        for (final (index, label) in widget.labels.indexed) CpSegment(value: index, label: label),
+      ],
+      selected: controller.index,
+      onChanged: controller.animateTo,
     );
   }
 }
@@ -363,69 +314,139 @@ class _HeaderChip extends StatelessWidget {
 
 /// Pantalla 20 — pestaña por defecto.
 class _DataTab extends StatelessWidget {
-  const _DataTab({required this.bird, required this.locale, this.father, this.mother});
+  const _DataTab({
+    required this.bird,
+    required this.locale,
+    required this.pedigreeDepth,
+    required this.onDelete,
+    this.father,
+    this.mother,
+  });
 
   final Bird bird;
   final Bird? father;
   final Bird? mother;
   final String locale;
+  final int pedigreeDepth;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
+    final theme = Theme.of(context);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.lg),
+      padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.xxl),
       children: [
-        SectionLabel(l10n.birdSectionIdentity),
-        _DataRow(label: l10n.fieldPlate, value: Formatters.plate(bird.plate)),
-        _DataRow(
-          label: l10n.fieldBirthDate,
-          value: bird.birthDate == null ? '—' : Formatters.date(bird.birthDate!, locale),
-        ),
-        _DataRow(label: l10n.fieldAge, value: ageLabel(l10n, bird.birthDate)),
-        _DataRow(label: l10n.fieldStatus, value: statusLabel(l10n, bird.status)),
-
-        const SizedBox(height: AppSpacing.lg),
-        SectionLabel(l10n.birdSectionOrigin),
-        _ParentRow(label: l10n.fieldFather, parent: father),
-        _ParentRow(label: l10n.fieldMother, parent: mother),
-        _DataRow(label: l10n.fieldLine, value: bird.line ?? '—'),
-        const SizedBox(height: AppSpacing.sm),
-        // El pedigrí completo se abre desde aquí y no desde una pestaña: es
-        // una vista aparte, con su propio desplazamiento y zoom.
-        OutlinedButton.icon(
-          onPressed: () => context.push(Routes.birdPedigree(bird.id)),
-          icon: const Icon(Icons.account_tree_outlined),
-          label: Text(l10n.pedigreeSee),
+        // El pedigrí encabeza la pestaña: es a lo que el criador entra a mirar
+        // cuando abre la ficha de un reproductor, y enterrarlo bajo la lista de
+        // datos lo dejaba a un desplazamiento de distancia.
+        CpActionCard(
+          icon: Icons.account_tree_outlined,
+          title: l10n.pedigreeSee,
+          subtitle: l10n.pedigreeRegistered(pedigreeDepth),
+          onTap: () => context.push(Routes.birdPedigree(bird.id)),
         ),
 
         const SizedBox(height: AppSpacing.lg),
-        SectionLabel(l10n.birdSectionExtra),
-        _DataRow(label: l10n.fieldColor, value: bird.color ?? '—'),
-        _DataRow(label: l10n.fieldComb, value: bird.comb ?? '—'),
-        // Marca de nacimiento y cintas de ala, como en la ficha del prototipo.
-        _DataRow(
-          label: l10n.markingTitle,
-          value: BirthMark.isNone(bird.birthMark)
-              ? l10n.markingNoMarkSet
-              : BirthMark.codeOf(bird.birthMark) ?? '—',
+        CpDataCard(
+          rows: [
+            CpDataRow(
+              label: l10n.fieldBirthDate,
+              value: bird.birthDate == null ? '—' : Formatters.date(bird.birthDate!, locale),
+            ),
+            CpDataRow(label: l10n.fieldAge, value: ageLabel(l10n, bird.birthDate)),
+            CpDataRow(label: l10n.fieldStatus, value: statusLabel(l10n, bird.status)),
+            CpDataRow(
+              label: l10n.birdCurrentWeight,
+              value: bird.weightG == null
+                  ? '—'
+                  : '${Formatters.number(bird.weightG! / 1000, locale)} kg',
+            ),
+            CpDataRow(
+              label: l10n.markingTitle,
+              value: BirthMark.isNone(bird.birthMark)
+                  ? l10n.markingNoMarkSet
+                  : BirthMark.codeOf(bird.birthMark) ?? '—',
+            ),
+            CpDataRow(
+              label: l10n.markingBands,
+              value: wingBandSummary(l10n, bird.wingBandLeft, bird.wingBandRight) ?? '—',
+            ),
+            CpDataRow(label: l10n.fieldColor, value: bird.color ?? '—'),
+            CpDataRow(label: l10n.fieldComb, value: bird.comb ?? '—'),
+          ],
         ),
-        _DataRow(
-          label: l10n.markingBands,
-          value: wingBandSummary(l10n, bird.wingBandLeft, bird.wingBandRight) ?? '—',
+
+        CpSectionLabel(l10n.birdBreeders),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _ParentCard(role: l10n.fieldFather, parent: father, sex: Sex.male),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: _ParentCard(role: l10n.fieldMother, parent: mother, sex: Sex.female),
+                ),
+              ],
+            ),
+          ),
         ),
-        _DataRow(
-          label: l10n.fieldWeight,
-          value: bird.weightG == null ? '—' : Formatters.number(bird.weightG!.toDouble(), locale),
-        ),
+
         if (bird.notes != null) ...[
-          const SizedBox(height: AppSpacing.md),
-          Text(l10n.fieldNotes, style: AppTypography.sectionLabel(context)),
-          const SizedBox(height: AppSpacing.xs),
-          Text(bird.notes!, style: Theme.of(context).textTheme.bodyMedium),
+          CpSectionLabel(l10n.fieldNotes),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+            child: Text(bird.notes!, style: theme.textTheme.bodyLarge),
+          ),
         ],
+
+        const SizedBox(height: AppSpacing.xl),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+          // Dar de baja va al final y en rojo perfilado, no relleno: es
+          // destructivo, pero también es la salida normal de un ejemplar que se
+          // vende o se muere, así que no debe dar miedo pulsarlo.
+          child: CpButton(
+            label: l10n.birdDeactivate,
+            variant: CpButtonVariant.secondary,
+            icon: Icons.block_outlined,
+            onPressed: onDelete,
+          ),
+        ),
       ],
+    );
+  }
+}
+
+/// Progenitor en la ficha. Sin registrar es una casilla vacía y no un error:
+/// que el criador no sepa quién fue el padre es lo normal (`RF-PED-05`).
+class _ParentCard extends StatelessWidget {
+  const _ParentCard({required this.role, required this.parent, required this.sex});
+
+  final String role;
+  final Bird? parent;
+  final Sex sex;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final current = parent;
+
+    if (current == null) {
+      return CpBirdCard.empty(name: l10n.pedigreeEmptySlot, role: role, subtitle: '—');
+    }
+
+    return CpBirdCard(
+      sex: current.sex,
+      name: current.displayName,
+      role: role,
+      subtitle: l10n.birdsPlateLabel(Formatters.plate(current.plate)),
+      onTap: () => context.push(Routes.birdDetail(current.id)),
     );
   }
 }
@@ -612,68 +633,6 @@ class _ChickTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       trailing: const Icon(Icons.chevron_right),
-    );
-  }
-}
-
-/// Progenitor: además de nombrarlo, lleva a su ficha si está registrado.
-class _ParentRow extends StatelessWidget {
-  const _ParentRow({required this.label, this.parent});
-
-  final String label;
-  final Bird? parent;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppL10n.of(context);
-    if (parent == null) return _DataRow(label: label, value: l10n.birdUnknownParent);
-
-    return InkWell(
-      onTap: () => context.push(Routes.birdDetail(parent!.id)),
-      child: _DataRow(
-        label: label,
-        value: parent!.displayName,
-        trailing: const Icon(Icons.chevron_right, size: 18),
-      ),
-    );
-  }
-}
-
-class _DataRow extends StatelessWidget {
-  const _DataRow({required this.label, required this.value, this.trailing});
-
-  final String label;
-  final String value;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              value,
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-          ?trailing,
-        ],
-      ),
     );
   }
 }
