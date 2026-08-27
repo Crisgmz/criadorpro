@@ -8,6 +8,7 @@ import 'package:criadorpro/core/theme/app_theme.dart';
 import 'package:criadorpro/core/widgets/cp_alert.dart';
 import 'package:criadorpro/core/widgets/motion.dart';
 import 'package:criadorpro/features/birds/model/bird.dart';
+import 'package:criadorpro/features/birds/model/weight_entry.dart';
 import 'package:criadorpro/features/birds/view/bird_detail_view.dart';
 import 'package:criadorpro/features/birds/view/birds_list_view.dart';
 import 'package:criadorpro/features/birds/view/widgets/marking_fields.dart';
@@ -44,6 +45,33 @@ void main() {
   }) => ProviderScope(
     overrides: [
       currentOwnerIdProvider.overrideWithValue('owner-1'),
+      weightHistoryProvider.overrideWith(
+        (ref, birdId) => Stream.value(
+          WeightTrend(
+            entries: [
+              WeightEntry(
+                id: 'w2',
+                ownerId: 'o1',
+                birdId: birdId,
+                weightG: 1840,
+                date: DateTime(2026, 8, 20),
+                createdAt: DateTime(2026, 8, 20),
+                updatedAt: DateTime(2026, 8, 20),
+              ),
+              WeightEntry(
+                id: 'w1',
+                ownerId: 'o1',
+                birdId: birdId,
+                weightG: 1760,
+                date: DateTime(2026, 8, 6),
+                evaluationId: 'e1',
+                createdAt: DateTime(2026, 8, 6),
+                updatedAt: DateTime(2026, 8, 6),
+              ),
+            ],
+          ),
+        ),
+      ),
       traitOptionsProvider.overrideWith(
         (ref, args) => Stream.value(
           buildTraitOptions(

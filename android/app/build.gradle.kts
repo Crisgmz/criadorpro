@@ -6,7 +6,12 @@ plugins {
 
 android {
     namespace = "com.criadorpro.app"
-    compileSdk = flutter.compileSdkVersion
+    // `flutter.compileSdkVersion` es 36 y flutter_secure_storage 11 exige compilar
+    // contra 37 (RNF-14: los tokens viven en el Keystore). Google ya no publica un
+    // `platforms;android-37` a secas —solo 37.0, 37.1…—, así que hace falta el
+    // `compileSdkMinor` para que AGP resuelva el que está instalado.
+    compileSdk = 37
+    compileSdkMinor = 0
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

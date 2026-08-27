@@ -240,6 +240,18 @@ class BirdsDao extends DatabaseAccessor<AppDatabase> with _$BirdsDaoMixin {
           ))
           .get();
 
+  /// Peso vigente del ejemplar — `RF-REG-14`.
+  ///
+  /// Es un **dato derivado** del historial de pesadas: solo lo escribe
+  /// `WeightsRepository`, con la más reciente. Se conserva en la fila porque la
+  /// lista y la ficha lo leen por ejemplar, y agregar el historial en cada una
+  /// costaría una consulta por fila.
+  ///
+  /// No marca la fila como sucia ni mueve `updated_at`: quien viaja al servidor
+  /// es la pesada, y este número se recalcula allí igual que aquí.
+  Future<void> setCurrentWeight(String id, int? weightG) =>
+      (update(birds)..where((t) => t.id.equals(id))).write(BirdsCompanion(weightG: Value(weightG)));
+
   /// Ruta local de la foto. **No se sincroniza**: una ruta de este teléfono no
   /// significa nada en otro, por eso se escribe sin marcar la fila como sucia.
   Future<void> setPhotoPath(String id, String? path) =>

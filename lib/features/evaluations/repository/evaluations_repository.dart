@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
 
+import '../../../core/birds/weight_log.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/db/app_database.dart';
 import '../../../core/db/daos/evaluations_dao.dart';
@@ -21,9 +22,11 @@ class EvaluationsRepository implements RemotePuller {
     required ProfilesDao profilesDao,
     required SyncQueueDao syncQueue,
     required SupabaseService supabase,
+    required WeightLog weights,
     Uuid uuid = const Uuid(),
     DateTime Function() clock = DateTime.now,
   }) : _database = database,
+       _weights = weights,
        _evaluationsDao = evaluationsDao,
        _profilesDao = profilesDao,
        _syncQueue = syncQueue,
@@ -36,6 +39,7 @@ class EvaluationsRepository implements RemotePuller {
   final ProfilesDao _profilesDao;
   final SyncQueueDao _syncQueue;
   final SupabaseService _supabase;
+  final WeightLog _weights;
   final Uuid _uuid;
   final DateTime Function() _clock;
 
@@ -143,6 +147,19 @@ class EvaluationsRepository implements RemotePuller {
           payload: jsonEncode(evaluation.toRemoteJson()),
           now: now,
         );
+
+        // `RF-PRU-07` — el peso de la prueba entra en el historial del
+        // ejemplar. Dejarlo solo dentro de la prueba lo dejaría fuera de la
+        // curva, que es donde el número sirve de algo. En la misma transacción:
+        // una pesada sin su prueba sería un dato que nadie puede explicar.
+        await _weights.recordFromEvaluation(
+          ownerId: evaluation.ownerId,
+          birdId: evaluation.birdId,
+          evaluationId: evaluation.id,
+          weightG: evaluation.weightG ?? 0,
+          date: evaluation.date,
+          now: now,
+        );
       });
       return evaluation;
     }, (error, _) => DatabaseFailure(debugMessage: error.toString(), cause: error));
@@ -169,6 +186,9 @@ class EvaluationsRepository implements RemotePuller {
           payload: jsonEncode(deleted),
           now: now,
         );
+        // Se va la prueba, se va su pesada: quedaría respaldando un dato que
+        // ya no existe.
+        await _weights.removeFromEvaluation(evaluationId: id, now: now);
       });
     }, (error, _) => DatabaseFailure(debugMessage: error.toString(), cause: error));
   }

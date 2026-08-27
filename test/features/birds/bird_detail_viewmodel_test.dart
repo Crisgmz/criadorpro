@@ -7,6 +7,7 @@ import 'package:criadorpro/features/birds/model/bird.dart';
 import 'package:criadorpro/features/birds/model/clutch.dart';
 import 'package:criadorpro/features/birds/repository/birds_repository.dart';
 import 'package:criadorpro/features/birds/repository/clutches_repository.dart';
+import 'package:criadorpro/features/birds/repository/weights_repository.dart';
 import 'package:criadorpro/features/birds/viewmodel/bird_detail_viewmodel.dart';
 import 'package:criadorpro/features/evaluations/repository/evaluations_repository.dart';
 import 'package:criadorpro/features/pedigree/repository/pedigree_repository.dart';
@@ -87,6 +88,14 @@ void main() {
       profilesDao: database.profilesDao,
       syncQueue: database.syncQueueDao,
       supabase: SupabaseService(null),
+      weights: WeightsRepository(
+        database: database,
+        weightsDao: database.weightsDao,
+        birdsDao: database.birdsDao,
+        syncQueue: database.syncQueueDao,
+        supabase: SupabaseService(null),
+        clock: () => now,
+      ),
       clock: () => now,
     ),
     pedigreeRepository: PedigreeRepository(birdsDao: database.birdsDao),

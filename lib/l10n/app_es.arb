@@ -616,6 +616,27 @@
   "birdBreeders": "Reproductores",
   "birdDeactivate": "Dar de baja este ejemplar",
   "birdPhotoPlaceholder": "Foto",
+  "weightTitle": "Historial de peso",
+  "weightAdd": "Anotar peso",
+  "weightFormTitle": "Nueva pesada",
+  "weightFieldValue": "Peso",
+  "weightFieldDate": "Fecha",
+  "weightFieldNotes": "Nota",
+  "weightSaved": "Peso anotado",
+  "weightEmpty": "Sin pesadas",
+  "weightEmptyMessage": "Anota el peso de vez en cuando y verás aquí cómo va cambiando.",
+  "weightFromEvaluation": "De una prueba de campo",
+  "weightDeleteTitle": "¿Borrar esta pesada?",
+  "weightNotWeighed": "Sin pesar",
+  "weightOutOfRange": "Fuera de lo habitual (100 g a 8 kg). Puedes guardarlo igual.",
+  "weightGain": "+{value} g desde la anterior",
+  "@weightGain": {
+    "placeholders": { "value": { "type": "int" } }
+  },
+  "weightLoss": "{value} g desde la anterior",
+  "@weightLoss": {
+    "placeholders": { "value": { "type": "int" } }
+  },
   "settingsAdmin": "Administración",
   "payrollTitle": "Empleomanía",
   "payrollPlanTitle": "Disponible con Élite",

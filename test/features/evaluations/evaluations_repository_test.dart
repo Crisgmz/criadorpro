@@ -3,6 +3,7 @@ import 'package:criadorpro/core/db/app_database.dart';
 import 'package:criadorpro/core/error/failure.dart';
 import 'package:criadorpro/core/network/supabase_service.dart';
 import 'package:criadorpro/core/utils/result.dart';
+import 'package:criadorpro/features/birds/repository/weights_repository.dart';
 import 'package:criadorpro/features/evaluations/model/evaluation.dart';
 import 'package:criadorpro/features/evaluations/repository/evaluations_repository.dart';
 import 'package:drift/drift.dart' show Value;
@@ -27,6 +28,14 @@ void main() {
       profilesDao: database.profilesDao,
       syncQueue: database.syncQueueDao,
       supabase: SupabaseService(null),
+      weights: WeightsRepository(
+        database: database,
+        weightsDao: database.weightsDao,
+        birdsDao: database.birdsDao,
+        syncQueue: database.syncQueueDao,
+        supabase: SupabaseService(null),
+        clock: () => now,
+      ),
       clock: () => now,
     );
   });

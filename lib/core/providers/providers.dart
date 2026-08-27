@@ -16,13 +16,16 @@ import '../../features/auth/viewmodel/onboarding_viewmodel.dart';
 import '../../features/auth/viewmodel/sign_up_viewmodel.dart';
 import '../../features/auth/viewmodel/splash_viewmodel.dart';
 import '../../features/auth/viewmodel/verify_code_viewmodel.dart';
+import '../../features/birds/model/weight_entry.dart';
 import '../../features/birds/repository/birds_repository.dart';
 import '../../features/birds/repository/clutches_repository.dart';
+import '../../features/birds/repository/weights_repository.dart';
 import '../../features/birds/viewmodel/bird_detail_viewmodel.dart';
 import '../../features/birds/viewmodel/bird_form_viewmodel.dart';
 import '../../features/birds/viewmodel/birds_list_viewmodel.dart';
 import '../../features/birds/viewmodel/clutch_form_viewmodel.dart';
 import '../../features/birds/viewmodel/parent_picker_viewmodel.dart';
+import '../../features/birds/viewmodel/weight_form_viewmodel.dart';
 import '../../features/dashboard/viewmodel/dashboard_viewmodel.dart';
 import '../../features/evaluations/repository/evaluations_repository.dart';
 import '../../features/evaluations/viewmodel/evaluation_form_viewmodel.dart';
@@ -44,6 +47,7 @@ import '../db/daos/payroll_dao.dart';
 import '../db/daos/profiles_dao.dart';
 import '../db/daos/sync_queue_dao.dart';
 import '../db/daos/transactions_dao.dart';
+import '../db/daos/weights_dao.dart';
 import '../domain/bird_traits.dart';
 import '../domain/sex.dart';
 import '../media/photo_service.dart';
@@ -86,6 +90,7 @@ final payrollDaoProvider = Provider<PayrollDao>((ref) => ref.watch(appDatabasePr
 final clutchesDaoProvider = Provider<ClutchesDao>(
   (ref) => ref.watch(appDatabaseProvider).clutchesDao,
 );
+final weightsDaoProvider = Provider<WeightsDao>((ref) => ref.watch(appDatabaseProvider).weightsDao);
 final syncQueueDaoProvider = Provider<SyncQueueDao>(
   (ref) => ref.watch(appDatabaseProvider).syncQueueDao,
 );
@@ -130,6 +135,17 @@ final birdsRepositoryProvider = Provider<BirdsRepository>(
   ),
 );
 
+/// Historial de pesos — `RF-REG-14`, y el puente de `RF-PRU-07`.
+final weightsRepositoryProvider = Provider<WeightsRepository>(
+  (ref) => WeightsRepository(
+    database: ref.watch(appDatabaseProvider),
+    weightsDao: ref.watch(weightsDaoProvider),
+    birdsDao: ref.watch(birdsDaoProvider),
+    syncQueue: ref.watch(syncQueueDaoProvider),
+    supabase: ref.watch(supabaseServiceProvider),
+  ),
+);
+
 final clutchesRepositoryProvider = Provider<ClutchesRepository>(
   (ref) => ClutchesRepository(
     database: ref.watch(appDatabaseProvider),
@@ -162,6 +178,8 @@ final syncServiceProvider = Provider<SyncService>((ref) {
       ref.watch(profileRepositoryProvider),
       ref.watch(clutchesRepositoryProvider),
       ref.watch(birdsRepositoryProvider),
+      // Las pesadas después de los ejemplares: apuntan a ellos.
+      ref.watch(weightsRepositoryProvider),
       ref.watch(evaluationsRepositoryProvider),
       ref.watch(transactionsRepositoryProvider),
       // Los empleados antes que los pagos: un pago sin su empleado no se puede
@@ -188,6 +206,7 @@ final authRepositoryProvider = Provider<AuthRepository>(
     evaluationsDao: ref.watch(evaluationsDaoProvider),
     transactionsDao: ref.watch(transactionsDaoProvider),
     payrollDao: ref.watch(payrollDaoProvider),
+    weightsDao: ref.watch(weightsDaoProvider),
     syncQueue: ref.watch(syncQueueDaoProvider),
     syncService: ref.watch(syncServiceProvider),
     preferences: ref.watch(authPreferencesProvider),
@@ -387,6 +406,9 @@ final evaluationsRepositoryProvider = Provider<EvaluationsRepository>(
     profilesDao: ref.watch(profilesDaoProvider),
     syncQueue: ref.watch(syncQueueDaoProvider),
     supabase: ref.watch(supabaseServiceProvider),
+    // `RF-PRU-07` — el peso de la prueba entra en el historial. La dependencia
+    // va por la interfaz de `core/`: pruebas no puede importar de registros.
+    weights: ref.watch(weightsRepositoryProvider),
   ),
 );
 
@@ -473,5 +495,19 @@ final paymentFormViewModelProvider = ChangeNotifierProvider.autoDispose
         repository: ref.watch(payrollRepositoryProvider),
         ownerId: ref.watch(currentOwnerIdProvider),
         employeeId: employeeId,
+      ),
+    );
+
+/// Historial de pesos de un ejemplar — `RF-REG-14`.
+final weightHistoryProvider = StreamProvider.autoDispose.family<WeightTrend, String>(
+  (ref, birdId) => ref.watch(weightsRepositoryProvider).watchForBird(birdId),
+);
+
+final weightFormViewModelProvider = ChangeNotifierProvider.autoDispose
+    .family<WeightFormViewModel, String>(
+      (ref, birdId) => WeightFormViewModel(
+        repository: ref.watch(weightsRepositoryProvider),
+        ownerId: ref.watch(currentOwnerIdProvider),
+        birdId: birdId,
       ),
     );

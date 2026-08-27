@@ -39,6 +39,8 @@ pueden volver a ejecutar sin romper nada, así que ante la duda, ejecútalas.
 | 7 | [`20260816000000_bird_markings.sql`](supabase/migrations/20260816000000_bird_markings.sql) | `birth_mark`, `wing_band_left`, `wing_band_right` y `comb` en `birds` |
 | 8 | [`20260826000000_payroll.sql`](supabase/migrations/20260826000000_payroll.sql) | `employees` y `payroll_payments` — empleomanía (`RF-NOM`) |
 | 9 | [`20260827000000_bird_photos.sql`](supabase/migrations/20260827000000_bird_photos.sql) | El bucket privado `bird-photos` y sus políticas — `RF-REG-15` |
+| 10 | [`20260827100000_weight_entries.sql`](supabase/migrations/20260827100000_weight_entries.sql) | `weight_entries` — historial de pesos (`RF-REG-14`) |
+| 10 | [`20260827010000_grant_elite_plan.sql`](supabase/migrations/20260827010000_grant_elite_plan.sql) | Pasa a **Élite** los criaderos ya dados de alta. Concesión puntual mientras no exista la compra dentro de la app (fase 3); no cambia el plan de las altas nuevas |
 
 #### Cuáles te faltan
 
@@ -60,10 +62,11 @@ union all select 'birds.comb',       exists (
 )
 union all select 'bucket bird-photos', exists (
   select 1 from storage.buckets where id = 'bird-photos'
-);
+)
+union all select 'weight_entries',      to_regclass('public.weight_entries')    is not null;
 ```
 
-Cada `false` es la migración de esa fila: 5, 6, 8, 8, 7 y 9 respectivamente.
+Cada `false` es la migración de esa fila: 5, 6, 8, 8, 7, 9 y 10 respectivamente.
 
 ### 2. Cambia las plantillas de correo
 

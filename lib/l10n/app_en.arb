@@ -535,6 +535,27 @@
   "birdBreeders": "Parents",
   "birdDeactivate": "Deactivate this bird",
   "birdPhotoPlaceholder": "Photo",
+  "weightTitle": "Weight history",
+  "weightAdd": "Record weight",
+  "weightFormTitle": "New weigh-in",
+  "weightFieldValue": "Weight",
+  "weightFieldDate": "Date",
+  "weightFieldNotes": "Note",
+  "weightSaved": "Weight recorded",
+  "weightEmpty": "No weigh-ins",
+  "weightEmptyMessage": "Record the weight now and then and you will see how it changes here.",
+  "weightFromEvaluation": "From a field test",
+  "weightDeleteTitle": "Delete this weigh-in?",
+  "weightNotWeighed": "Not weighed",
+  "weightOutOfRange": "Outside the usual range (100 g to 8 kg). You can save it anyway.",
+  "weightGain": "+{value} g since the last one",
+  "@weightGain": {
+    "placeholders": { "value": { "type": "int" } }
+  },
+  "weightLoss": "{value} g since the last one",
+  "@weightLoss": {
+    "placeholders": { "value": { "type": "int" } }
+  },
   "settingsAdmin": "Administration",
   "payrollTitle": "Payroll",
   "payrollPlanTitle": "Available with Elite",

@@ -307,7 +307,7 @@ renegociar alcance).
 
 | Fase | Contenido | Criterio de salida |
 |---|---|---|
-| **F1** | `RF-AUT` · `RF-ONB` · `RF-REG` · `RF-PED` · `RF-SIN` | Un criador migra su libro completo y consulta pedigrí sin conexión |
+| **F1** | `RF-AUT` · `RF-ONB` · `RF-REG` · `RF-PED` · `RF-SIN` | ✅ Un criador migra su libro completo y consulta pedigrí sin conexión |
 | **F2** | `RF-PRU` · `RF-CON` · `RF-NOM` | ✅ Un mes contable se cierra íntegramente dentro de la app |
 | **F3** | `RF-CTA-04` a `RF-CTA-12` (membresías, compras, envío) | Suscripción cobrada y aprobación en ambas tiendas |
 | **F4** | `RF-COM` · `RF-PED-08` · `RF-CON-07` (exportación real a PDF) | Primer encuentro concretado y exportación real a PDF |
@@ -446,11 +446,18 @@ hoy se suelta la URL y el archivo se queda en el bucket hasta que otra foto del
 mismo ejemplar lo sustituya. Es un objeto por ejemplar como mucho, pero es dato
 del usuario que él cree haber borrado.
 
-Falta de `RF-REG`:
+El **historial de pesos** (`RF-REG-14`) ya está: tabla `weight_entries`,
+pesada con su fecha desde la ficha, y la tendencia contra la anterior. Con una
+sola pesada **no se pinta tendencia**: «+0 g» sugeriría que el ave se estancó.
 
-| ID | Qué falta | Prioridad |
-|---|---|---|
-| `RF-REG-14` | Editar cualquier campo y **registrar pesos sucesivos con su fecha**. Exige tabla nueva. | Esperado |
+`birds.weight_g` se queda como peso vigente porque la lista y la ficha lo leen
+por fila, pero pasa a ser **dato derivado**: solo lo escribe `WeightsRepository`
+con la pesada más reciente, y no mueve `updated_at` del ejemplar —el peso no es
+una edición del criador sobre la ficha, y moverlo haría que esa fila ganara la
+resolución de conflictos (`RS-09`) contra un cambio real hecho en otro
+dispositivo.
+
+Con eso **`RF-REG` queda completo**.
 
 ### Contabilidad — implementado
 
@@ -491,8 +498,15 @@ en el total —excluirlas inflaría el porcentaje favorable— y el promedio de
 condición **ignora** las pruebas que no la anotaron, porque contarlas como cero
 hundiría la media. Sin ninguna condición anotada se muestra un guion, no «0,0».
 
-Falta `RF-PRU-07` (Esperado): incorporar el peso de la prueba al historial de
-pesos del ejemplar. Va junto con `RF-REG-14`, que es quien crea ese historial.
+`RF-PRU-07` ya está: el peso de la prueba entra en el historial del ejemplar
+por `WeightLog` ([lib/core/birds/weight_log.dart](lib/core/birds/weight_log.dart)),
+una interfaz de `core/` —pruebas no puede importar de registros—, en la misma
+transacción que la prueba.
+
+Es **idempotente por prueba**: editar la misma prueba tres veces corrige su
+pesada en vez de dejar tres que nadie hizo. Quitarle el peso a la prueba, o
+borrarla, retira la pesada; las anotadas a mano no se tocan. Lo impone también
+un índice único parcial en Postgres, no solo el cliente.
 
 ### Empleomanía — implementado
 
@@ -553,8 +567,7 @@ ancestro repetido **en el mismo camino** es un dato imposible y corta la rama
 
 `RF-PED-08` (exportar a PDF) es Opcional y va en F4.
 
-Con eso **F1 queda cerrado en lo Obligatorio**. Fuera queda, con prioridad
-Esperado, `RF-REG-14`.
+Con eso **F1 queda cerrado, Obligatorio y Esperado**.
 
 **El esquema implementado diverge de la especificación.** Corregirlo es el
 primer trabajo de F1, porque todo lo demás cuelga de la placa:

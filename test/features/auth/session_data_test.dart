@@ -37,6 +37,7 @@ void main() {
       evaluationsDao: database.evaluationsDao,
       transactionsDao: database.transactionsDao,
       payrollDao: database.payrollDao,
+      weightsDao: database.weightsDao,
       syncQueue: database.syncQueueDao,
       syncService: SyncService(
         queue: database.syncQueueDao,

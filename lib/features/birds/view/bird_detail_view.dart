@@ -13,6 +13,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/cp_alert.dart';
 import '../../../core/widgets/cp_button.dart';
 import '../../../core/widgets/cp_cards.dart';
 import '../../../core/widgets/cp_empty_state.dart';
@@ -24,6 +25,7 @@ import '../../../l10n/generated/app_l10n.dart';
 import '../../evaluations/model/evaluation.dart';
 import '../../evaluations/view/evaluation_labels.dart';
 import '../model/bird.dart';
+import '../model/weight_entry.dart';
 import '../viewmodel/bird_detail_viewmodel.dart';
 import 'bird_labels.dart';
 import 'widgets/marking_fields.dart';
@@ -349,12 +351,6 @@ class _DataTab extends StatelessWidget {
             CpDataRow(label: l10n.fieldAge, value: ageLabel(l10n, bird.birthDate)),
             CpDataRow(label: l10n.fieldStatus, value: statusLabel(l10n, bird.status)),
             CpDataRow(
-              label: l10n.birdCurrentWeight,
-              value: bird.weightG == null
-                  ? '—'
-                  : '${Formatters.number(bird.weightG! / 1000, locale)} kg',
-            ),
-            CpDataRow(
               label: l10n.markingTitle,
               value: BirthMark.isNone(bird.birthMark)
                   ? l10n.markingNoMarkSet
@@ -368,6 +364,9 @@ class _DataTab extends StatelessWidget {
             CpDataRow(label: l10n.fieldComb, value: bird.comb ?? '—'),
           ],
         ),
+
+        CpSectionLabel(l10n.weightTitle),
+        _WeightSection(birdId: bird.id, locale: locale),
 
         CpSectionLabel(l10n.birdBreeders),
         Padding(
@@ -410,6 +409,149 @@ class _DataTab extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Peso vigente y su tendencia — `RF-REG-14`.
+///
+/// Lo que el criador quiere saber no es cuánto pesa hoy —eso lo lee de una
+/// vez— sino si va subiendo o bajando desde la última pesada. Un número suelto
+/// no dice nada; dos, sí.
+class _WeightSection extends ConsumerWidget {
+  const _WeightSection({required this.birdId, required this.locale});
+
+  final String birdId;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppL10n.of(context);
+    final theme = Theme.of(context);
+    final semantic = context.semantic;
+    final history = ref.watch(weightHistoryProvider(birdId));
+
+    return history.when(
+      loading: () => const SizedBox(height: 72),
+      // Nunca en silencio: un historial vacío por error se lee como «nunca lo
+      // pesé», que es la conclusión equivocada.
+      error: (error, _) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+        child: CpAlert(message: l10n.errorUnknown),
+      ),
+      data: (trend) {
+        final latest = trend.latest;
+        final change = trend.changeG;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            latest == null
+                                ? l10n.weightNotWeighed
+                                : '${Formatters.decimal(latest.kilograms, locale)} kg',
+                            style: theme.textTheme.headlineSmall,
+                          ),
+                          if (latest != null)
+                            Text(
+                              Formatters.date(latest.date, locale),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          // Con una sola pesada no hay tendencia: pintar «+0 g»
+                          // sugeriría que el ave se estancó, y no es eso.
+                          if (change != null)
+                            Text(
+                              change > 0 ? l10n.weightGain(change) : l10n.weightLoss(change),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: change > 0 ? semantic.male : semantic.action,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    IconButton.filledTonal(
+                      tooltip: l10n.weightAdd,
+                      icon: const Icon(Icons.add),
+                      onPressed: () => context.push(Routes.birdWeightNew(birdId)),
+                    ),
+                  ],
+                ),
+              ),
+
+              if (trend.entries.length > 1) ...[
+                const SizedBox(height: AppSpacing.sm),
+                // Solo las últimas: el historial completo de un ave de tres
+                // años sería una lista interminable dentro de la ficha.
+                for (final entry in trend.entries.take(5).skip(1))
+                  _WeightRow(entry: entry, locale: locale),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WeightRow extends StatelessWidget {
+  const _WeightRow({required this.entry, required this.locale});
+
+  final WeightEntry entry;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: AppSpacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              Formatters.date(entry.date, locale),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          // De dónde salió el número: una pesada que el criador no recuerda
+          // haber hecho es una pesada en la que no confía.
+          if (entry.isFromEvaluation)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
+              child: Text(
+                l10n.weightFromEvaluation,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          Text(
+            '${Formatters.decimal(entry.kilograms, locale)} kg',
+            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -9,6 +9,7 @@ import '../../../core/db/daos/payroll_dao.dart';
 import '../../../core/db/daos/profiles_dao.dart';
 import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/db/daos/transactions_dao.dart';
+import '../../../core/db/daos/weights_dao.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/network/supabase_service.dart';
 import '../../../core/sync/sync_service.dart';
@@ -37,6 +38,7 @@ class AuthRepository {
     required EvaluationsDao evaluationsDao,
     required TransactionsDao transactionsDao,
     required PayrollDao payrollDao,
+    required WeightsDao weightsDao,
     required SyncQueueDao syncQueue,
     required SyncService syncService,
     required AuthPreferences preferences,
@@ -47,6 +49,7 @@ class AuthRepository {
        _evaluationsDao = evaluationsDao,
        _transactionsDao = transactionsDao,
        _payrollDao = payrollDao,
+       _weightsDao = weightsDao,
        _syncQueue = syncQueue,
        _syncService = syncService,
        _preferences = preferences;
@@ -58,6 +61,7 @@ class AuthRepository {
   final EvaluationsDao _evaluationsDao;
   final TransactionsDao _transactionsDao;
   final PayrollDao _payrollDao;
+  final WeightsDao _weightsDao;
   final SyncQueueDao _syncQueue;
   final SyncService _syncService;
   final AuthPreferences _preferences;
@@ -165,6 +169,7 @@ class AuthRepository {
   /// criadero anterior en el teléfono de otro, que es exactamente lo que
   /// `RF-AUT-15` no permite.
   Future<void> _wipeLocalData() async {
+    await _weightsDao.clear();
     await _birdsDao.clear();
     await _clutchesDao.clear();
     await _evaluationsDao.clear();

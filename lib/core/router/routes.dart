@@ -79,6 +79,9 @@ abstract final class Routes {
       '/birds/parent/$sexId${excludeId == null ? '' : '?exclude=$excludeId'}';
 
   static String birdDetail(String id) => '/birds/$id';
+
+  /// Anotar una pesada — `RF-REG-14`.
+  static String birdWeightNew(String id) => '/birds/$id/weight';
   static String birdEdit(String id) => '/birds/$id/edit';
 
   /// Pantalla 23 — `RF-PED`.

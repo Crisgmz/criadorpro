@@ -9,6 +9,7 @@ import 'daos/payroll_dao.dart';
 import 'daos/profiles_dao.dart';
 import 'daos/sync_queue_dao.dart';
 import 'daos/transactions_dao.dart';
+import 'daos/weights_dao.dart';
 import 'tables/birds.dart';
 import 'tables/clutches.dart';
 import 'tables/employees.dart';
@@ -17,6 +18,7 @@ import 'tables/payroll_payments.dart';
 import 'tables/profiles.dart';
 import 'tables/sync_queue_entries.dart';
 import 'tables/transactions.dart';
+import 'tables/weight_entries.dart';
 
 part 'app_database.g.dart';
 
@@ -31,6 +33,7 @@ part 'app_database.g.dart';
     Transactions,
     Employees,
     PayrollPayments,
+    WeightEntries,
     SyncQueueEntries,
   ],
   daos: [
@@ -40,6 +43,7 @@ part 'app_database.g.dart';
     EvaluationsDao,
     TransactionsDao,
     PayrollDao,
+    WeightsDao,
     SyncQueueDao,
   ],
 )
@@ -64,7 +68,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -140,6 +144,27 @@ class AppDatabase extends _$AppDatabase {
       if (from < 9) {
         await m.createTable(employees);
         await m.createTable(payrollPayments);
+      }
+
+      // v10 — historial de pesos (`RF-REG-14`). Tabla nueva, y el peso que ya
+      // tuviera cada ejemplar se convierte en su primera pesada: sin esto, el
+      // dato que el criador ya había anotado desaparecería del historial.
+      if (from < 10) {
+        await m.createTable(weightEntries);
+        // El identificador se **deriva del ejemplar**, cambiándole el dígito de
+        // versión del UUID: así los dos teléfonos de un mismo criadero generan
+        // el mismo id y la fila se funde en una sola al sincronizar, en vez de
+        // aparecer la báscula dos veces.
+        await customStatement('''
+          INSERT INTO weight_entries (id, owner_id, bird_id, weight_g, date, created_at, updated_at,
+                                      is_deleted, is_dirty)
+          SELECT
+            substr(id, 1, 14) || '5' || substr(id, 16),
+            owner_id, id, weight_g,
+            COALESCE(updated_at, created_at), created_at, updated_at, 0, 1
+          FROM birds
+          WHERE weight_g IS NOT NULL AND weight_g > 0 AND is_deleted = 0
+        ''');
       }
     },
     beforeOpen: (details) async {

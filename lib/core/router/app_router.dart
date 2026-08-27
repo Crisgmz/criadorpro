@@ -18,6 +18,7 @@ import '../../features/birds/view/bird_form_view.dart';
 import '../../features/birds/view/birds_list_view.dart';
 import '../../features/birds/view/clutch_form_view.dart';
 import '../../features/birds/view/parent_picker_view.dart';
+import '../../features/birds/view/weight_form_view.dart';
 import '../../features/dashboard/view/dashboard_shell.dart';
 import '../../features/dashboard/view/dashboard_view.dart';
 import '../../features/evaluations/view/evaluation_form_view.dart';
@@ -161,6 +162,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _page(
         Routes.evaluationNew,
         (context, state) => EvaluationFormView(birdId: state.uri.queryParameters['bird']),
+      ),
+      _page(
+        '/birds/:id/weight',
+        (context, state) => WeightFormView(birdId: state.pathParameters['id']!),
       ),
       _page(
         '/birds/:id/pedigree',
