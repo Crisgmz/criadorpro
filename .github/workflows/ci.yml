@@ -38,6 +38,17 @@ jobs:
             | xargs -0 dart format --set-exit-if-changed
       - run: flutter test
 
+      # La única compilación que ejercita `dart2js`. `analyze` y `test` corren
+      # contra la VM de Dart, donde `dart:ffi` existe: un import nativo —el de
+      # `package:sqlite3` en la base cifrada— pasaba las dos comprobaciones y
+      # reventaba el despliegue de Coolify con cientos de «Only JS interop
+      # members may be 'external'» que no nombraban ni un archivo del proyecto.
+      #
+      # Sin `--dart-define`: aquí solo se comprueba que compila, y sin
+      # credenciales la app arranca en modo solo local.
+      - name: Compilación web
+        run: flutter build web --release --no-web-resources-cdn
+
       # Terminología zootécnica — BRD §8. Un término de riña o apuesta en la
       # interfaz es motivo de rechazo en App Store y Google Play, así que la
       # compuerta corta el despliegue antes de que llegue a una captura.

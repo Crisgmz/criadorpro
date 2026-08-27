@@ -786,6 +786,17 @@ Los tokens de sesión van al mismo almacén (`RNF-14`): el de refresco vale tant
 como la contraseña, y `SharedPreferences` es un XML legible en un Android
 rooteado.
 
+La apertura de la base va detrás de un desvío por plataforma
+([lib/core/db/encrypted_connection.dart](lib/core/db/encrypted_connection.dart)):
+`_native.dart` en el teléfono —cifrado y migración— y `_web.dart` en el
+navegador, sin cifrar. No es simetría de estilo: `package:sqlite3` arrastra
+`dart:ffi`, que `dart2js` no compila, y con el import suelto **la compilación
+web falla entera** con cientos de «Only JS interop members may be 'external'»
+que no nombran ni un archivo del proyecto. `flutter analyze` y `flutter test`
+corren contra la VM, donde `dart:ffi` existe, así que no lo ven: quien lo cubre
+es el paso de compilación web de CI. Todo import nuevo de `dart:ffi` o de
+`package:sqlite3` va detrás del mismo desvío.
+
 Un dispositivo que ya tuviera la app con base sin cifrar se migra al arrancar,
 copiando tabla por tabla —`sqlcipher_export` no existe en sqlite3mc— y **sin
 borrar la original hasta que la cifrada está escrita**.

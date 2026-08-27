@@ -51,7 +51,7 @@ class AppDatabase extends _$AppDatabase {
   /// En tests, pásale un executor en memoria:
   /// `AppDatabase(NativeDatabase.memory())`.
   AppDatabase([QueryExecutor? executor])
-    : super(executor ?? driftDatabase(name: AppConfig.databaseName, web: _webOptions));
+    : super(executor ?? driftDatabase(name: AppConfig.databaseName, web: webOptions));
 
   /// Web **no es plataforma objetivo** —el producto es iOS y Android—, pero
   /// Chrome es con diferencia la forma más rápida de revisar una pantalla, y
@@ -62,7 +62,7 @@ class AppDatabase extends _$AppDatabase {
   /// el worker que lo ejecuta fuera del hilo de la interfaz. Sus versiones van
   /// atadas a las de `sqlite3` y `drift` en `pubspec.lock`: al subir cualquiera
   /// de los dos paquetes hay que volver a descargarlos (ver README).
-  static final _webOptions = DriftWebOptions(
+  static final webOptions = DriftWebOptions(
     sqlite3Wasm: Uri.parse('sqlite3.wasm'),
     driftWorker: Uri.parse('drift_worker.js'),
   );

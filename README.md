@@ -246,6 +246,15 @@ exigen `RNF-01`–`RNF-06` solo se mide en un teléfono.
   depende de una CDN de terceros.
 - **Sin COOP/COEP**: darían a Drift el almacenamiento más rápido, pero aislar
   el origen bloquea las respuestas de Supabase. El motivo está en `nginx.conf`.
+- **La base cifrada no se compila para web.** `dart:ffi` no existe en
+  `dart2js`, así que `lib/core/db/encrypted_connection.dart` es solo un desvío:
+  el navegador se lleva `_web.dart`, sin cifrado, y el teléfono `_native.dart`
+  con SQLite3MultipleCiphers (`RNF-15`). Cualquier import nuevo de
+  `package:sqlite3` o de `dart:ffi` tiene que quedarse detrás de ese desvío.
+- **CI compila la web** antes de que Coolify lo intente. `flutter analyze` y
+  `flutter test` corren contra la VM de Dart, donde `dart:ffi` sí existe: sin
+  ese paso, un import nativo aprueba las dos comprobaciones y rompe el
+  despliegue con un error que no nombra ni un archivo del proyecto.
 
 ### Comprobar un despliegue
 
