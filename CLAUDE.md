@@ -207,7 +207,7 @@ onboarding y la app continúa desde ahí — así migra sin retranscribir su lib
 | `next_plate(p_owner, p_count)` | RPC | Reserva atómicamente un bloque de N placas y devuelve el rango |
 | `active_bird_count(p_owner)` | RPC | Conteo autoritativo para validar el límite de plan |
 | `delete_current_user()` | RPC | Borrado físico en cascada, irreversible (`RNF-20`). Borra **también las fotos del bucket**: Storage no cuelga de `auth.users` y el cascade no las alcanza |
-| `verify-receipt` | Edge Function | Valida el recibo contra Apple o Google y escribe `plan` / `plan_expires_at` con `service_role`. **El cliente nunca escribe su propio plan** — y ahora tampoco puede: `lock_plan_columns` revierte cualquier cambio que no venga del `service_role` |
+| `verify-receipt` | Edge Function | Valida el recibo contra Apple o Google y escribe `plan` / `plan_expires_at` con `service_role`. **El cliente nunca escribe su propio plan**, y `profiles_protect_plan` lo impide en la base |
 
 ### Catálogos cerrados
 
@@ -561,16 +561,18 @@ Contra Apple se prueba **primero producción y luego sandbox** si responde
 binario de producción, y probar solo contra producción hace que la revisión
 falle.
 
-**El agujero que había.** `profiles_update_own` dejaba al criador actualizar
-cualquier columna de su fila, `plan` incluida. La clave publicable es pública
-por diseño, así que bastaba un `PATCH` a `/rest/v1/profiles` con
-`{"plan":"elite"}` para darse Élite gratis. El cliente de la app no lo hacía
-—`toRemoteJson()` excluye el plan—, pero eso es que el cliente se porte bien, y
-`RS-13` dice que esto se impone en la base. El disparador `lock_plan_columns`
-revierte esas dos columnas para cualquier rol que no sea `service_role`.
-`next_plate` **no** se bloquea: el onboarding lo fija una vez desde el cliente.
+**El plan ya estaba protegido en la base**, desde la migración 2: el disparador
+`profiles_protect_plan` revierte `plan` y `plan_expires_at` cuando quien
+escribe es el propio dueño autenticado de la fila. `auth.uid()` es nulo tanto
+para `service_role` como para una conexión directa, así que `verify-receipt`
+puede escribirlo y soporte también puede a mano desde el SQL Editor. No hace
+falta nada más — y añadir un segundo disparador que solo dejara pasar a
+`service_role` **rompería** ese segundo caso.
 
-**Y `RS-12` no se estaba cumpliendo.** `effectivePlan` degradaba en el instante
+Que el cliente omita el plan en `toRemoteJson()` es la mitad de la regla; la
+otra es ese disparador, porque la clave publicable es pública por diseño.
+
+**`RS-12` sí estaba incumplido.** `effectivePlan` degradaba en el instante
 de vencer, y una suscripción que se renueva sola vence *antes* de que llegue el
 recibo nuevo —la tienda cobra y confirma con horas de retraso—. Un criadero de
 Élite que pagó perdía la empleomanía a media mañana y la recuperaba por la
