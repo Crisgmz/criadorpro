@@ -9,6 +9,7 @@ import 'package:criadorpro/core/widgets/cp_alert.dart';
 import 'package:criadorpro/core/widgets/motion.dart';
 import 'package:criadorpro/features/birds/model/bird.dart';
 import 'package:criadorpro/features/birds/view/bird_detail_view.dart';
+import 'package:criadorpro/features/birds/view/birds_list_view.dart';
 import 'package:criadorpro/features/birds/view/widgets/marking_fields.dart';
 import 'package:criadorpro/features/birds/view/widgets/trait_picker.dart';
 import 'package:criadorpro/l10n/generated/app_l10n.dart';
@@ -305,5 +306,48 @@ void main() {
     await tester.pumpAndSettle();
 
     await expectLater(find.byType(CpPop), matchesGoldenFile('goldens/confirmacion.png'));
+  });
+
+  testWidgets('lista de ejemplares · fila', (tester) async {
+    tester.view
+      ..physicalSize = const Size(390 * 3, 560 * 3)
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    Bird bird(int plate, String name, String line, Sex sex, BirdStatus status, String? band) =>
+        Bird(
+          id: 'b$plate',
+          ownerId: 'o1',
+          plate: plate,
+          name: name,
+          line: line,
+          sex: sex,
+          status: status,
+          wingBandLeft: band,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+
+    await tester.pumpWidget(
+      host(
+        BirdsListPreview(
+          birds: [
+            bird(1688, 'Giro Pinta', 'Criadero Los Pinos', Sex.male, BirdStatus.active, 'red'),
+            bird(1687, 'Canela', 'Criadero Los Pinos', Sex.female, BirdStatus.active, 'blue'),
+            bird(1402, 'Blanca Real', 'Criadero Los Pinos', Sex.female, BirdStatus.active, null),
+            bird(1355, 'Cenizo', 'El Chino Domínguez', Sex.male, BirdStatus.sold, 'yellow'),
+            bird(1301, 'Pinto Bravo', 'Criadero Pitón', Sex.male, BirdStatus.deceased, 'red'),
+            bird(1290, 'Giro Colorado', 'Criadero Los Pinos', Sex.male, BirdStatus.loaned, 'green'),
+            bird(1188, 'Sabanero', 'Criadero Los Pinos', Sex.male, BirdStatus.active, 'pink'),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byType(BirdsListPreview),
+      matchesGoldenFile('goldens/lista_ejemplares.png'),
+    );
   });
 }
