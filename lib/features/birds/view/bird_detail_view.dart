@@ -160,7 +160,6 @@ class BirdRecordHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
-    final theme = Theme.of(context);
 
     return ColoredBox(
       color: AppColors.navy,
@@ -181,20 +180,12 @@ class BirdRecordHeader extends StatelessWidget {
             AppSpacing.screen,
             AppSpacing.lg,
           ),
+          overline: l10n.birdRecordTitle,
           leading: _HeaderButton(icon: Icons.close, tooltip: l10n.commonClose, onTap: onClose),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                l10n.birdRecordTitle.toUpperCase(),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              _HeaderButton(icon: Icons.edit_outlined, tooltip: l10n.commonEdit, onTap: onEdit),
-            ],
+          trailing: _HeaderButton(
+            icon: Icons.edit_outlined,
+            tooltip: l10n.commonEdit,
+            onTap: onEdit,
           ),
           badges: [
             _HeaderChip(

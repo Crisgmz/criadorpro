@@ -25,6 +25,7 @@ class CpSubjectCard extends StatelessWidget {
     this.badges = const [],
     this.leading,
     this.trailing,
+    this.overline,
     this.borderRadius = AppRadius.card,
     this.padding = const EdgeInsets.all(AppSpacing.md),
     this.showWatermark = false,
@@ -40,6 +41,13 @@ class CpSubjectCard extends StatelessWidget {
   /// Contenido sobre el bloque: la equis de cerrar y las acciones de la ficha.
   final Widget? leading;
   final Widget? trailing;
+
+  /// Rótulo centrado de la fila superior — «FICHA DEL EJEMPLAR».
+  ///
+  /// Va como parámetro propio y no dentro de [trailing] para poder centrarlo
+  /// **en la pantalla**: metido en la fila quedaba centrado entre los dos
+  /// botones, que es un sitio distinto y se nota.
+  final String? overline;
 
   final double borderRadius;
   final EdgeInsetsGeometry padding;
@@ -70,8 +78,31 @@ class CpSubjectCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (leading != null || trailing != null)
-                    Row(children: [?leading, const Spacer(), ?trailing]),
+                  if (leading != null || trailing != null || overline != null) ...[
+                    SizedBox(
+                      height: AppSizes.minTouchTarget,
+                      child: Stack(
+                        children: [
+                          if (overline != null)
+                            Center(
+                              child: Text(
+                                overline!.toUpperCase(),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ),
+                          if (leading != null)
+                            Align(alignment: AlignmentDirectional.centerStart, child: leading),
+                          if (trailing != null)
+                            Align(alignment: AlignmentDirectional.centerEnd, child: trailing),
+                        ],
+                      ),
+                    ),
+                    // Sin esto la equis quedaba pegada a la foto.
+                    const SizedBox(height: AppSpacing.md),
+                  ],
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
