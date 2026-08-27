@@ -55,12 +55,27 @@ void main() {
     expect(find.text('Hasta 500 ejemplares'), findsOneWidget);
   });
 
-  testWidgets('agrupa las entradas como el PRD', (tester) async {
+  testWidgets('agrupa las entradas como el diseño', (tester) async {
     await pumpDrawer(tester, withProfile: profile);
 
+    // La tarjeta de membresía encabeza el panel y **es** el rótulo de su
+    // sección: repetirlo debajo lo diría dos veces.
+    expect(find.text('MEMBRESÍA'), findsOneWidget);
+    expect(find.text('MI CRIADERO'), findsOneWidget);
+
+    // El panel del diseño es más largo que la pantalla, así que lo de abajo
+    // hay que desplazarlo para que exista: `ListView` solo construye lo
+    // visible, y buscarlo sin desplazar da un falso negativo.
+    await tester.dragUntilVisible(
+      find.text('MI CUENTA'),
+      find.byType(ListView),
+      const Offset(0, -120),
+    );
     expect(find.text('MI CUENTA'), findsOneWidget);
-    expect(find.text('INFO DE LA APP'), findsOneWidget);
-    expect(find.text('Datos del criadero'), findsOneWidget);
+    expect(find.text('Mi perfil'), findsOneWidget);
+
+    await tester.dragUntilVisible(find.text('AYUDA'), find.byType(ListView), const Offset(0, -120));
+    expect(find.text('AYUDA'), findsOneWidget);
   });
 
   _hamburgerGroup();

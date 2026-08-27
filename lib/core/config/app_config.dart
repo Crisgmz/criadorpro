@@ -78,7 +78,27 @@ abstract final class AppConfig {
 
   // --- Enlaces legales (RF-CTA-12) ---------------------------------------
 
+  /// Versión visible. Se mantiene a mano junto a la de `pubspec.yaml`: leerla
+  /// en tiempo de ejecución exige `package_info_plus`, y un paquete entero por
+  /// una cadena que cambia con cada publicación no compensa.
+  static const String version = '1.0.0';
+
   static const String termsUrl = 'https://criadorpro.app/terminos';
+
+  // --- Soporte (pantalla 15) ---------------------------------------------
+  //
+  // El diseño ofrece WhatsApp como canal principal: en República Dominicana es
+  // donde el criador ya escribe, y un formulario dentro de la app sería un
+  // sitio más que revisar. Números y correo de marcador: sustituir por los
+  // reales antes de publicar.
+
+  static const String supportPhoneE164 = '+18095551234';
+  static const String supportEmail = 'soporte@criadorpro.app';
+
+  /// Enlace de WhatsApp. `wa.me` funciona con la app instalada y también en el
+  /// navegador, así que no hace falta detectar si está.
+  static String get supportWhatsAppUrl =>
+      'https://wa.me/${supportPhoneE164.replaceAll(RegExp(r'[^0-9]'), '')}';
   static const String privacyUrl = 'https://criadorpro.app/privacidad';
 
   /// País por omisión del perfil — SRS · `profiles.country_code`.

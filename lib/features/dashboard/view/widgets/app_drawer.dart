@@ -47,18 +47,34 @@ class AppDrawer extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
 
-            _GroupLabel(l10n.drawerGroupAccount),
+            // Secciones del diseño (pantalla 37). El orden importa: primero
+            // lo que se paga, luego el criadero, después la cuenta y la ayuda.
+            //
+            // La tarjeta de arriba **es** el rótulo de esta sección: ya dice
+            // «MEMBRESÍA», y repetirlo debajo lo diría dos veces.
             ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: Text(l10n.drawerFarmData),
-              onTap: () => _go(context, Routes.settings),
+              leading: const Icon(Icons.credit_card_outlined),
+              title: Text(l10n.drawerBilling),
+              onTap: () => _open(context, Routes.settings),
             ),
+
+            const Divider(height: AppSpacing.lg),
+            _GroupLabel(l10n.drawerGroupFarm),
             ListTile(
               leading: const BrandIcon(),
               title: Text(l10n.navBirds),
               onTap: () => _go(context, Routes.birds),
             ),
-
+            ListTile(
+              leading: const Icon(Icons.groups_outlined),
+              title: Text(l10n.navCommunity),
+              onTap: () => _go(context, Routes.community),
+            ),
+            ListTile(
+              leading: const Icon(Icons.assignment_outlined),
+              title: Text(l10n.navTests),
+              onTap: () => _go(context, Routes.evaluations),
+            ),
             ListTile(
               // Contabilidad y empleomanía **no ocupan pestaña** (PRD §7): son
               // módulos administrativos y la barra inferior se reserva a lo que
@@ -73,12 +89,42 @@ class AppDrawer extends ConsumerWidget {
               onTap: () => _open(context, Routes.payroll),
             ),
 
-            const Divider(height: AppSpacing.xl),
-            _GroupLabel(l10n.drawerGroupApp),
+            const Divider(height: AppSpacing.lg),
+            _GroupLabel(l10n.drawerGroupAccount),
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: Text(l10n.drawerProfile),
+              onTap: () => _open(context, Routes.profile),
+            ),
             ListTile(
               leading: const Icon(Icons.settings_outlined),
               title: Text(l10n.navSettings),
               onTap: () => _go(context, Routes.settings),
+            ),
+
+            const Divider(height: AppSpacing.lg),
+            _GroupLabel(l10n.drawerGroupHelp),
+            ListTile(
+              leading: const Icon(Icons.support_agent_outlined),
+              title: Text(l10n.drawerSupport),
+              onTap: () => _open(context, Routes.support),
+            ),
+
+            const Divider(height: AppSpacing.lg),
+            _GroupLabel(l10n.drawerGroupApp),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.lg,
+              ),
+              child: Text(
+                '${l10n.drawerVersion} ${AppConfig.version}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
           ],
         ),

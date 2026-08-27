@@ -40,6 +40,13 @@ abstract final class Routes {
   /// sin venir a registrar nada.
   static const String community = '/community';
 
+  /// Pantalla 13 — Mi perfil. Cuelga de Mi cuenta, no del shell: se abre y se
+  /// vuelve, no es un destino donde uno se queda.
+  static const String profile = '/account/profile';
+
+  /// Pantalla 15 — Soporte.
+  static const String support = '/account/support';
+
   /// Solicitud de encuentro a un criadero concreto. El destinatario va en la
   /// ruta porque la pantalla no existe sin él.
   static String meetingRequestFor(String ownerId) => '/community/request/$ownerId';

@@ -93,6 +93,55 @@ class ProfileRepository implements RemotePuller {
     }, (error, _) => DatabaseFailure(debugMessage: error.toString(), cause: error));
   }
 
+  /// Edita el perfil del criadero — pantalla 13, `RF-CTA-02`.
+  ///
+  /// `next_plate` **no** se toca aquí. Lo fija el onboarding una vez y a partir
+  /// de ahí solo lo mueve la reserva de placas: dejar editarlo desde el perfil
+  /// permitiría retrocederlo y repetir placas ya usadas, que es lo único que
+  /// `RS-01` no perdona.
+  Future<Result<Profile>> updateProfile({
+    required String ownerId,
+    String? fullName,
+    String? farmName,
+    String? location,
+    String? phone,
+    String? locale,
+  }) async {
+    final existing = await _profilesDao.findById(ownerId);
+    if (existing == null) {
+      return const Err(NotFoundFailure(debugMessage: 'perfil no encontrado'));
+    }
+
+    final now = _clock();
+    final profile = Profile.fromRow(existing).copyWith(
+      fullName: _trimToNull(fullName),
+      farmName: _trimToNull(farmName),
+      location: _trimToNull(location),
+      phone: _trimToNull(phone),
+      locale: locale,
+      updatedAt: now,
+    );
+
+    return guard(() async {
+      await _database.transaction(() async {
+        await _profilesDao.upsert(profile.toCompanion());
+        await _syncQueue.enqueue(
+          entityTable: table,
+          entityId: profile.id,
+          operation: SyncOperation.upsert,
+          payload: jsonEncode(profile.toRemoteJson()),
+          now: now,
+        );
+      });
+      return profile;
+    }, (error, _) => DatabaseFailure(debugMessage: error.toString(), cause: error));
+  }
+
+  static String? _trimToNull(String? value) {
+    final trimmed = value?.trim();
+    return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+  }
+
   /// Publica o retira el criadero del directorio de Comunidad — `RF-COM`.
   ///
   /// Es **opt-in** y vive en el perfil, no en Comunidad: el interruptor tiene

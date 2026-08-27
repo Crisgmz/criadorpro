@@ -41,6 +41,7 @@ import '../../features/payroll/viewmodel/payroll_viewmodel.dart';
 import '../../features/pedigree/repository/pedigree_repository.dart';
 import '../../features/pedigree/viewmodel/pedigree_viewmodel.dart';
 import '../../features/settings/viewmodel/app_settings_viewmodel.dart';
+import '../../features/settings/viewmodel/profile_viewmodel.dart';
 import '../../features/settings/viewmodel/settings_viewmodel.dart';
 import '../config/app_config.dart';
 import '../db/app_database.dart';
@@ -555,3 +556,11 @@ final meetingRequestViewModelProvider = ChangeNotifierProvider.autoDispose
         toOwner: toOwner,
       ),
     );
+
+/// Pantalla 13 — Mi perfil.
+final profileViewModelProvider = ChangeNotifierProvider.autoDispose<ProfileViewModel>(
+  (ref) => ProfileViewModel(
+    repository: ref.watch(profileRepositoryProvider),
+    ownerId: ref.watch(currentOwnerIdProvider),
+  ),
+);

@@ -125,7 +125,16 @@ void main() {
     // corre en español.
     await tester.tap(find.byIcon(Icons.menu));
     await settle(tester);
-    await tester.tap(find.text('Contabilidad').last);
+
+    // El panel del diseño es más largo que la pantalla: `ListView` solo
+    // construye lo visible, así que hay que desplazarlo hasta la entrada.
+    // El `ListView` se busca **dentro del panel**: el de la pantalla que hay
+    // detrás también responde, y desplazarlo no acerca nada.
+    final drawerList = find.descendant(of: find.byType(Drawer), matching: find.byType(ListView));
+    final entry = find.descendant(of: find.byType(Drawer), matching: find.text('Contabilidad'));
+
+    await tester.dragUntilVisible(entry, drawerList, const Offset(0, -120));
+    await tester.tap(entry);
     await settle(tester);
 
     expect(find.text('agosto de 2026'), findsOneWidget, reason: 'se abrió contabilidad');
