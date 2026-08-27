@@ -12,6 +12,7 @@ import '../../../core/domain/sex.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/media/photo_sync.dart';
 import '../../../core/network/supabase_service.dart';
+import '../../../core/sync/remote_merge.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/utils/result.dart';
 import '../model/bird.dart';
@@ -252,15 +253,17 @@ class BirdsRepository implements RemotePuller, PhotoUrlSink {
 
     if (rows.isEmpty) return null;
 
-    // Lo que aún no se ha subido gana: no lo pisamos con la versión remota.
-    final pending = await _syncQueue.pendingIdsFor(table);
+    // `RS-09`: gana el `updated_at` más reciente y, en empate, el servidor. La
+    // marca de agua avanza igual con las filas que gana lo local — ver
+    // `RemoteMerge`, que explica por qué eso no las pierde.
+    final merge = await RemoteMerge.forTable(_syncQueue, table);
 
     DateTime? latest;
     final incoming = <BirdsCompanion>[];
     for (final row in rows) {
       final bird = Bird.fromRemoteJson(row);
       if (latest == null || bird.updatedAt.isAfter(latest)) latest = bird.updatedAt;
-      if (pending.contains(bird.id)) continue;
+      if (!await merge.accepts(bird.id, bird.updatedAt)) continue;
       incoming.add(bird.toCompanion());
     }
 

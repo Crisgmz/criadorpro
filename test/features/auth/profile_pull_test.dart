@@ -58,12 +58,19 @@ void main() {
   Future<Profile> localProfile() async =>
       Profile.fromRow((await database.profilesDao.findById(ownerId))!);
 
-  Future<void> enqueueProfileWrite({int attempts = 0}) async {
+  /// Escritura local del perfil todavía sin subir. Por omisión es **más nueva**
+  /// que la fila remota de estas pruebas, que es lo que la hace ganar bajo
+  /// `RS-09`; sin fecha ganaría igual, pero por prudencia y no por la regla.
+  Future<void> enqueueProfileWrite({int attempts = 0, DateTime? updatedAt}) async {
     await database.syncQueueDao.enqueue(
       entityTable: 'profiles',
       entityId: ownerId,
       operation: SyncOperation.upsert,
-      payload: jsonEncode({'id': ownerId, 'farm_name': 'Criadero del criador'}),
+      payload: jsonEncode({
+        'id': ownerId,
+        'farm_name': 'Criadero del criador',
+        'updated_at': (updatedAt ?? now.add(const Duration(minutes: 5))).toIso8601String(),
+      }),
       now: now,
     );
     if (attempts > 0) {
@@ -145,6 +152,22 @@ void main() {
       before,
       reason: 'moverlo haría ganar a esta fila la resolución de conflictos (RS-09)',
     );
+  });
+
+  test('si el servidor es más nuevo, entra entero y la cola se limpia', () async {
+    // `RS-09` en el otro sentido: la escritura local esperaba en la cola, pero
+    // desde otro dispositivo se editó el perfil después. Gana esa edición.
+    await enqueueProfileWrite(updatedAt: now.subtract(const Duration(hours: 1)));
+
+    await repository.applyRemote(
+      remoteRow(plan: 'elite', farmName: 'Nombre del servidor'),
+      ownerId: ownerId,
+    );
+
+    expect((await localProfile()).farmName, 'Nombre del servidor');
+    // Y la escritura vieja se retira: subirla después devolvería el servidor al
+    // nombre anterior, deshaciendo sin motivo el cambio que acaba de ganar.
+    expect(await database.syncQueueDao.pendingFor('profiles'), isEmpty);
   });
 
   test('recién caducada aguanta el margen de `RS-12`', () async {

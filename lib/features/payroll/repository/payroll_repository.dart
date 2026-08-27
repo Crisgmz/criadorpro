@@ -10,6 +10,7 @@ import '../../../core/db/daos/profiles_dao.dart';
 import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/network/supabase_service.dart';
+import '../../../core/sync/remote_merge.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/utils/result.dart';
 import '../model/employee.dart';
@@ -409,14 +410,14 @@ class PayrollRepository {
         : await query.gt('updated_at', since.toUtc().toIso8601String());
     if (rows.isEmpty) return null;
 
-    final pending = await _syncQueue.pendingIdsFor(employeesTable);
+    final merge = await RemoteMerge.forTable(_syncQueue, employeesTable);
 
     DateTime? latest;
     final incoming = <EmployeesCompanion>[];
     for (final row in rows) {
       final employee = Employee.fromRemoteJson(row);
       if (latest == null || employee.updatedAt.isAfter(latest)) latest = employee.updatedAt;
-      if (pending.contains(employee.id)) continue;
+      if (!await merge.accepts(employee.id, employee.updatedAt)) continue;
       incoming.add(employee.toCompanion());
     }
 
@@ -433,14 +434,14 @@ class PayrollRepository {
         : await query.gt('updated_at', since.toUtc().toIso8601String());
     if (rows.isEmpty) return null;
 
-    final pending = await _syncQueue.pendingIdsFor(paymentsTable);
+    final merge = await RemoteMerge.forTable(_syncQueue, paymentsTable);
 
     DateTime? latest;
     final incoming = <PayrollPaymentsCompanion>[];
     for (final row in rows) {
       final payment = PayrollPayment.fromRemoteJson(row);
       if (latest == null || payment.updatedAt.isAfter(latest)) latest = payment.updatedAt;
-      if (pending.contains(payment.id)) continue;
+      if (!await merge.accepts(payment.id, payment.updatedAt)) continue;
       incoming.add(payment.toCompanion());
     }
 

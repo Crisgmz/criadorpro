@@ -56,14 +56,13 @@ class SyncQueueDao extends DatabaseAccessor<AppDatabase> with _$SyncQueueDaoMixi
     return query.watchSingle().map((row) => row.read(total) ?? 0);
   }
 
-  /// Ids con cambios locales aún sin subir. La bajada los salta para no pisar
-  /// una edición del usuario con una versión remota más antigua.
-  Future<Set<String>> pendingIdsFor(String entityTable) async {
-    final rows = await (select(
-      syncQueueEntries,
-    )..where((t) => t.entityTable.equals(entityTable))).get();
-    return rows.map((row) => row.entityId).toSet();
-  }
+  /// Cambios locales de [entityTable] que aún no han subido.
+  ///
+  /// La bajada los necesita enteros y no solo sus identificadores: compara su
+  /// `updated_at` con el de la fila remota (`RS-09`) y, si gana el servidor,
+  /// retira la entrada por su `id`. Quien aplica la regla es `RemoteMerge`.
+  Future<List<SyncTask>> pendingFor(String entityTable) =>
+      (select(syncQueueEntries)..where((t) => t.entityTable.equals(entityTable))).get();
 
   Future<void> remove(int id) => (delete(syncQueueEntries)..where((t) => t.id.equals(id))).go();
 

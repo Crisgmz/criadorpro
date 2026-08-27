@@ -11,6 +11,7 @@ import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/domain/sex.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/network/supabase_service.dart';
+import '../../../core/sync/remote_merge.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/utils/result.dart';
 import '../model/bird.dart';
@@ -298,14 +299,14 @@ class ClutchesRepository implements RemotePuller {
 
     if (rows.isEmpty) return null;
 
-    final pending = await _syncQueue.pendingIdsFor(table);
+    final merge = await RemoteMerge.forTable(_syncQueue, table);
 
     DateTime? latest;
     final incoming = <ClutchesCompanion>[];
     for (final row in rows) {
       final clutch = Clutch.fromRemoteJson(row);
       if (latest == null || clutch.updatedAt.isAfter(latest)) latest = clutch.updatedAt;
-      if (pending.contains(clutch.id)) continue;
+      if (!await merge.accepts(clutch.id, clutch.updatedAt)) continue;
       incoming.add(clutch.toCompanion());
     }
 

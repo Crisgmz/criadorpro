@@ -10,6 +10,7 @@ import '../../../core/db/daos/profiles_dao.dart';
 import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/network/supabase_service.dart';
+import '../../../core/sync/remote_merge.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/utils/result.dart';
 import '../model/evaluation.dart';
@@ -209,14 +210,14 @@ class EvaluationsRepository implements RemotePuller {
 
     if (rows.isEmpty) return null;
 
-    final pending = await _syncQueue.pendingIdsFor(table);
+    final merge = await RemoteMerge.forTable(_syncQueue, table);
 
     DateTime? latest;
     final incoming = <EvaluationsCompanion>[];
     for (final row in rows) {
       final evaluation = Evaluation.fromRemoteJson(row);
       if (latest == null || evaluation.updatedAt.isAfter(latest)) latest = evaluation.updatedAt;
-      if (pending.contains(evaluation.id)) continue;
+      if (!await merge.accepts(evaluation.id, evaluation.updatedAt)) continue;
       incoming.add(evaluation.toCompanion());
     }
 

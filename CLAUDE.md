@@ -267,14 +267,26 @@ cambio guardado sin su entrada en la cola ni al revés.
 - **Descarga**: `updated_at > last_pull_at` por entidad, incluyendo filas con `is_deleted = true` para propagar borrados.
 - **Dispositivo nuevo**: descarga completa antes de habilitar la escritura (`RF-SIN-08`).
 - **Fotos**: se guardan primero en el sistema de archivos local y se suben como operación independiente, para que una foto pesada no bloquee la cola de datos.
-- **Conflictos**: una fila con escritura pendiente en la cola no se pisa con la
-  versión remota. La excepción es `profiles.plan` y `plan_expires_at`, que el
-  cliente **no escribe nunca** (`toRemoteJson()` los excluye; los fija
-  `verify_receipt()`): se aplican aunque haya una escritura del perfil en la
-  cola, y sin mover `updated_at`. Sin esa excepción, una entrada que agotara
-  sus cinco intentos congelaba la membresía hasta que alguien pulsara
-  «Sincronizar ahora» — el criador pagaba Élite y la app le seguía diciendo que
-  no le caben más ejemplares.
+- **Conflictos (`RS-09`)**: los resuelve
+  [RemoteMerge](lib/core/sync/remote_merge.dart), en un solo sitio para los ocho
+  recorridos de bajada. Gana el `updated_at` más reciente entre la fila remota y
+  la escritura que espera en la cola; en empate, el servidor. Cuando gana el
+  servidor, **la escritura local caducada se retira de la cola**: dejarla ahí la
+  subiría en la siguiente pasada y devolvería el servidor a la versión anterior,
+  deshaciendo solo el cambio que acababa de ganar.
+  - La regla anterior —«lo local pendiente gana siempre»— dejaba fuera la hora,
+    y una entrada que agotara sus cinco intentos (`RS-11`) impedía **para
+    siempre** que bajara nada de esa fila.
+  - La marca de agua avanza con la fecha remota de toda fila vista, también de
+    las que gana lo local: esa versión local es más nueva y, al subir, el
+    `touch_updated_at()` del servidor le pondrá una fecha mayor, así que vuelve
+    a bajar sola.
+  - Sin fecha utilizable en el payload gana lo local, que es lo prudente: no se
+    pisa al criador por no poder comparar.
+  - **Excepción**: `profiles.plan` y `plan_expires_at`. El cliente no los
+    escribe nunca (`toRemoteJson()` los excluye; los fija `verify_receipt()`),
+    así que no pueden estar en conflicto y entran aunque gane lo local — y sin
+    mover `updated_at`.
 
 ---
 

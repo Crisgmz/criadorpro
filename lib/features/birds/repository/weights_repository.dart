@@ -9,6 +9,7 @@ import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/db/daos/weights_dao.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/network/supabase_service.dart';
+import '../../../core/sync/remote_merge.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/utils/result.dart';
 import '../../../core/utils/validators.dart';
@@ -209,7 +210,7 @@ class WeightsRepository implements RemotePuller, WeightLog {
         : await query.gt('updated_at', since.toUtc().toIso8601String());
     if (rows.isEmpty) return null;
 
-    final pending = await _syncQueue.pendingIdsFor(table);
+    final merge = await RemoteMerge.forTable(_syncQueue, table);
 
     DateTime? latest;
     final incoming = <WeightEntriesCompanion>[];
@@ -217,7 +218,7 @@ class WeightsRepository implements RemotePuller, WeightLog {
     for (final row in rows) {
       final entry = WeightEntry.fromRemoteJson(row);
       if (latest == null || entry.updatedAt.isAfter(latest)) latest = entry.updatedAt;
-      if (pending.contains(entry.id)) continue;
+      if (!await merge.accepts(entry.id, entry.updatedAt)) continue;
       incoming.add(entry.toCompanion());
       touched.add(entry.birdId);
     }

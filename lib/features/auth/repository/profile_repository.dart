@@ -7,6 +7,7 @@ import '../../../core/db/daos/profiles_dao.dart';
 import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/network/supabase_service.dart';
+import '../../../core/sync/remote_merge.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/utils/result.dart';
 import '../model/profile.dart';
@@ -175,10 +176,11 @@ class ProfileRepository implements RemotePuller {
   Future<DateTime?> applyRemote(Map<String, dynamic> row, {required String ownerId}) async {
     final profile = Profile.fromRemoteJson(row);
 
-    // Un cambio local sin sincronizar gana sobre lo que llega: si no, la bajada
-    // pisaría el criadero que el usuario acaba de escribir sin conexión.
-    final pending = await _syncQueue.pendingIdsFor(table);
-    if (pending.contains(ownerId)) {
+    // Gana el `updated_at` más reciente (`RS-09`): lo que el criador escribió
+    // sin conexión no se pisa con una versión remota más antigua, pero una
+    // edición hecha después desde otro dispositivo sí entra.
+    final merge = await RemoteMerge.forTable(_syncQueue, table);
+    if (!await merge.accepts(ownerId, profile.updatedAt)) {
       // El plan es la excepción, y no por comodidad: el cliente **no lo
       // escribe nunca** —`toRemoteJson()` lo deja fuera y quien lo fija es
       // `verify_receipt()` (`RS-12`)—, así que una escritura local pendiente

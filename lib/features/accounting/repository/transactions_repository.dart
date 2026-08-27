@@ -10,6 +10,7 @@ import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/db/daos/transactions_dao.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/network/supabase_service.dart';
+import '../../../core/sync/remote_merge.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/utils/result.dart';
 import '../model/transaction.dart';
@@ -354,14 +355,14 @@ class TransactionsRepository implements RemotePuller, PayrollExpenseSink {
 
     if (rows.isEmpty) return null;
 
-    final pending = await _syncQueue.pendingIdsFor(table);
+    final merge = await RemoteMerge.forTable(_syncQueue, table);
 
     DateTime? latest;
     final incoming = <TransactionsCompanion>[];
     for (final row in rows) {
       final transaction = Transaction.fromRemoteJson(row);
       if (latest == null || transaction.updatedAt.isAfter(latest)) latest = transaction.updatedAt;
-      if (pending.contains(transaction.id)) continue;
+      if (!await merge.accepts(transaction.id, transaction.updatedAt)) continue;
       incoming.add(transaction.toCompanion());
     }
 
