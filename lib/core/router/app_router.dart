@@ -131,7 +131,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Pantalla completa, apiladas sobre el shell. `/birds/new` va antes que
       // `/birds/:id` para que "new" no se interprete como un id.
-      GoRoute(path: Routes.birdNew, builder: (context, state) => const BirdFormView()),
+      GoRoute(
+        path: Routes.birdNew,
+        builder: (context, state) =>
+            BirdFormView(returnsResult: state.uri.queryParameters['return'] == '1'),
+      ),
       // Antes que `/birds/:id`: si no, `clutch` se tomaría por un id.
       GoRoute(path: Routes.clutchNew, builder: (context, state) => const ClutchFormView()),
       GoRoute(path: Routes.accounting, builder: (context, state) => const AccountingView()),

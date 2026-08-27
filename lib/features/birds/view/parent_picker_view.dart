@@ -68,7 +68,7 @@ class _ParentPickerViewState extends ConsumerState<ParentPickerView> {
   /// elegir directamente sin obligar al criador a buscarlo en una lista que
   /// acaba de cambiar.
   Future<void> _createNew() async {
-    final created = await context.push<Bird?>(Routes.birdNew);
+    final created = await context.push<Bird?>(Routes.birdNewForResult);
     if (!mounted) return;
 
     if (created != null && created.sex == widget.sex) {

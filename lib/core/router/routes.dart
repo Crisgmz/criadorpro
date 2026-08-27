@@ -43,6 +43,13 @@ abstract final class Routes {
   // Pantallas a pantalla completa, fuera del shell.
   static const String birdNew = '/birds/new';
 
+  /// Alta que **devuelve** el ejemplar creado en lugar de navegar.
+  ///
+  /// La usa el selector de progenitor (pantalla 18): allí el alta es un paso
+  /// dentro de otra tarea, y llevarse al criador a la lista de ejemplares le
+  /// haría perder el formulario que estaba rellenando.
+  static const String birdNewForResult = '$birdNew?return=1';
+
   /// Registro de camada (`RF-REG-08`). Cuelga de ejemplares porque lo que crea
   /// son ejemplares, pero se abre a pantalla completa: es un formulario de
   /// captura rápida y la barra inferior solo distraería.

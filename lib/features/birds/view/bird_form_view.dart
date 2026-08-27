@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/domain/bird_traits.dart';
 import '../../../core/domain/sex.dart';
 import '../../../core/error/failure_messages.dart';
 import '../../../core/providers/providers.dart';
+import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/cp_button.dart';
@@ -22,9 +24,13 @@ import 'widgets/trait_picker.dart';
 
 /// Alta y edición de un ejemplar. Sin [birdId] es un alta.
 class BirdFormView extends ConsumerStatefulWidget {
-  const BirdFormView({super.key, this.birdId});
+  const BirdFormView({super.key, this.birdId, this.returnsResult = false});
 
   final String? birdId;
+
+  /// `true` cuando el alta es un paso dentro de otra tarea —el selector de
+  /// progenitor— y quien la abrió espera el ejemplar de vuelta.
+  final bool returnsResult;
 
   @override
   ConsumerState<BirdFormView> createState() => _BirdFormViewState();
@@ -91,7 +97,16 @@ class _BirdFormViewState extends ConsumerState<BirdFormView> {
 
     if (saved != null) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.birdSaved)));
-      navigator.pop(saved);
+
+      // Editar vuelve a la ficha de donde se vino, y el alta que abrió el
+      // selector de progenitor devuelve el ejemplar. Pero un alta suelta acaba
+      // en la lista: es donde el criador ve el resultado de lo que hizo, y
+      // volver a Inicio le obliga a buscarlo.
+      if (viewModel.isEditing || widget.returnsResult) {
+        navigator.pop(saved);
+      } else {
+        context.go(Routes.birds);
+      }
       return;
     }
 
