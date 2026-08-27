@@ -25,18 +25,41 @@ Cinco pasos. Los cuatro primeros son de una sola vez.
 
 ### 1. Ejecuta las migraciones
 
-En el SQL Editor de tu proyecto, **en este orden**:
+En el SQL Editor de tu proyecto, **en este orden**. Todas son idempotentes: se
+pueden volver a ejecutar sin romper nada, así que ante la duda, ejecútalas.
 
-1. [`20260801000000_init.sql`](supabase/migrations/20260801000000_init.sql) —
-   crea `profiles`, `birds` y `clutches` con RLS por `owner_id`, los triggers de
-   `updated_at` y la función `delete_current_user()` que exige App Store.
-2. [`20260803000000_profiles_alignment.sql`](supabase/migrations/20260803000000_profiles_alignment.sql) —
-   alinea `profiles` con el SRS (`farm_name`, `location`, `country_code`,
-   `locale`, `next_plate`, `avatar_url`) y hace que `handle_new_user()` guarde
-   los datos que manda el registro. Sin esto, el nombre y el teléfono del alta
-   se pierden.
+| # | Archivo | Qué añade |
+|---|---|---|
+| 1 | [`20260801000000_init.sql`](supabase/migrations/20260801000000_init.sql) | `profiles`, `birds`, `clutches` con RLS por `owner_id`, los triggers de `updated_at` y `delete_current_user()`, que exige App Store |
+| 2 | [`20260803000000_profiles_alignment.sql`](supabase/migrations/20260803000000_profiles_alignment.sql) | `farm_name`, `location`, `country_code`, `locale`, `next_plate`, `avatar_url`, y que `handle_new_user()` guarde lo que manda el alta. Sin esto el nombre y el teléfono se pierden |
+| 3 | [`20260805000000_plate_rpc.sql`](supabase/migrations/20260805000000_plate_rpc.sql) | `next_plate()` y `active_bird_count()` — `RS-01` y `RS-02` |
+| 4 | [`20260806000000_birds_plate.sql`](supabase/migrations/20260806000000_birds_plate.sql) | La placa deja de ser texto opcional y pasa a entero obligatorio. Es el cambio del que cuelga todo el registro |
+| 5 | [`20260815000000_evaluations.sql`](supabase/migrations/20260815000000_evaluations.sql) | `evaluations` — pruebas de campo (`RF-PRU`) |
+| 6 | [`20260815010000_transactions.sql`](supabase/migrations/20260815010000_transactions.sql) | `transactions` — contabilidad (`RF-CON`) |
+| 7 | [`20260816000000_bird_markings.sql`](supabase/migrations/20260816000000_bird_markings.sql) | `birth_mark`, `wing_band_left`, `wing_band_right` y `comb` en `birds` |
+| 8 | [`20260826000000_payroll.sql`](supabase/migrations/20260826000000_payroll.sql) | `employees` y `payroll_payments` — empleomanía (`RF-NOM`) |
 
-Ambas son idempotentes: se pueden volver a ejecutar sin romper nada.
+#### Cuáles te faltan
+
+La app funciona igual sin las últimas: Drift crea las tablas en local y todo se
+guarda. Lo que falla es la **sincronización** de esos módulos, y falla en
+silencio —la operación se queda en la cola reintentando—, así que conviene
+comprobarlo en vez de suponerlo.
+
+Esta consulta lo dice de un vistazo:
+
+```sql
+select 'evaluations'      as modulo, to_regclass('public.evaluations')      is not null as listo
+union all select 'transactions',     to_regclass('public.transactions')     is not null
+union all select 'employees',        to_regclass('public.employees')        is not null
+union all select 'payroll_payments', to_regclass('public.payroll_payments') is not null
+union all select 'birds.comb',       exists (
+  select 1 from information_schema.columns
+  where table_schema = 'public' and table_name = 'birds' and column_name = 'comb'
+);
+```
+
+Cada `false` es la migración de esa fila: 5, 6, 8, 8 y 7 respectivamente.
 
 ### 2. Cambia las plantillas de correo
 
