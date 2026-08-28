@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 
 import '../../../core/config/app_config.dart';
 import '../../../core/db/app_database.dart';
+import '../../../core/utils/formatters.dart';
 
 /// Perfil del criadero. Guarda, entre otras cosas, el plan contratado —que
 /// determina cuántos ejemplares se pueden registrar— y el contador de placas,
@@ -22,11 +23,13 @@ class Profile {
     this.phone,
     this.avatarUrl,
     this.planExpiresAt,
+    this.weightUnit = WeightUnit.pounds,
     this.isPublic = false,
     this.publicBio,
   });
 
   factory Profile.fromRow(ProfileRow row) => Profile(
+    weightUnit: WeightUnit.fromId(row.weightUnit),
     isPublic: row.isPublic,
     publicBio: row.publicBio,
     id: row.id,
@@ -46,6 +49,7 @@ class Profile {
   );
 
   factory Profile.fromRemoteJson(Map<String, dynamic> json) => Profile(
+    weightUnit: WeightUnit.fromId(json['weight_unit'] as String?),
     isPublic: json['is_public'] as bool? ?? false,
     publicBio: json['public_bio'] as String?,
     id: json['id'] as String,
@@ -91,6 +95,9 @@ class Profile {
   /// Pasar `null` conserva el valor actual en lugar de borrarlo: ningún campo
   /// del perfil se vacía desde la app —se sustituye o se deja como estaba—, así
   /// que distinguir «no lo toques» de «ponlo a nulo» no aportaría nada.
+  /// Unidad en que se muestra el peso. El almacenamiento sigue en gramos.
+  final WeightUnit weightUnit;
+
   /// Aparece en el directorio de Comunidad — `RF-COM`. Opt-in.
   final bool isPublic;
 
@@ -108,6 +115,7 @@ class Profile {
     int? nextPlate,
     SubscriptionPlan? plan,
     DateTime? planExpiresAt,
+    WeightUnit? weightUnit,
     bool? isPublic,
     String? publicBio,
     DateTime? updatedAt,
@@ -124,6 +132,7 @@ class Profile {
     phone: phone ?? this.phone,
     avatarUrl: avatarUrl ?? this.avatarUrl,
     planExpiresAt: planExpiresAt ?? this.planExpiresAt,
+    weightUnit: weightUnit ?? this.weightUnit,
     isPublic: isPublic ?? this.isPublic,
     publicBio: publicBio ?? this.publicBio,
     createdAt: createdAt,
@@ -148,6 +157,7 @@ class Profile {
   SubscriptionPlan get effectivePlan => effectivePlanAt(DateTime.now());
 
   ProfilesCompanion toCompanion() => ProfilesCompanion(
+    weightUnit: Value(weightUnit.id),
     isPublic: Value(isPublic),
     publicBio: Value(publicBio),
     id: Value(id),
@@ -173,6 +183,7 @@ class Profile {
   /// solo la RPC `next_plate()` (`RS-01`). Enviarlos sería, además de inútil,
   /// una invitación a creer que el cliente manda sobre ellos.
   Map<String, dynamic> toRemoteJson() => {
+    'weight_unit': weightUnit.id,
     'is_public': isPublic,
     'public_bio': publicBio,
     'id': id,

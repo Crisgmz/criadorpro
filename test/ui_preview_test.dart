@@ -5,6 +5,7 @@ import 'package:criadorpro/core/domain/markings.dart';
 import 'package:criadorpro/core/domain/sex.dart';
 import 'package:criadorpro/core/providers/providers.dart';
 import 'package:criadorpro/core/theme/app_theme.dart';
+import 'package:criadorpro/core/utils/formatters.dart';
 import 'package:criadorpro/core/widgets/cp_alert.dart';
 import 'package:criadorpro/core/widgets/motion.dart';
 import 'package:criadorpro/features/birds/model/bird.dart';
@@ -45,6 +46,8 @@ void main() {
   }) => ProviderScope(
     overrides: [
       currentOwnerIdProvider.overrideWithValue('owner-1'),
+      // El diseño muestra el peso en libras; la app lo almacena en gramos.
+      weightUnitProvider.overrideWithValue(WeightUnit.pounds),
       weightHistoryProvider.overrideWith(
         (ref, birdId) => Stream.value(
           WeightTrend(

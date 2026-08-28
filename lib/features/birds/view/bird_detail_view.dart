@@ -430,6 +430,7 @@ class _WeightSection extends ConsumerWidget {
     final theme = Theme.of(context);
     final semantic = context.semantic;
     final history = ref.watch(weightHistoryProvider(birdId));
+    final unit = ref.watch(weightUnitProvider);
 
     return history.when(
       loading: () => const SizedBox(height: 72),
@@ -464,7 +465,7 @@ class _WeightSection extends ConsumerWidget {
                           Text(
                             latest == null
                                 ? l10n.weightNotWeighed
-                                : '${Formatters.decimal(latest.kilograms, locale)} kg',
+                                : Formatters.weight(latest.weightG, locale, unit: unit),
                             style: theme.textTheme.headlineSmall,
                           ),
                           if (latest != null)
@@ -501,7 +502,7 @@ class _WeightSection extends ConsumerWidget {
                 // Solo las últimas: el historial completo de un ave de tres
                 // años sería una lista interminable dentro de la ficha.
                 for (final entry in trend.entries.take(5).skip(1))
-                  _WeightRow(entry: entry, locale: locale),
+                  _WeightRow(entry: entry, locale: locale, unit: unit),
               ],
             ],
           ),
@@ -512,10 +513,11 @@ class _WeightSection extends ConsumerWidget {
 }
 
 class _WeightRow extends StatelessWidget {
-  const _WeightRow({required this.entry, required this.locale});
+  const _WeightRow({required this.entry, required this.locale, required this.unit});
 
   final WeightEntry entry;
   final String locale;
+  final WeightUnit unit;
 
   @override
   Widget build(BuildContext context) {
@@ -547,7 +549,7 @@ class _WeightRow extends StatelessWidget {
               ),
             ),
           Text(
-            '${Formatters.decimal(entry.kilograms, locale)} kg',
+            Formatters.weight(entry.weightG, locale, unit: unit),
             style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
         ],

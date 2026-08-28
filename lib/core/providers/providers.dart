@@ -62,6 +62,7 @@ import '../network/connectivity_service.dart';
 import '../network/supabase_service.dart';
 import '../security/secure_store.dart';
 import '../sync/sync_service.dart';
+import '../utils/formatters.dart';
 
 // ---------------------------------------------------------------------------
 // Infraestructura. Los dos primeros se sobrescriben en `main()` con instancias
@@ -243,6 +244,12 @@ final currentOwnerIdProvider = Provider<String>((ref) {
 /// se mueve al usuario de sitio.
 /// Exportación a PDF — `RF-PED-08`, `RF-CON-07`, `RF-NOM-04`.
 final exportersProvider = Provider<Exporters>((ref) => const Exporters());
+
+/// Unidad en que se muestra el peso — PRD §9. El almacenamiento sigue en
+/// gramos; esto es presentación.
+final weightUnitProvider = Provider<WeightUnit>(
+  (ref) => ref.watch(currentProfileProvider).value?.weightUnit ?? WeightUnit.pounds,
+);
 
 /// Plan vigente del criadero.
 ///

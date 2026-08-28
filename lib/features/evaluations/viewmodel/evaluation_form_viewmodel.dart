@@ -28,6 +28,12 @@ class EvaluationFormViewModel extends BaseViewModel {
   String _place = '';
   EvaluationResult _result = EvaluationResult.undefined;
   int? _condition;
+  EvaluationType _type = EvaluationType.fieldTest;
+  String _duration = '';
+  int? _stamina;
+  int? _agility;
+  int? _response;
+  FinalCondition? _finalCondition;
   String _weight = '';
   String _notes = '';
   bool _dateInFuture = false;
@@ -38,6 +44,12 @@ class EvaluationFormViewModel extends BaseViewModel {
   String get place => _place;
   EvaluationResult get result => _result;
   int? get condition => _condition;
+  EvaluationType get type => _type;
+  String get duration => _duration;
+  int? get stamina => _stamina;
+  int? get agility => _agility;
+  int? get response => _response;
+  FinalCondition? get finalCondition => _finalCondition;
   String get weight => _weight;
   String get notes => _notes;
 
@@ -81,6 +93,35 @@ class EvaluationFormViewModel extends BaseViewModel {
 
   /// Tocar la condición ya seleccionada la retira: es opcional, y sin esto no
   /// habría forma de deshacer un toque accidental.
+  void setType(EvaluationType value) {
+    _type = value;
+    safeNotify();
+  }
+
+  void setDuration(String value) => _duration = value;
+
+  /// Volver a tocar el mismo valor lo quita: sin eso, un índice puesto por
+  /// error no se puede retirar y queda un dato que nadie midió.
+  void setStamina(int? value) {
+    _stamina = _stamina == value ? null : value;
+    safeNotify();
+  }
+
+  void setAgility(int? value) {
+    _agility = _agility == value ? null : value;
+    safeNotify();
+  }
+
+  void setResponse(int? value) {
+    _response = _response == value ? null : value;
+    safeNotify();
+  }
+
+  void setFinalCondition(FinalCondition? value) {
+    _finalCondition = _finalCondition == value ? null : value;
+    safeNotify();
+  }
+
   void setCondition(int? value) {
     _condition = _condition == value ? null : value;
     safeNotify();
@@ -103,6 +144,12 @@ class EvaluationFormViewModel extends BaseViewModel {
         place: _place,
         result: _result,
         condition: _condition,
+        type: _type,
+        durationMin: int.tryParse(_duration.trim()),
+        stamina: _stamina,
+        agility: _agility,
+        response: _response,
+        finalCondition: _finalCondition,
         weightG: _parsedWeight(),
         notes: _notes,
         createdAt: _clock(),

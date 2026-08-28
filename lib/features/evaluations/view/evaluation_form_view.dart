@@ -11,7 +11,10 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/cp_button.dart';
+import '../../../core/widgets/cp_cards.dart';
+import '../../../core/widgets/cp_segmented.dart';
 import '../../../core/widgets/cp_text_field.dart';
+import '../../../core/widgets/motion.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../../birds/model/bird.dart';
 import '../../birds/view/parent_picker_view.dart';
@@ -34,6 +37,7 @@ class EvaluationFormView extends ConsumerStatefulWidget {
 class _EvaluationFormViewState extends ConsumerState<EvaluationFormView> {
   final _placeController = TextEditingController();
   final _weightController = TextEditingController();
+  final _durationController = TextEditingController();
   final _notesController = TextEditingController();
 
   @override
@@ -46,6 +50,7 @@ class _EvaluationFormViewState extends ConsumerState<EvaluationFormView> {
   void dispose() {
     _placeController.dispose();
     _weightController.dispose();
+    _durationController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -114,6 +119,19 @@ class _EvaluationFormViewState extends ConsumerState<EvaluationFormView> {
             const SizedBox(height: AppSpacing.lg),
           ],
 
+          // El tipo va primero: decide qué significa todo lo demás. Un pesaje
+          // de rutina y una prueba de campo no se leen igual.
+          SectionLabel(l10n.evalFieldType),
+          CpSegmented<EvaluationType>(
+            segments: [
+              for (final type in EvaluationType.values)
+                CpSegment(value: type, label: evaluationTypeLabel(l10n, type)),
+            ],
+            selected: viewModel.type,
+            onChanged: viewModel.setType,
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
           SectionLabel(l10n.birdSectionIdentity),
           DateField(
             label: l10n.fieldBirthDate,
@@ -136,25 +154,67 @@ class _EvaluationFormViewState extends ConsumerState<EvaluationFormView> {
           _ResultSelector(selected: viewModel.result, onChanged: viewModel.setResult),
 
           const SizedBox(height: AppSpacing.lg),
-          SectionLabel(l10n.testsFieldCondition),
-          _ConditionScale(
-            value: viewModel.condition,
-            min: viewModel.minCondition,
-            max: viewModel.maxCondition,
-            onChanged: viewModel.setCondition,
+          SectionLabel(l10n.evalIndices),
+          Text(
+            l10n.evalIndicesHint,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
-          InlineWarning(message: l10n.testsFieldConditionHint),
+          const SizedBox(height: AppSpacing.sm),
+          _IndexRow(
+            label: l10n.evalStamina,
+            value: viewModel.stamina,
+            onChanged: viewModel.setStamina,
+          ),
+          _IndexRow(
+            label: l10n.evalAgility,
+            value: viewModel.agility,
+            onChanged: viewModel.setAgility,
+          ),
+          _IndexRow(
+            label: l10n.evalResponse,
+            value: viewModel.response,
+            onChanged: viewModel.setResponse,
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
+          SectionLabel(l10n.evalFinalCondition),
+          CpSegmented<FinalCondition>(
+            segments: [
+              for (final condition in FinalCondition.values)
+                CpSegment(value: condition, label: finalConditionLabel(l10n, condition)),
+            ],
+            selected: viewModel.finalCondition ?? FinalCondition.good,
+            onChanged: viewModel.setFinalCondition,
+          ),
 
           const SizedBox(height: AppSpacing.lg),
           SectionLabel(l10n.birdSectionExtra),
-          CpTextField(
-            label: l10n.fieldWeight,
-            controller: _weightController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            prefixIcon: Icons.monitor_weight_outlined,
-            helper: l10n.commonOptional,
-            onChanged: viewModel.setWeight,
+          Row(
+            children: [
+              Expanded(
+                child: CpTextField(
+                  label: l10n.fieldWeight,
+                  controller: _weightController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  prefixIcon: Icons.monitor_weight_outlined,
+                  onChanged: viewModel.setWeight,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: CpTextField(
+                  label: l10n.evalFieldDuration,
+                  controller: _durationController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  prefixIcon: Icons.timer_outlined,
+                  onChanged: viewModel.setDuration,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.md),
           CpTextField(
@@ -163,6 +223,11 @@ class _EvaluationFormViewState extends ConsumerState<EvaluationFormView> {
             maxLines: 3,
             onChanged: viewModel.setNotes,
           ),
+
+          // El diseño lo dice aquí, y conviene: un criador que no sabe quién ve
+          // estos números no los anota con sinceridad.
+          const SizedBox(height: AppSpacing.md),
+          CpInfoCard(message: l10n.evalPrivacy),
 
           const SizedBox(height: AppSpacing.xl),
           CpButton(
@@ -230,39 +295,70 @@ class _ResultSelector extends StatelessWidget {
   }
 }
 
-/// Condición de 1 a 10 como diez botones y no como un deslizador: el criador
-/// piensa en un número entero, y un `Slider` obliga a apuntar con precisión a
-/// un valor concreto en un galpón, con el teléfono en una mano.
-class _ConditionScale extends StatelessWidget {
-  const _ConditionScale({
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.onChanged,
-  });
+/// Un índice de desempeño: cinco puntos, del 1 al 5.
+///
+/// Cinco botones y no un desplegable ni un deslizador: se toca una vez, se ve
+/// el valor sin abrir nada, y en el galpón un deslizador con guantes no acierta.
+class _IndexRow extends StatelessWidget {
+  const _IndexRow({required this.label, required this.value, required this.onChanged});
 
+  final String label;
   final int? value;
-  final int min;
-  final int max;
   final ValueChanged<int?> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
-      children: [
-        for (var i = min; i <= max; i++)
-          ChoiceChip(
-            label: Text('$i'),
-            selected: value == i,
-            onSelected: (_) => onChanged(i),
-            selectedColor: context.semantic.favorable.withValues(alpha: 0.18),
-            labelStyle: theme.textTheme.bodyMedium,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: theme.textTheme.bodyLarge)),
+          for (var n = 1; n <= 5; n++)
+            Padding(
+              padding: const EdgeInsets.only(left: AppSpacing.xs),
+              child: _IndexDot(n: n, selected: value == n, onTap: () => onChanged(n)),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _IndexDot extends StatelessWidget {
+  const _IndexDot({required this.n, required this.selected, required this.onTap});
+
+  final int n;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brand = context.semantic.brand;
+
+    return CpPressable(
+      child: Material(
+        color: selected ? brand : theme.colorScheme.surfaceContainerHighest,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox(
+            width: 36,
+            height: 36,
+            child: Center(
+              child: Text(
+                '$n',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: selected ? Colors.white : theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
           ),
-      ],
+        ),
+      ),
     );
   }
 }

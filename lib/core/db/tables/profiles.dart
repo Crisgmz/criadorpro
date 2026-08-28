@@ -35,6 +35,13 @@ class Profiles extends Table {
   TextColumn get plan => text().withDefault(const Constant('free'))();
   DateTimeColumn get planExpiresAt => dateTime().nullable()();
 
+  /// Unidad en que se muestra el peso: `kg` o `lb`.
+  ///
+  /// El almacenamiento **siempre es en gramos** (SRS): esto es presentación.
+  /// El diseño usa libras en todas las pantallas, que es como pesa el criador
+  /// dominicano, así que es el valor por omisión.
+  TextColumn get weightUnit => text().withDefault(const Constant('lb'))();
+
   /// Aparece en el directorio de Comunidad — `RF-COM`.
   ///
   /// **Opt-in**: nace en falso. Nadie se publica por haberse registrado, y

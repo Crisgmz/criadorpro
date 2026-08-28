@@ -60,34 +60,46 @@ class EvaluationsRepository implements RemotePuller {
   Stream<List<Evaluation>> watchForBird(String birdId) =>
       _evaluationsDao.watchForBird(birdId).map((rows) => rows.map(Evaluation.fromRow).toList());
 
-  /// `RF-PRU-03` — total, porcentaje favorable y condición promedio.
+  /// `RF-PRU-03` — total, porcentaje favorable e índice promedio.
   ///
   /// Se calcula en memoria sobre las filas ya cargadas y no con tres consultas
   /// agregadas: el criadero típico tiene cientos de pruebas, no millones, y así
   /// las tres cifras salen siempre del mismo instante de la base.
+  ///
+  /// **El porcentaje favorable solo mira las pruebas de campo.** Una revisión
+  /// física o una sesión de acondicionamiento no tienen un resultado que
+  /// valorar, y contarlas hundiría el porcentaje de un criadero que pesa a sus
+  /// aves todas las semanas. El total sí las incluye: son registros, y el
+  /// criador espera ver todos los que anotó.
   Stream<EvaluationStats> watchStats(String ownerId) =>
       _evaluationsDao.watchForStats(ownerId).map((rows) {
         if (rows.isEmpty) return EvaluationStats.empty;
 
+        var rated = 0;
         var favorable = 0;
-        var conditionSum = 0;
-        var conditionCount = 0;
+        var indexSum = 0.0;
+        var indexCount = 0;
 
         for (final row in rows) {
-          if (EvaluationResult.fromId(row.result) == EvaluationResult.favorable) favorable++;
-          final condition = row.condition;
-          if (condition != null) {
-            conditionSum += condition;
-            conditionCount++;
+          if (EvaluationType.fromId(row.type).countsForStats) {
+            rated++;
+            if (EvaluationResult.fromId(row.result) == EvaluationResult.favorable) favorable++;
+          }
+
+          final index = Evaluation.fromRow(row).performanceIndex;
+          if (index != null) {
+            indexSum += index;
+            indexCount++;
           }
         }
 
         return EvaluationStats(
           total: rows.length,
+          rated: rated,
           favorable: favorable,
-          // El promedio solo cuenta las pruebas que anotaron condición: incluir
-          // las que la dejaron en blanco como cero hundiría la media.
-          averageCondition: conditionCount == 0 ? null : conditionSum / conditionCount,
+          // El promedio solo cuenta las que anotaron algún índice: incluir las
+          // que los dejaron en blanco como cero hundiría la media.
+          averageIndex: indexCount == 0 ? null : indexSum / indexCount,
         );
       });
 
@@ -133,6 +145,12 @@ class EvaluationsRepository implements RemotePuller {
       result: draft.result,
       condition: draft.condition,
       weightG: draft.weightG,
+      type: draft.type,
+      durationMin: draft.durationMin,
+      stamina: draft.stamina,
+      agility: draft.agility,
+      response: draft.response,
+      finalCondition: draft.finalCondition,
       notes: _trimToNull(draft.notes),
       createdAt: isNew ? now : draft.createdAt,
       updatedAt: now,

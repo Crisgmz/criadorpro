@@ -20,6 +20,47 @@ enum EvaluationResult {
       values.firstWhere((r) => r.id == id, orElse: () => EvaluationResult.undefined);
 }
 
+/// Qué se registró — pantalla 21.
+///
+/// El diseño distingue tres cosas que antes cabían todas en «prueba». Importa
+/// para las cifras: mezclar un pesaje de rutina con una evaluación de
+/// rendimiento hace que el porcentaje favorable deje de significar nada.
+enum EvaluationType {
+  fieldTest('field_test'),
+  physicalCheck('physical_check'),
+  conditioning('conditioning');
+
+  const EvaluationType(this.id);
+
+  final String id;
+
+  /// Solo la prueba de campo cuenta para el porcentaje favorable: las otras dos
+  /// no tienen un resultado que valorar.
+  bool get countsForStats => this == EvaluationType.fieldTest;
+
+  static EvaluationType fromId(String? id) =>
+      values.firstWhere((t) => t.id == id, orElse: () => EvaluationType.fieldTest);
+}
+
+/// Condición física final — pantalla 21.
+enum FinalCondition {
+  optimal('optimal'),
+  good('good'),
+  needsRest('needs_rest');
+
+  const FinalCondition(this.id);
+
+  final String id;
+
+  static FinalCondition? fromId(String? id) {
+    if (id == null || id.isEmpty) return null;
+    for (final value in values) {
+      if (value.id == id) return value;
+    }
+    return null;
+  }
+}
+
 /// Prueba de campo de un ejemplar.
 class Evaluation {
   const Evaluation({
@@ -28,6 +69,12 @@ class Evaluation {
     required this.birdId,
     required this.date,
     required this.result,
+    this.type = EvaluationType.fieldTest,
+    this.durationMin,
+    this.stamina,
+    this.agility,
+    this.response,
+    this.finalCondition,
     required this.createdAt,
     required this.updatedAt,
     this.place,
@@ -38,6 +85,12 @@ class Evaluation {
   });
 
   factory Evaluation.fromRow(EvaluationRow row) => Evaluation(
+    type: EvaluationType.fromId(row.type),
+    durationMin: row.durationMin,
+    stamina: row.stamina,
+    agility: row.agility,
+    response: row.response,
+    finalCondition: FinalCondition.fromId(row.finalCondition),
     id: row.id,
     ownerId: row.ownerId,
     birdId: row.birdId,
@@ -53,6 +106,12 @@ class Evaluation {
   );
 
   factory Evaluation.fromRemoteJson(Map<String, dynamic> json) => Evaluation(
+    type: EvaluationType.fromId(json['type'] as String?),
+    durationMin: (json['duration_min'] as num?)?.toInt(),
+    stamina: (json['stamina'] as num?)?.toInt(),
+    agility: (json['agility'] as num?)?.toInt(),
+    response: (json['response'] as num?)?.toInt(),
+    finalCondition: FinalCondition.fromId(json['final_condition'] as String?),
     id: json['id'] as String,
     ownerId: json['owner_id'] as String,
     birdId: json['bird_id'] as String,
@@ -73,6 +132,28 @@ class Evaluation {
   final DateTime date;
   final String? place;
   final EvaluationResult result;
+  final EvaluationType type;
+
+  /// Duración en minutos.
+  final int? durationMin;
+
+  /// Índices de desempeño, 1–5. Sustituyen en la interfaz a [condition], que se
+  /// conserva para no perder lo ya registrado.
+  final int? stamina;
+  final int? agility;
+  final int? response;
+
+  final FinalCondition? finalCondition;
+
+  /// El «índice» que muestra la ficha: promedio de los índices anotados.
+  ///
+  /// Ignora los que no se anotaron en vez de contarlos como cero — un cero
+  /// hundiría la media de una evaluación en la que solo se midió resistencia.
+  double? get performanceIndex {
+    final values = [stamina, agility, response].nonNulls.toList();
+    if (values.isEmpty) return null;
+    return values.reduce((a, b) => a + b) / values.length;
+  }
 
   /// Condición del ejemplar, de 1 a 10.
   final int? condition;
@@ -86,6 +167,12 @@ class Evaluation {
   final bool isDeleted;
 
   EvaluationsCompanion toCompanion({bool dirty = false}) => EvaluationsCompanion(
+    type: Value(type.id),
+    durationMin: Value(durationMin),
+    stamina: Value(stamina),
+    agility: Value(agility),
+    response: Value(response),
+    finalCondition: Value(finalCondition?.id),
     id: Value(id),
     ownerId: Value(ownerId),
     birdId: Value(birdId),
@@ -102,6 +189,12 @@ class Evaluation {
   );
 
   Map<String, dynamic> toRemoteJson() => {
+    'type': type.id,
+    'duration_min': durationMin,
+    'stamina': stamina,
+    'agility': agility,
+    'response': response,
+    'final_condition': finalCondition?.id,
     'id': id,
     'owner_id': ownerId,
     'bird_id': birdId,
@@ -129,24 +222,34 @@ class Evaluation {
 class EvaluationStats {
   const EvaluationStats({
     required this.total,
+    required this.rated,
     required this.favorable,
-    required this.averageCondition,
+    required this.averageIndex,
   });
 
   static const EvaluationStats empty = EvaluationStats(
     total: 0,
+    rated: 0,
     favorable: 0,
-    averageCondition: null,
+    averageIndex: null,
   );
 
+  /// Todos los registros anotados, del tipo que sean.
   final int total;
+
+  /// Solo los que tienen un resultado que valorar — las pruebas de campo.
+  ///
+  /// Es el denominador del porcentaje: una revisión física no es favorable ni
+  /// desfavorable, y meterla en el cálculo castiga al criadero que más pesa.
+  final int rated;
+
   final int favorable;
 
-  /// `null` cuando ninguna prueba anotó condición: mostrar «0,0» daría a
+  /// `null` cuando ninguna anotó índices: mostrar «0,0» daría a
   /// entender que los ejemplares están en pésimo estado.
-  final double? averageCondition;
+  final double? averageIndex;
 
-  /// Porcentaje favorable sobre el total, redondeado. Las pruebas sin definir
-  /// cuentan en el total: ocultarlas inflaría el porcentaje.
-  int get favorablePercent => total == 0 ? 0 : ((favorable / total) * 100).round();
+  /// Porcentaje favorable sobre las pruebas valorables, redondeado. Las que
+  /// quedaron sin definir **sí** cuentan: ocultarlas inflaría el porcentaje.
+  int get favorablePercent => rated == 0 ? 0 : ((favorable / rated) * 100).round();
 }

@@ -32,6 +32,30 @@ class Evaluations extends Table {
 
   TextColumn get notes => text().nullable()();
 
+  /// Tipo de registro — pantalla 21: `field_test` · `physical_check` ·
+  /// `conditioning`.
+  ///
+  /// El diseño distingue tres cosas que antes cabían todas en «prueba»: la
+  /// prueba de campo, la revisión física y la sesión de acondicionamiento. Sin
+  /// el tipo, las estadísticas mezclan un pesaje de rutina con una evaluación
+  /// de rendimiento y el porcentaje favorable deja de significar nada.
+  TextColumn get type => text().withDefault(const Constant('field_test'))();
+
+  /// Duración en minutos.
+  IntColumn get durationMin => integer().nullable()();
+
+  /// Índices de desempeño, escala 1–5 «según observación del evaluador».
+  ///
+  /// Sustituyen en la interfaz a `condition` (1–10 del SRS), que se conserva
+  /// para no perder lo ya registrado. El «índice» que muestra la ficha es el
+  /// promedio de los tres.
+  IntColumn get stamina => integer().nullable()();
+  IntColumn get agility => integer().nullable()();
+  IntColumn get response => integer().nullable()();
+
+  /// Condición física final: `optimal` · `good` · `needs_rest`.
+  TextColumn get finalCondition => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();

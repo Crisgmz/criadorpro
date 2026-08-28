@@ -44,9 +44,9 @@ envío. Copiar el texto tal cual hace fallar la compilación.
 | 11 | Registrar camada | **«Estado del cruce»** (Prueba · Hecho · Repetidos), marca de nacimiento y cintas **para toda la camada**, «Notas de objetivo» |
 | 12 | Mis registros | Pestañas **Todos · Camadas · Nacimientos**; hoy el filtro es por sexo y estado |
 | 18 | Buscar encuentros | Filtros por **clase de peso** (Liviano/Medio/Pesado), distancia en km, insignia **VERIFICADA**, peso en lb. Hoy es un directorio de criaderos |
-| 20 | Evaluaciones | Tres cifras: registros, % favorable, **índice promedio**. Filtros Todas/Favorable/**Neutral**/Desfavorable |
-| 21 | Nueva evaluación | **Tipo de registro** (prueba de campo · evaluación física · sesión de acondicionamiento), **duración en minutos**, **cuatro índices 1–5** (resistencia, agilidad, capacidad de respuesta), **condición física final** (Óptima/Buena/Descanso) |
-| 22 | Ficha | Campo **«Criador»**, peso en **lb**, cifras **por ejemplar** en la pestaña de evaluaciones |
+| 20 | Evaluaciones | ✅ índice promedio en lugar de condición |
+| 21 | Nueva evaluación | ✅ tipo, duración, tres índices 1–5 y condición física final |
+| 22 | Ficha | ✅ peso en lb · falta el campo «Criador» y las cifras por ejemplar |
 | 24 | Solicitudes | **«Coordinar por WhatsApp»** al aceptar |
 | 26 | Contabilidad | Tarjeta de **costo de empleomanía**, pestañas de mes, filtro Todo/Gastos/Ingresos |
 | 28 | Empleomanía | **Comprobante** de pago con envío, «Exportar nómina del mes» |
@@ -60,14 +60,13 @@ No se puede copiar sin decidir antes, porque contradice la especificación:
 |---|---|
 | Estado **REGALADO** en la lista | El catálogo del SRS es `active`/`sold`/`deceased`/`loaned` |
 | **Neutral** como resultado | El SRS dice `favorable`/`unfavorable`/`undefined` — «Neutral» ≈ «undefined», pero el rótulo cambia |
-| **Índices 1–5** de desempeño | El SRS define `condition` 1–10 y ningún índice más |
-| Peso en **libras** | El SRS almacena gramos; la presentación en libras necesita el ajuste en el perfil |
+| ~~**Índices 1–5**~~ | ✅ resuelto: se añaden como columnas nuevas y `condition` 1–10 se conserva para no perder lo ya registrado. La interfaz usa los índices |
 | **Registrar nacimiento** sin placa | La placa es obligatoria en `birds` (`RS-01`) |
 | Insignia **VERIFICADA** | No existe verificación de criaderos en ningún requisito |
 
 ## Orden recomendado
 
 1. **Sin decisiones** — Mi perfil, Soporte, Drawer, Eliminar cuenta a pantalla completa.
-2. **Campos nuevos que no chocan** — duración y tipo de la evaluación, foto y fecha de entrada del empleado, estado del cruce, notas de objetivo.
+2. **Campos nuevos que no chocan** — ✅ evaluación (tipo, duración, índices, condición final) y peso en libras. Faltan: estado del cruce, marcas de camada, foto y fecha de entrada del empleado.
 3. **Requieren tu decisión** — la tabla de arriba.
 4. **Módulos enteros** — Tutoriales y Pagos necesitan contenido y cuentas de tienda.

@@ -68,7 +68,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -172,6 +172,28 @@ class AppDatabase extends _$AppDatabase {
       if (from < 11) {
         await m.addColumn(profiles, profiles.isPublic);
         await m.addColumn(profiles, profiles.publicBio);
+      }
+
+      // v12 — los campos que el diseño pide y no estaban. Todos nulos o con
+      // valor por omisión: lo ya registrado sigue igual.
+      if (from < 12) {
+        await m.addColumn(evaluations, evaluations.type);
+        await m.addColumn(evaluations, evaluations.durationMin);
+        await m.addColumn(evaluations, evaluations.stamina);
+        await m.addColumn(evaluations, evaluations.agility);
+        await m.addColumn(evaluations, evaluations.response);
+        await m.addColumn(evaluations, evaluations.finalCondition);
+
+        await m.addColumn(clutches, clutches.crossStatus);
+        await m.addColumn(clutches, clutches.birthMark);
+        await m.addColumn(clutches, clutches.wingBandLeft);
+        await m.addColumn(clutches, clutches.wingBandRight);
+
+        await m.addColumn(employees, employees.photoPath);
+        await m.addColumn(employees, employees.photoUrl);
+        await m.addColumn(employees, employees.startDate);
+
+        await m.addColumn(profiles, profiles.weightUnit);
       }
     },
     beforeOpen: (details) async {

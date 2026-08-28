@@ -51,6 +51,8 @@ void main() {
     EvaluationResult result = EvaluationResult.undefined,
     int? condition,
     int? weightG,
+    EvaluationType type = EvaluationType.fieldTest,
+    int? stamina,
     DateTime? date,
     String? place,
   }) => Evaluation(
@@ -61,6 +63,8 @@ void main() {
     result: result,
     condition: condition,
     weightG: weightG,
+    type: type,
+    stamina: stamina,
     place: place,
     createdAt: now,
     updatedAt: now,
@@ -158,42 +162,61 @@ void main() {
   });
 
   group('RF-PRU-03 · estadísticas del criadero', () {
-    test('total, porcentaje favorable y condición promedio', () async {
+    test('total, porcentaje favorable e índice promedio', () async {
       await givenPlan(SubscriptionPlan.pro);
-      await repository.save(draft(result: EvaluationResult.favorable, condition: 8));
-      await repository.save(draft(result: EvaluationResult.favorable, condition: 6));
-      await repository.save(draft(result: EvaluationResult.unfavorable, condition: 4));
-      await repository.save(draft(result: EvaluationResult.undefined, condition: 2));
+      await repository.save(draft(result: EvaluationResult.favorable, stamina: 5));
+      await repository.save(draft(result: EvaluationResult.favorable, stamina: 4));
+      await repository.save(draft(result: EvaluationResult.unfavorable, stamina: 3));
+      await repository.save(draft(result: EvaluationResult.undefined, stamina: 2));
 
       final stats = await repository.watchStats(ownerId).first;
 
       expect(stats.total, 4);
       expect(stats.favorable, 2);
-      // Las pruebas sin definir cuentan en el total: excluirlas inflaría el
-      // porcentaje y el criador se llevaría una idea equivocada.
+      // Las que quedaron sin definir cuentan en el denominador: excluirlas
+      // inflaría el porcentaje y el criador se llevaría una idea equivocada.
       expect(stats.favorablePercent, 50);
-      expect(stats.averageCondition, 5.0);
+      expect(stats.averageIndex, 3.5);
     });
 
-    test('el promedio ignora las pruebas que no anotaron condición', () async {
+    test('una revisión física no cuenta para el porcentaje favorable', () async {
       await givenPlan(SubscriptionPlan.pro);
-      await repository.save(draft(condition: 10));
+      await repository.save(draft(result: EvaluationResult.favorable));
+      // Sin resultado que valorar: contarla castigaría al criadero que más
+      // pesa a sus aves, que es justo el que mejor las lleva.
+      await repository.save(
+        draft(type: EvaluationType.physicalCheck, result: EvaluationResult.undefined),
+      );
+      await repository.save(
+        draft(type: EvaluationType.conditioning, result: EvaluationResult.undefined),
+      );
+
+      final stats = await repository.watchStats(ownerId).first;
+
+      expect(stats.total, 3, reason: 'el criador espera ver los tres registros que anotó');
+      expect(stats.rated, 1);
+      expect(stats.favorablePercent, 100);
+    });
+
+    test('el promedio ignora las que no anotaron índices', () async {
+      await givenPlan(SubscriptionPlan.pro);
+      await repository.save(draft(stamina: 5));
       await repository.save(draft());
 
       final stats = await repository.watchStats(ownerId).first;
 
       expect(stats.total, 2);
-      // Contar la que no la anotó como cero daría 5,0 y sería mentira.
-      expect(stats.averageCondition, 10.0);
+      // Contar la que no los anotó como cero daría 2,5 y sería mentira.
+      expect(stats.averageIndex, 5.0);
     });
 
-    test('sin pruebas no hay promedio, y no es cero', () async {
+    test('sin registros no hay promedio, y no es cero', () async {
       final stats = await repository.watchStats(ownerId).first;
 
       expect(stats.total, 0);
       expect(stats.favorablePercent, 0);
       // Cero daría a entender que los ejemplares están en pésimo estado.
-      expect(stats.averageCondition, isNull);
+      expect(stats.averageIndex, isNull);
     });
 
     test('una prueba borrada deja de contar', () async {

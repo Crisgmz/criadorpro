@@ -30,6 +30,15 @@ class Employees extends Table {
   /// que se hicieron. Deja de sumar al costo mensual y de aparecer al pagar.
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
 
+  /// Foto del empleado — pantalla 30. Opcional: «para identificar al personal
+  /// más rápido». Misma pareja que en `birds`: la ruta es local y no viaja, la
+  /// URL sí.
+  TextColumn get photoPath => text().nullable()();
+  TextColumn get photoUrl => text().nullable()();
+
+  /// Fecha de entrada al criadero.
+  DateTimeColumn get startDate => dateTime().nullable()();
+
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();

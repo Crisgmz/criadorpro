@@ -130,13 +130,13 @@ class _Stats extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: _StatCard(
-              label: l10n.testsStatCondition,
-              // Sin condición anotada en ninguna prueba, un «0,0» diría que los
-              // ejemplares están en pésimo estado. Un guion no dice nada, que
-              // es exactamente lo que se sabe.
-              value: stats.averageCondition == null
+              label: l10n.evalIndexAverage,
+              // Sin índices anotados, un «0,0» diría que los ejemplares están
+              // en pésimo estado. Un guion no dice nada, que es exactamente lo
+              // que se sabe.
+              value: stats.averageIndex == null
                   ? '—'
-                  : Formatters.decimal(stats.averageCondition!, locale),
+                  : Formatters.decimal(stats.averageIndex!, locale),
             ),
           ),
         ],

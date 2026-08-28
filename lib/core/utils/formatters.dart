@@ -15,6 +15,19 @@ class Age {
   bool get isUnderOneYear => years == 0;
 }
 
+/// Unidad en que se muestra el peso. El almacenamiento no cambia: gramos.
+enum WeightUnit {
+  pounds('lb'),
+  kilograms('kg');
+
+  const WeightUnit(this.id);
+
+  final String id;
+
+  static WeightUnit fromId(String? id) =>
+      values.firstWhere((u) => u.id == id, orElse: () => WeightUnit.pounds);
+}
+
 abstract final class Formatters {
   /// Placa del ejemplar — SRS §4: sin ceros a la izquierda y precedida de `#`.
   ///
@@ -60,6 +73,21 @@ abstract final class Formatters {
   /// Cuando se cierre la moneda fuera de República Dominicana (§13 de las
   /// decisiones abiertas), esto es lo que hay que hacer variable.
   static final NumberFormat _moneyPattern = NumberFormat('#,##0.00', 'en_US');
+
+  /// Peso del ejemplar, en la unidad que el criador eligió — PRD §9.
+  ///
+  /// **Se almacena siempre en gramos** (SRS); esto es presentación. El diseño
+  /// usa libras en todas las pantallas, que es como pesa el criador dominicano
+  /// y lo que dice la báscula del galpón.
+  ///
+  /// Dos decimales en libras y no uno: la diferencia entre 4.06 y 4.1 libras
+  /// son dieciocho gramos, y es la clase de detalle por el que se lleva el
+  /// historial.
+  static String weight(int grams, String locale, {WeightUnit unit = WeightUnit.pounds}) =>
+      switch (unit) {
+        WeightUnit.pounds => '${NumberFormat('0.00', locale).format(grams / 453.59237)} lb',
+        WeightUnit.kilograms => '${NumberFormat('0.00', locale).format(grams / 1000)} kg',
+      };
 
   /// Nombre del mes y año, para la navegación del cierre contable.
   static String monthYear(DateTime value, String locale) => DateFormat.yMMMM(locale).format(value);
