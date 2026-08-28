@@ -46,11 +46,11 @@ envío. Copiar el texto tal cual hace fallar la compilación.
 | 18 | Buscar encuentros | Filtros por **clase de peso** (Liviano/Medio/Pesado), distancia en km, insignia **VERIFICADA**, peso en lb. Hoy es un directorio de criaderos |
 | 20 | Evaluaciones | ✅ índice promedio en lugar de condición |
 | 21 | Nueva evaluación | ✅ tipo, duración, tres índices 1–5 y condición física final |
-| 22 | Ficha | ✅ peso en lb · falta el campo «Criador» y las cifras por ejemplar |
+| 22 | Ficha | ✅ peso en lb y cifras por ejemplar · falta el campo «Criador» |
 | 24 | Solicitudes | **«Coordinar por WhatsApp»** al aceptar |
 | 26 | Contabilidad | Tarjeta de **costo de empleomanía**, pestañas de mes, filtro Todo/Gastos/Ingresos |
 | 28 | Empleomanía | **Comprobante** de pago con envío, «Exportar nómina del mes» |
-| 30 | Nuevo empleado | ✅ fecha de entrada · falta la foto (necesita el mismo recorrido de subida que `birds`) |
+| 30 | Nuevo empleado | ✅ foto y fecha de entrada |
 
 ## Lo que choca con el SRS
 
@@ -59,7 +59,7 @@ No se puede copiar sin decidir antes, porque contradice la especificación:
 | Qué | Conflicto |
 |---|---|
 | Estado **REGALADO** en la lista | El catálogo del SRS es `active`/`sold`/`deceased`/`loaned` |
-| **Neutral** como resultado | El SRS dice `favorable`/`unfavorable`/`undefined` — «Neutral» ≈ «undefined», pero el rótulo cambia |
+| ~~**Neutral**~~ | ✅ resuelto: es solo el rótulo de `undefined`. La clave no cambia, así que el catálogo del SRS se respeta |
 | ~~**Índices 1–5**~~ | ✅ resuelto: se añaden como columnas nuevas y `condition` 1–10 se conserva para no perder lo ya registrado. La interfaz usa los índices |
 | **Registrar nacimiento** sin placa | La placa es obligatoria en `birds` (`RS-01`) |
 | Insignia **VERIFICADA** | No existe verificación de criaderos en ningún requisito |
@@ -67,6 +67,6 @@ No se puede copiar sin decidir antes, porque contradice la especificación:
 ## Orden recomendado
 
 1. **Sin decisiones** — Mi perfil, Soporte, Drawer, Eliminar cuenta a pantalla completa.
-2. **Campos nuevos que no chocan** — ✅ hecho. Solo queda la foto del empleado, que necesita el recorrido de subida a Storage que ya tiene `birds`.
+2. **Campos nuevos que no chocan** — ✅ **hecho**.
 3. **Requieren tu decisión** — la tabla de arriba.
 4. **Módulos enteros** — Tutoriales y Pagos necesitan contenido y cuentas de tienda.

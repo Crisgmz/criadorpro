@@ -6,7 +6,7 @@
 -- pruebas, movimientos, nómina, pesadas y solicitudes cuelgan todas de ahí.
 --
 -- **Las fotos no.** `storage.objects` no tiene clave foránea contra
--- `auth.users`, así que el bucket `bird-photos` conservaba las imágenes del
+-- `auth.users`, así que los buckets conservaban las imágenes del
 -- criadero después de borrar la cuenta. El criador pulsaba «eliminar mi cuenta»
 -- y sus fotos seguían en el servidor, que es exactamente lo que `RNF-20` dice
 -- que no puede pasar — y lo que App Store revisa.
@@ -34,7 +34,7 @@ begin
   -- Es lo correcto: una cuenta borrada a medias, con las fotos vivas, es peor
   -- que un borrado que hay que reintentar.
   delete from storage.objects
-  where bucket_id = 'bird-photos'
+  where bucket_id in ('bird-photos', 'employee-photos')
     and (storage.foldername(name))[1] = current_uid::text;
 
   -- Y ahora sí. El resto cuelga de aquí por `on delete cascade`.

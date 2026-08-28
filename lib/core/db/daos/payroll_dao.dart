@@ -42,6 +42,33 @@ class PayrollDao extends DatabaseAccessor<AppDatabase> with _$PayrollDaoMixin {
   Future<EmployeeRow?> findEmployee(String id) =>
       (select(employees)..where((t) => t.id.equals(id))).getSingleOrNull();
 
+  /// Fotos que están en el teléfono y no en Storage — pantalla 30.
+  Future<List<EmployeeRow>> photosPendingUpload(String ownerId) =>
+      (select(employees)..where(
+            (t) =>
+                t.ownerId.equals(ownerId) &
+                t.isDeleted.equals(false) &
+                t.photoPath.isNotNull() &
+                t.photoUrl.isNull(),
+          ))
+          .get();
+
+  Future<List<EmployeeRow>> photosPendingDownload(String ownerId) =>
+      (select(employees)..where(
+            (t) =>
+                t.ownerId.equals(ownerId) &
+                t.isDeleted.equals(false) &
+                t.photoUrl.isNotNull() &
+                t.photoPath.isNull(),
+          ))
+          .get();
+
+  /// Ruta local de la foto. **No se sincroniza**: una ruta de este teléfono no
+  /// significa nada en otro, por eso se escribe sin marcar la fila como sucia.
+  Future<void> setEmployeePhotoPath(String id, String? path) => (update(
+    employees,
+  )..where((t) => t.id.equals(id))).write(EmployeesCompanion(photoPath: Value(path)));
+
   Future<void> upsertEmployee(EmployeesCompanion employee) =>
       into(employees).insertOnConflictUpdate(employee);
 

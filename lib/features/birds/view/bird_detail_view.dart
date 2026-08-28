@@ -629,17 +629,116 @@ class _TestsTab extends StatelessWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.lg),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
       children: [
+        // Las cifras son **de este ejemplar**, no del criadero: en su ficha lo
+        // que se pregunta es cómo va este ave, y las del criadero ya están en
+        // la pantalla de pruebas.
+        _BirdTestStats(evaluations: evaluations, locale: locale),
+
+        const SizedBox(height: AppSpacing.md),
         for (final evaluation in evaluations)
           _EvaluationRow(evaluation: evaluation, locale: locale),
-        const SizedBox(height: AppSpacing.md),
-        OutlinedButton.icon(
-          onPressed: () => context.push(Routes.evaluationNewFor(birdId)),
-          icon: const Icon(Icons.add),
-          label: Text(l10n.testsNew),
+
+        const SizedBox(height: AppSpacing.lg),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+          child: CpButton(
+            label: l10n.testsNew,
+            icon: Icons.add,
+            onPressed: () => context.push(Routes.evaluationNewFor(birdId)),
+          ),
         ),
       ],
+    );
+  }
+}
+
+/// Las tres cifras del ejemplar — pantalla 22.
+///
+/// Se calculan aquí y no en el repositorio porque las evaluaciones ya están
+/// cargadas: pedir una consulta agregada para tres números sobre una lista que
+/// se tiene delante sería una ida y vuelta a la base por nada.
+class _BirdTestStats extends StatelessWidget {
+  const _BirdTestStats({required this.evaluations, required this.locale});
+
+  final List<Evaluation> evaluations;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+
+    // Mismo criterio que las del criadero: el porcentaje solo mira las pruebas
+    // de campo, porque una revisión física no es favorable ni desfavorable.
+    final rated = evaluations.where((e) => e.type.countsForStats).toList();
+    final favorable = rated.where((e) => e.result == EvaluationResult.favorable).length;
+    final percent = rated.isEmpty ? 0 : ((favorable / rated.length) * 100).round();
+
+    final indices = evaluations.map((e) => e.performanceIndex).nonNulls.toList();
+    final average = indices.isEmpty ? null : indices.reduce((a, b) => a + b) / indices.length;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+      child: Row(
+        children: [
+          Expanded(
+            child: _StatBox(value: '${evaluations.length}', label: l10n.testsStatTotal),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: _StatBox(
+              value: '$percent%',
+              label: l10n.testsStatFavorable,
+              color: context.semantic.favorable,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: _StatBox(
+              // Sin índices anotados, un «0,0» diría que el ave está en pésimo
+              // estado. Un guion no dice nada, que es lo que se sabe.
+              value: average == null ? '—' : Formatters.decimal(average, locale),
+              label: l10n.evalIndexAverage,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatBox extends StatelessWidget {
+  const _StatBox({required this.value, required this.label, this.color});
+
+  final String value;
+  final String label;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(AppRadius.card),
+      ),
+      child: Column(
+        children: [
+          Text(value, style: theme.textTheme.headlineSmall?.copyWith(color: color)),
+          Text(
+            label.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -660,21 +759,27 @@ class _EvaluationRow extends StatelessWidget {
       EvaluationResult.undefined => context.semantic.undefinedResult,
     };
 
+    // Fecha · duración · peso, como en el diseño. El tipo pasa al título:
+    // saber si fue una prueba de campo o un pesaje cambia cómo se lee la fila.
     final details = [
       Formatters.date(evaluation.date, locale),
-      if (evaluation.place != null) evaluation.place!,
-      if (evaluation.condition != null) '${l10n.testsFieldCondition} ${evaluation.condition}',
+      if (evaluation.durationMin != null) '${evaluation.durationMin} min',
+      if (evaluation.weightG != null) Formatters.weight(evaluation.weightG!, locale),
+      if ((evaluation.place ?? '').isNotEmpty) evaluation.place!,
     ].join(' · ');
 
     return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(
-        backgroundColor: color.withValues(alpha: 0.16),
-        child: Icon(Icons.assignment_outlined, color: color, size: 20),
-      ),
-      // `RNF-25` — el resultado se nombra además de colorearse.
-      title: Text(resultLabel(l10n, evaluation.result), style: theme.textTheme.titleSmall),
+      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+      // Barra de color a la izquierda, como el diseño: marca el resultado sin
+      // robarle sitio al texto.
+      leading: Container(width: 4, height: 40, color: color),
+      title: Text(evaluationTypeLabel(l10n, evaluation.type), style: theme.textTheme.titleSmall),
       subtitle: Text(details, maxLines: 1, overflow: TextOverflow.ellipsis),
+      // `RNF-25` — el resultado se nombra además de colorearse.
+      trailing: Text(
+        resultLabel(l10n, evaluation.result),
+        style: theme.textTheme.labelMedium?.copyWith(color: color, fontWeight: FontWeight.w600),
+      ),
     );
   }
 }

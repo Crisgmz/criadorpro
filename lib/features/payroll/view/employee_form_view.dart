@@ -8,6 +8,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/cp_alert.dart';
 import '../../../core/widgets/cp_button.dart';
+import '../../../core/widgets/cp_photo_field.dart';
 import '../../../core/widgets/cp_text_field.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../../auth/view/widgets/auth_scaffold.dart';
@@ -83,6 +84,23 @@ class _EmployeeFormViewState extends ConsumerState<EmployeeFormView> {
             message: failureMessage(l10n, viewModel.failure!),
             onClose: viewModel.clearFailure,
           ),
+
+        // La foto va primero: el diseño dice «para identificar al personal más
+        // rápido», y eso solo funciona si es lo primero que se ve.
+        PhotoField(
+          path: viewModel.photoPath,
+          isBusy: viewModel.isCapturingPhoto,
+          onCapture: viewModel.capturePhoto,
+          onRemove: viewModel.removePhoto,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          l10n.employeePhotoHint,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: AppSpacing.md),
 
         ValidateOnBlur(
           onBlur: viewModel.validateName,

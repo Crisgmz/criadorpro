@@ -11,6 +11,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/cp_button.dart';
+import '../../../core/widgets/cp_photo_field.dart';
 import '../../../core/widgets/cp_text_field.dart';
 import '../../../core/widgets/sex_badge.dart';
 import '../../../l10n/generated/app_l10n.dart';
@@ -19,7 +20,6 @@ import '../viewmodel/bird_form_viewmodel.dart';
 import 'bird_labels.dart';
 import 'widgets/form_fields.dart';
 import 'widgets/marking_fields.dart';
-import 'widgets/photo_field.dart';
 import 'widgets/trait_picker.dart';
 
 /// Alta y edición de un ejemplar. Sin [birdId] es un alta.

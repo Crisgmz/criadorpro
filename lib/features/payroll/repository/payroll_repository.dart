@@ -9,6 +9,8 @@ import '../../../core/db/daos/payroll_dao.dart';
 import '../../../core/db/daos/profiles_dao.dart';
 import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/error/failure.dart';
+import '../../../core/media/photo_subject.dart';
+import '../../../core/media/photo_sync.dart';
 import '../../../core/network/supabase_service.dart';
 import '../../../core/sync/remote_merge.dart';
 import '../../../core/sync/sync_service.dart';
@@ -22,7 +24,7 @@ import '../model/payroll_payment.dart';
 /// [RemotePuller] porque `employees` y `payroll_payments` bajan por separado,
 /// pero la clase es una sola: los pagos no significan nada sin sus empleados y
 /// separarlas obligaría a duplicar el acceso.
-class PayrollRepository {
+class PayrollRepository implements PhotoSubject {
   PayrollRepository({
     required AppDatabase database,
     required PayrollDao payrollDao,
@@ -58,6 +60,70 @@ class PayrollRepository {
   Future<bool> isAvailableFor(String ownerId) async {
     final profile = await _profilesDao.findById(ownerId);
     return SubscriptionPlan.fromId(profile?.plan) == SubscriptionPlan.elite;
+  }
+
+  // --- Fotos del personal (pantalla 30) -------------------------------------
+  //
+  // Mismo recorrido que las de los ejemplares, por la misma interfaz: fuera de
+  // la cola de datos, con el trabajo pendiente deducido del estado.
+
+  @override
+  String get bucket => PhotoSyncService.employeeBucket;
+
+  @override
+  Future<List<PendingPhoto>> pendingUploads(String ownerId) async => [
+    for (final row in await _payrollDao.photosPendingUpload(ownerId))
+      PendingPhoto(id: row.id, localPath: row.photoPath),
+  ];
+
+  @override
+  Future<List<PendingPhoto>> pendingDownloads(String ownerId) async => [
+    for (final row in await _payrollDao.photosPendingDownload(ownerId))
+      PendingPhoto(id: row.id, objectPath: row.photoUrl),
+  ];
+
+  @override
+  Future<void> setPhotoPath(String id, String? path) => _payrollDao.setEmployeePhotoPath(id, path);
+
+  /// Anota la foto ya subida y **encola el cambio**: sin encolarlo, la foto se
+  /// vería en este teléfono y en ninguno más.
+  ///
+  /// No toca `updated_at`: subir una foto no es una edición del criador sobre
+  /// la ficha del empleado, y moverlo haría que esta fila ganara la resolución
+  /// de conflictos (`RS-09`) contra un cambio real hecho en otro dispositivo.
+  @override
+  Future<void> setPhotoUrl({required String id, required String objectPath}) async {
+    final existing = await _payrollDao.findEmployee(id);
+    if (existing == null) return;
+
+    final employee = Employee.fromRow(existing);
+    final withUrl = Employee(
+      id: employee.id,
+      ownerId: employee.ownerId,
+      name: employee.name,
+      role: employee.role,
+      phone: employee.phone,
+      document: employee.document,
+      salaryCents: employee.salaryCents,
+      frequency: employee.frequency,
+      isActive: employee.isActive,
+      photoPath: employee.photoPath,
+      photoUrl: objectPath,
+      startDate: employee.startDate,
+      createdAt: employee.createdAt,
+      updatedAt: employee.updatedAt,
+    );
+
+    await _database.transaction(() async {
+      await _payrollDao.upsertEmployee(withUrl.toCompanion(dirty: true));
+      await _syncQueue.enqueue(
+        entityTable: employeesTable,
+        entityId: withUrl.id,
+        operation: SyncOperation.upsert,
+        payload: jsonEncode(withUrl.toRemoteJson()),
+        now: withUrl.updatedAt,
+      );
+    });
   }
 
   // --- Empleados -----------------------------------------------------------

@@ -110,10 +110,9 @@ final photoServiceProvider = Provider<PhotoService>((ref) => PhotoService());
 /// Subida y bajada de fotos, fuera de la cola de datos — `RF-REG-15`.
 final photoSyncProvider = Provider<PhotoSyncService>(
   (ref) => PhotoSyncService(
-    birdsDao: ref.watch(birdsDaoProvider),
     photos: ref.watch(photoServiceProvider),
     supabase: ref.watch(supabaseServiceProvider),
-    birds: ref.watch(birdsRepositoryProvider),
+    subjects: [ref.watch(birdsRepositoryProvider), ref.watch(payrollRepositoryProvider)],
   ),
 );
 
@@ -509,6 +508,7 @@ final employeeFormViewModelProvider = ChangeNotifierProvider.autoDispose
     .family<EmployeeFormViewModel, String?>(
       (ref, employeeId) => EmployeeFormViewModel(
         repository: ref.watch(payrollRepositoryProvider),
+        photoService: ref.watch(photoServiceProvider),
         ownerId: ref.watch(currentOwnerIdProvider),
         employeeId: employeeId,
       ),

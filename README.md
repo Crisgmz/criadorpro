@@ -41,7 +41,9 @@ pueden volver a ejecutar sin romper nada, así que ante la duda, ejecútalas.
 | 9 | [`20260827000000_bird_photos.sql`](supabase/migrations/20260827000000_bird_photos.sql) | El bucket privado `bird-photos` y sus políticas — `RF-REG-15` |
 | 10 | [`20260827100000_weight_entries.sql`](supabase/migrations/20260827100000_weight_entries.sql) | `weight_entries` — historial de pesos (`RF-REG-14`) |
 | 11 | [`20260827200000_community.sql`](supabase/migrations/20260827200000_community.sql) | La vista `public_profiles`, `meeting_requests`, denuncias y bloqueos — Comunidad (`RF-COM`) |
-| 12 | [`20260827300000_delete_account.sql`](supabase/migrations/20260827300000_delete_account.sql) | `delete_current_user()` borra también las fotos del bucket — `RNF-20` |
+| 12 | [`20260827300000_delete_account.sql`](supabase/migrations/20260827300000_delete_account.sql) | `delete_current_user()` borra también las fotos de los buckets — `RNF-20`. **Vuelve a ejecutarla** tras la 14: ahora incluye el bucket del personal |
+| 13 | [`20260827500000_design_fields.sql`](supabase/migrations/20260827500000_design_fields.sql) | Tipo, duración e índices de la evaluación; estado y marcas de la camada; foto y fecha del empleado; unidad de peso |
+| 14 | [`20260827600000_employee_photos.sql`](supabase/migrations/20260827600000_employee_photos.sql) | El bucket privado `employee-photos` y sus políticas |
 | 10 | [`20260827010000_grant_elite_plan.sql`](supabase/migrations/20260827010000_grant_elite_plan.sql) | Pasa a **Élite** los criaderos ya dados de alta. Concesión puntual mientras no exista la compra dentro de la app (fase 3); no cambia el plan de las altas nuevas |
 
 #### Cuáles te faltan

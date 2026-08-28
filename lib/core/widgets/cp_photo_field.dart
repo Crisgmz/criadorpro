@@ -2,15 +2,17 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/media/photo_service.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../l10n/generated/app_l10n.dart';
+import '../../l10n/generated/app_l10n.dart';
+import '../media/photo_service.dart';
+import '../theme/app_spacing.dart';
 
 /// Foto del ejemplar en el formulario — `RF-REG-15`, pantalla 19.
 ///
 /// La foto se lee del disco por su ruta: en la base solo viaja el camino, no el
 /// binario. Si el archivo desapareció —copia restaurada en otro dispositivo,
 /// limpieza del sistema— se cae al marcador vacío en vez de romper la pantalla.
+/// Vive en `core/` y no en `birds`: la usan la ficha del ejemplar y la del
+/// empleado, y un feature nunca importa de otro.
 class PhotoField extends StatelessWidget {
   const PhotoField({
     required this.path,

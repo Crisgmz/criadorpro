@@ -302,7 +302,7 @@
   "testsFieldConditionHint": "De 1 a 10. Opcional.",
   "testsResultFavorable": "Favorable",
   "testsResultUnfavorable": "Desfavorable",
-  "testsResultUndefined": "Sin definir",
+  "testsResultUndefined": "Neutral",
   "testsSaved": "Prueba registrada",
   "testsDeleteTitle": "¿Eliminar la prueba?",
   "testsDeleteMessage": "Dejará de contar en las estadísticas del criadero.",

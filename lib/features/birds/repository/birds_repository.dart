@@ -10,6 +10,7 @@ import '../../../core/db/daos/sync_queue_dao.dart';
 import '../../../core/domain/bird_traits.dart';
 import '../../../core/domain/sex.dart';
 import '../../../core/error/failure.dart';
+import '../../../core/media/photo_subject.dart';
 import '../../../core/media/photo_sync.dart';
 import '../../../core/network/supabase_service.dart';
 import '../../../core/sync/remote_merge.dart';
@@ -19,7 +20,7 @@ import '../model/bird.dart';
 
 /// Acceso a ejemplares. Escribe siempre primero en Drift y encola el cambio;
 /// nunca espera a la red para dar por buena una operación.
-class BirdsRepository implements RemotePuller, PhotoUrlSink {
+class BirdsRepository implements RemotePuller, PhotoSubject {
   BirdsRepository({
     required AppDatabase database,
     required BirdsDao birdsDao,
@@ -176,6 +177,24 @@ class BirdsRepository implements RemotePuller, PhotoUrlSink {
     }, (error, _) => DatabaseFailure(debugMessage: error.toString(), cause: error));
   }
 
+  @override
+  String get bucket => PhotoSyncService.birdBucket;
+
+  @override
+  Future<List<PendingPhoto>> pendingUploads(String ownerId) async => [
+    for (final row in await _birdsDao.photosPendingUpload(ownerId))
+      PendingPhoto(id: row.id, localPath: row.photoPath),
+  ];
+
+  @override
+  Future<List<PendingPhoto>> pendingDownloads(String ownerId) async => [
+    for (final row in await _birdsDao.photosPendingDownload(ownerId))
+      PendingPhoto(id: row.id, objectPath: row.photoUrl),
+  ];
+
+  @override
+  Future<void> setPhotoPath(String id, String? path) => _birdsDao.setPhotoPath(id, path);
+
   /// `RF-REG-15` — anota la foto ya subida a Storage.
   ///
   /// La escritura va con su entrada en la cola, como cualquier otra: es la URL
@@ -186,8 +205,8 @@ class BirdsRepository implements RemotePuller, PhotoUrlSink {
   /// moverlo haría que esta fila ganara la resolución de conflictos (`RS-09`)
   /// contra una edición real hecha en otro dispositivo mientras tanto.
   @override
-  Future<void> setPhotoUrl({required String birdId, required String objectPath}) async {
-    final existing = await _birdsDao.findById(birdId);
+  Future<void> setPhotoUrl({required String id, required String objectPath}) async {
+    final existing = await _birdsDao.findById(id);
     if (existing == null) return;
 
     final bird = Bird.fromRow(existing).copyWith(photoUrl: () => objectPath);

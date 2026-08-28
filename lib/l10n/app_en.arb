@@ -247,7 +247,7 @@
   "testsFieldConditionHint": "From 1 to 10. Optional.",
   "testsResultFavorable": "Favourable",
   "testsResultUnfavorable": "Unfavourable",
-  "testsResultUndefined": "Undetermined",
+  "testsResultUndefined": "Neutral",
   "testsSaved": "Trial logged",
   "testsDeleteTitle": "Delete this trial?",
   "testsDeleteMessage": "It will stop counting towards your flock statistics.",

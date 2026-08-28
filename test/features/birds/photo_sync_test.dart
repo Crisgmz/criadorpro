@@ -126,7 +126,7 @@ void main() {
       final bird = await givenBird(photoPath: '/tmp/foto.jpg');
       await database.syncQueueDao.clear();
 
-      await repository.setPhotoUrl(birdId: bird.id, objectPath: '$ownerId/${bird.id}.jpg');
+      await repository.setPhotoUrl(id: bird.id, objectPath: '$ownerId/${bird.id}.jpg');
 
       expect((await dao.findById(bird.id))!.photoUrl, '$ownerId/${bird.id}.jpg');
 
@@ -138,7 +138,7 @@ void main() {
     test('no mueve `updated_at`', () async {
       final bird = await givenBird(photoPath: '/tmp/foto.jpg');
 
-      await repository.setPhotoUrl(birdId: bird.id, objectPath: '$ownerId/${bird.id}.jpg');
+      await repository.setPhotoUrl(id: bird.id, objectPath: '$ownerId/${bird.id}.jpg');
 
       // `RS-09` resuelve conflictos por el `updated_at` más reciente. Si subir
       // una foto lo moviera, esta fila ganaría contra una edición real hecha
@@ -148,25 +148,24 @@ void main() {
     });
 
     test('un ejemplar que ya no existe no revienta', () async {
-      await repository.setPhotoUrl(birdId: 'no-existe', objectPath: 'x/y.jpg');
+      await repository.setPhotoUrl(id: 'no-existe', objectPath: 'x/y.jpg');
     });
   });
 
   test('la ruta en Storage es determinista: volver a subir sustituye', () {
     expect(
-      PhotoSyncService.objectPath(ownerId: 'o1', birdId: 'b1'),
-      PhotoSyncService.objectPath(ownerId: 'o1', birdId: 'b1'),
+      PhotoSyncService.objectPath(ownerId: 'o1', id: 'b1'),
+      PhotoSyncService.objectPath(ownerId: 'o1', id: 'b1'),
     );
     // El propietario va primero: es lo que compara la política de Storage.
-    expect(PhotoSyncService.objectPath(ownerId: 'o1', birdId: 'b1'), startsWith('o1/'));
+    expect(PhotoSyncService.objectPath(ownerId: 'o1', id: 'b1'), startsWith('o1/'));
   });
 
   test('sin backend configurado no intenta nada', () async {
     final service = PhotoSyncService(
-      birdsDao: dao,
       photos: PhotoService(),
       supabase: SupabaseService(null),
-      birds: repository,
+      subjects: [repository],
     );
 
     await givenBird(photoPath: '/tmp/foto.jpg');
