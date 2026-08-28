@@ -10,6 +10,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/cp_button.dart';
+import '../../../core/widgets/cp_segmented.dart';
 import '../../../core/widgets/cp_text_field.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../core/widgets/navy_surface.dart';
@@ -17,6 +18,7 @@ import '../../../l10n/generated/app_l10n.dart';
 import '../model/clutch.dart';
 import '../viewmodel/clutch_form_viewmodel.dart';
 import 'widgets/form_fields.dart';
+import 'widgets/marking_fields.dart';
 
 /// Registro de camada — pantalla 21, `RF-REG-08` a `RF-REG-10`.
 ///
@@ -251,6 +253,33 @@ class _ClutchFormViewState extends ConsumerState<ClutchFormView> {
             onChanged: viewModel.setMother,
           ),
 
+          // El estado del cruce va junto a los reproductores, que es de lo que
+          // habla: si fue una prueba, si ya está hecho, o si se repitió.
+          const SizedBox(height: AppSpacing.lg),
+          SectionLabel(l10n.crossStatus),
+          CpSegmented<CrossStatus>(
+            segments: [
+              CpSegment(value: CrossStatus.test, label: l10n.crossStatusTest),
+              CpSegment(value: CrossStatus.done, label: l10n.crossStatusDone),
+              CpSegment(value: CrossStatus.repeated, label: l10n.crossStatusRepeated),
+            ],
+            selected: viewModel.crossStatus,
+            onChanged: viewModel.setCrossStatus,
+          ),
+
+          // Marca y cintas **para toda la camada**: las crías de un mismo
+          // cruce se marcan igual, y pedirlo quince veces —una por cría— es lo
+          // que hace que no se marque ninguna. Cada una lo corrige en su ficha.
+          const SizedBox(height: AppSpacing.lg),
+          BirthMarkPicker(value: viewModel.birthMark, onChanged: viewModel.setBirthMark),
+          const SizedBox(height: AppSpacing.lg),
+          WingBandPicker(
+            left: viewModel.wingLeft,
+            right: viewModel.wingRight,
+            onLeftChanged: viewModel.setWingLeft,
+            onRightChanged: viewModel.setWingRight,
+          ),
+
           const SizedBox(height: AppSpacing.lg),
           SectionLabel(l10n.clutchSectionExtra),
           CpTextField(
@@ -261,7 +290,7 @@ class _ClutchFormViewState extends ConsumerState<ClutchFormView> {
           ),
           const SizedBox(height: AppSpacing.md),
           CpTextField(
-            label: l10n.fieldNotes,
+            label: l10n.clutchGoalNotes,
             controller: _notesController,
             maxLines: 3,
             onChanged: viewModel.setNotes,

@@ -1,4 +1,5 @@
 import '../../../core/base/base_viewmodel.dart';
+import '../../../core/domain/markings.dart';
 import '../../../core/error/failure.dart';
 import '../model/bird.dart';
 import '../model/clutch.dart';
@@ -30,6 +31,10 @@ class ClutchFormViewModel extends BaseViewModel {
   Bird? _mother;
   String _line = '';
   String _notes = '';
+  CrossStatus _crossStatus = CrossStatus.done;
+  String? _birthMark;
+  WingBand? _wingLeft;
+  WingBand? _wingRight;
 
   int _firstPlate = 1;
 
@@ -49,6 +54,10 @@ class ClutchFormViewModel extends BaseViewModel {
   String? get motherId => _mother?.id;
   String get line => _line;
   String get notes => _notes;
+  CrossStatus get crossStatus => _crossStatus;
+  String? get birthMark => _birthMark;
+  WingBand? get wingLeft => _wingLeft;
+  WingBand? get wingRight => _wingRight;
 
   /// `RV-09` — fecha futura. Bloquea el envío.
   bool get isDateInFuture => _dateInFuture;
@@ -165,6 +174,29 @@ class ClutchFormViewModel extends BaseViewModel {
 
   void setNotes(String value) => _notes = value;
 
+  void setCrossStatus(CrossStatus value) {
+    _crossStatus = value;
+    safeNotify();
+  }
+
+  /// Marca y cintas **de toda la camada**: cada cría nace con ellas. Las de un
+  /// mismo cruce se marcan igual, y pedirlo quince veces es lo que hace que no
+  /// se marque ninguna.
+  void setBirthMark(String? value) {
+    _birthMark = value;
+    safeNotify();
+  }
+
+  void setWingLeft(WingBand? value) {
+    _wingLeft = value;
+    safeNotify();
+  }
+
+  void setWingRight(WingBand? value) {
+    _wingRight = value;
+    safeNotify();
+  }
+
   /// Devuelve la camada creada con sus crías, o `null` si no se pudo. La View
   /// decide entonces si celebra o muestra el error.
   Future<ClutchRegistration?> submit() async {
@@ -181,6 +213,10 @@ class ClutchFormViewModel extends BaseViewModel {
       motherId: motherId,
       line: _line,
       notes: _notes,
+      crossStatus: _crossStatus,
+      birthMark: _birthMark,
+      wingBandLeft: _wingLeft?.id,
+      wingBandRight: _wingRight?.id,
     );
 
     return result.fold(

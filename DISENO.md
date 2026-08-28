@@ -41,7 +41,7 @@ envío. Copiar el texto tal cual hace fallar la compilación.
 
 | # | Pantalla | En qué difiere |
 |---|---|---|
-| 11 | Registrar camada | **«Estado del cruce»** (Prueba · Hecho · Repetidos), marca de nacimiento y cintas **para toda la camada**, «Notas de objetivo» |
+| 11 | Registrar camada | ✅ estado del cruce, marca y cintas para toda la camada, notas de objetivo |
 | 12 | Mis registros | Pestañas **Todos · Camadas · Nacimientos**; hoy el filtro es por sexo y estado |
 | 18 | Buscar encuentros | Filtros por **clase de peso** (Liviano/Medio/Pesado), distancia en km, insignia **VERIFICADA**, peso en lb. Hoy es un directorio de criaderos |
 | 20 | Evaluaciones | ✅ índice promedio en lugar de condición |
@@ -50,7 +50,7 @@ envío. Copiar el texto tal cual hace fallar la compilación.
 | 24 | Solicitudes | **«Coordinar por WhatsApp»** al aceptar |
 | 26 | Contabilidad | Tarjeta de **costo de empleomanía**, pestañas de mes, filtro Todo/Gastos/Ingresos |
 | 28 | Empleomanía | **Comprobante** de pago con envío, «Exportar nómina del mes» |
-| 30 | Nuevo empleado | **Foto** del empleado, **fecha de entrada** |
+| 30 | Nuevo empleado | ✅ fecha de entrada · falta la foto (necesita el mismo recorrido de subida que `birds`) |
 
 ## Lo que choca con el SRS
 
@@ -67,6 +67,6 @@ No se puede copiar sin decidir antes, porque contradice la especificación:
 ## Orden recomendado
 
 1. **Sin decisiones** — Mi perfil, Soporte, Drawer, Eliminar cuenta a pantalla completa.
-2. **Campos nuevos que no chocan** — ✅ evaluación (tipo, duración, índices, condición final) y peso en libras. Faltan: estado del cruce, marcas de camada, foto y fecha de entrada del empleado.
+2. **Campos nuevos que no chocan** — ✅ hecho. Solo queda la foto del empleado, que necesita el recorrido de subida a Storage que ya tiene `birds`.
 3. **Requieren tu decisión** — la tabla de arriba.
 4. **Módulos enteros** — Tutoriales y Pagos necesitan contenido y cuentas de tienda.

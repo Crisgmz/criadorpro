@@ -99,6 +99,9 @@ class PayrollRepository {
       salaryCents: draft.salaryCents,
       frequency: draft.frequency,
       isActive: draft.isActive,
+      photoPath: draft.photoPath,
+      photoUrl: draft.photoUrl,
+      startDate: draft.startDate,
       createdAt: isNew ? now : draft.createdAt,
       updatedAt: now,
     );
@@ -139,6 +142,9 @@ class PayrollRepository {
       salaryCents: existing.salaryCents,
       frequency: existing.frequency,
       isActive: isActive,
+      photoPath: existing.photoPath,
+      photoUrl: existing.photoUrl,
+      startDate: existing.startDate,
       createdAt: existing.createdAt,
       updatedAt: now,
     );

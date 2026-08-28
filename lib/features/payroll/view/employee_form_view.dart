@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/failure_messages.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/cp_alert.dart';
 import '../../../core/widgets/cp_button.dart';
 import '../../../core/widgets/cp_text_field.dart';
@@ -151,6 +152,37 @@ class _EmployeeFormViewState extends ConsumerState<EmployeeFormView> {
         const SizedBox(height: AppSpacing.md),
 
         _FrequencySelector(value: viewModel.frequency, onChanged: viewModel.setFrequency),
+        const SizedBox(height: AppSpacing.md),
+
+        InkWell(
+          onTap: () async {
+            final now = DateTime.now();
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: viewModel.startDate ?? now,
+              firstDate: DateTime(now.year - 40),
+              // Sin futuro: alguien que todavía no ha entrado no está en la
+              // plantilla, y su sueldo no debería sumar al costo del mes.
+              lastDate: DateTime(now.year, now.month, now.day),
+            );
+            if (picked != null) viewModel.setStartDate(picked);
+          },
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: l10n.employeeStartDate,
+              prefixIcon: const Icon(Icons.event_outlined),
+            ),
+            child: Text(
+              viewModel.startDate == null
+                  ? '—'
+                  : Formatters.date(
+                      viewModel.startDate!,
+                      Localizations.localeOf(context).toLanguageTag(),
+                    ),
+            ),
+          ),
+        ),
 
         if (viewModel.isEditing) ...[
           const SizedBox(height: AppSpacing.sm),

@@ -50,10 +50,16 @@ class Employee {
     this.phone,
     this.document,
     this.isActive = true,
+    this.photoPath,
+    this.photoUrl,
+    this.startDate,
     this.isDeleted = false,
   });
 
   factory Employee.fromRow(EmployeeRow row) => Employee(
+    photoPath: row.photoPath,
+    photoUrl: row.photoUrl,
+    startDate: row.startDate,
     id: row.id,
     ownerId: row.ownerId,
     name: row.name,
@@ -69,6 +75,8 @@ class Employee {
   );
 
   factory Employee.fromRemoteJson(Map<String, dynamic> json) => Employee(
+    photoUrl: json['photo_url'] as String?,
+    startDate: Money.parseDate(json['start_date']),
     id: json['id'] as String,
     ownerId: json['owner_id'] as String,
     name: json['name'] as String? ?? '',
@@ -92,6 +100,15 @@ class Employee {
   final int salaryCents;
   final PayFrequency frequency;
   final bool isActive;
+
+  /// Foto del empleado — pantalla 30: «para identificar al personal más
+  /// rápido». Misma pareja que en `birds`: la ruta es local y no viaja, la URL
+  /// sí.
+  final String? photoPath;
+  final String? photoUrl;
+
+  /// Fecha de entrada al criadero.
+  final DateTime? startDate;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
@@ -102,6 +119,9 @@ class Employee {
   int get monthlyCostCents => (salaryCents * frequency.periodsPerMonth).round();
 
   EmployeesCompanion toCompanion({bool dirty = false}) => EmployeesCompanion(
+    photoPath: Value(photoPath),
+    photoUrl: Value(photoUrl),
+    startDate: Value(startDate),
     id: Value(id),
     ownerId: Value(ownerId),
     name: Value(name),
@@ -118,6 +138,10 @@ class Employee {
   );
 
   Map<String, dynamic> toRemoteJson() => {
+    // `photo_path` queda fuera: una ruta de este teléfono no significa nada en
+    // otro. Lo que viaja es la URL, como en `birds`.
+    'photo_url': photoUrl,
+    'start_date': startDate == null ? null : Money.formatDate(startDate!),
     'id': id,
     'owner_id': ownerId,
     'name': name,

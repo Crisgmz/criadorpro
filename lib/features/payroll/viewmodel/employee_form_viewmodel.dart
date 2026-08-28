@@ -29,6 +29,7 @@ class EmployeeFormViewModel extends BaseViewModel {
   String _salary = '';
   PayFrequency _frequency = PayFrequency.biweekly;
   bool _isActive = true;
+  DateTime? _startDate;
 
   ValidationError? _nameError;
 
@@ -39,6 +40,7 @@ class EmployeeFormViewModel extends BaseViewModel {
   String get salary => _salary;
   PayFrequency get frequency => _frequency;
   bool get isActive => _isActive;
+  DateTime? get startDate => _startDate;
   ValidationError? get nameError => _nameError;
 
   bool get isEditing => _employeeId != null;
@@ -74,6 +76,7 @@ class EmployeeFormViewModel extends BaseViewModel {
     _salary = _formatCents(employee.salaryCents);
     _frequency = employee.frequency;
     _isActive = employee.isActive;
+    _startDate = employee.startDate;
     setReady();
   }
 
@@ -107,6 +110,11 @@ class EmployeeFormViewModel extends BaseViewModel {
     safeNotify();
   }
 
+  void setStartDate(DateTime? value) {
+    _startDate = value;
+    safeNotify();
+  }
+
   void setActive({required bool value}) {
     _isActive = value;
     safeNotify();
@@ -128,6 +136,9 @@ class EmployeeFormViewModel extends BaseViewModel {
         salaryCents: _parsedCents(),
         frequency: _frequency,
         isActive: _isActive,
+        startDate: _startDate,
+        photoPath: _existing?.photoPath,
+        photoUrl: _existing?.photoUrl,
         createdAt: _existing?.createdAt ?? now,
         updatedAt: now,
       ),

@@ -3,6 +3,24 @@ import 'package:drift/drift.dart' show Value;
 import '../../../core/db/app_database.dart';
 import 'bird.dart';
 
+/// Estado del cruce — pantalla 11.
+///
+/// Es del criador, no del ave: dice si ese cruce fue una prueba, si ya está
+/// hecho, o si se repitió. Sin él, dos camadas de los mismos reproductores son
+/// indistinguibles seis meses después.
+enum CrossStatus {
+  test('test'),
+  done('done'),
+  repeated('repeated');
+
+  const CrossStatus(this.id);
+
+  final String id;
+
+  static CrossStatus fromId(String? id) =>
+      values.firstWhere((s) => s.id == id, orElse: () => CrossStatus.done);
+}
+
 /// Camada: un cruce con fecha y las crías que salieron de él.
 ///
 /// No tiene código propio porque el criador no se lo pone: la identifica por
@@ -19,10 +37,18 @@ class Clutch {
     this.motherId,
     this.eggs,
     this.notes,
+    this.crossStatus = CrossStatus.done,
+    this.birthMark,
+    this.wingBandLeft,
+    this.wingBandRight,
     this.isDeleted = false,
   });
 
   factory Clutch.fromRow(ClutchRow row) => Clutch(
+    crossStatus: CrossStatus.fromId(row.crossStatus),
+    birthMark: row.birthMark,
+    wingBandLeft: row.wingBandLeft,
+    wingBandRight: row.wingBandRight,
     id: row.id,
     ownerId: row.ownerId,
     fatherId: row.fatherId,
@@ -37,6 +63,10 @@ class Clutch {
   );
 
   factory Clutch.fromRemoteJson(Map<String, dynamic> json) => Clutch(
+    crossStatus: CrossStatus.fromId(json['cross_status'] as String?),
+    birthMark: json['birth_mark'] as String?,
+    wingBandLeft: json['wing_band_left'] as String?,
+    wingBandRight: json['wing_band_right'] as String?,
     id: json['id'] as String,
     ownerId: json['owner_id'] as String,
     fatherId: json['father_id'] as String?,
@@ -67,7 +97,17 @@ class Clutch {
   /// Crías nacidas, de 1 a 30 (`RV-11`). Determina cuántas placas se reservan.
   final int hatched;
 
+  /// «Notas de objetivo» en el diseño: qué se buscaba con el cruce.
   final String? notes;
+
+  final CrossStatus crossStatus;
+
+  /// Marca y cintas **de toda la camada**. El diseño las captura una vez al
+  /// registrar el cruce, no ave por ave: las crías de una camada se marcan
+  /// igual, y repetirlo quince veces es lo que hace que no se marque ninguna.
+  final String? birthMark;
+  final String? wingBandLeft;
+  final String? wingBandRight;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
@@ -76,6 +116,10 @@ class Clutch {
   int? get unhatched => eggs == null ? null : eggs! - hatched;
 
   ClutchesCompanion toCompanion({bool dirty = false}) => ClutchesCompanion(
+    crossStatus: Value(crossStatus.id),
+    birthMark: Value(birthMark),
+    wingBandLeft: Value(wingBandLeft),
+    wingBandRight: Value(wingBandRight),
     id: Value(id),
     ownerId: Value(ownerId),
     fatherId: Value(fatherId),
@@ -91,6 +135,10 @@ class Clutch {
   );
 
   Map<String, dynamic> toRemoteJson() => {
+    'cross_status': crossStatus.id,
+    'birth_mark': birthMark,
+    'wing_band_left': wingBandLeft,
+    'wing_band_right': wingBandRight,
     'id': id,
     'owner_id': ownerId,
     'father_id': fatherId,

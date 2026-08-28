@@ -96,6 +96,10 @@ class ClutchesRepository implements RemotePuller {
     String? motherId,
     String? line,
     String? notes,
+    CrossStatus crossStatus = CrossStatus.done,
+    String? birthMark,
+    String? wingBandLeft,
+    String? wingBandRight,
   }) async {
     final validation = await _validate(
       ownerId: ownerId,
@@ -126,6 +130,10 @@ class ClutchesRepository implements RemotePuller {
           eggs: eggs,
           hatched: hatched,
           notes: _trimToNull(notes),
+          crossStatus: crossStatus,
+          birthMark: birthMark,
+          wingBandLeft: wingBandLeft,
+          wingBandRight: wingBandRight,
           createdAt: now,
           updatedAt: now,
         );
@@ -154,6 +162,13 @@ class ClutchesRepository implements RemotePuller {
             status: BirdStatus.active,
             birthDate: date,
             line: _trimToNull(line),
+            // La marca y las cintas se capturan una vez para toda la camada y
+            // **cada cría nace con ellas**: las de un mismo cruce se marcan
+            // igual, y pedirlo quince veces es lo que hace que no se marque
+            // ninguna. Cada una puede corregirlas luego en su ficha.
+            birthMark: birthMark,
+            wingBandLeft: wingBandLeft,
+            wingBandRight: wingBandRight,
             fatherId: fatherId,
             motherId: motherId,
             clutchId: clutch.id,
