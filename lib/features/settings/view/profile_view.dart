@@ -184,7 +184,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 leading: Icon(Icons.delete_forever_outlined, color: theme.colorScheme.error),
                 title: Text(l10n.accountDelete, style: TextStyle(color: theme.colorScheme.error)),
                 subtitle: Text(l10n.profileDeleteHint),
-                onTap: () => context.push(Routes.settings),
+                onTap: () => context.push(Routes.deleteAccount),
               ),
             ),
           ),

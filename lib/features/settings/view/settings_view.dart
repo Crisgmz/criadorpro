@@ -9,7 +9,6 @@ import '../../../core/router/routes.dart';
 import '../../../core/sync/sync_service.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/cp_text_field.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/generated/app_l10n.dart';
 import '../../dashboard/view/widgets/app_drawer.dart';
@@ -52,26 +51,6 @@ class SettingsView extends ConsumerWidget {
     if (failure != null) {
       messenger.showSnackBar(SnackBar(content: Text(failureMessage(l10n, failure))));
       viewModel.clearFailure();
-    }
-  }
-
-  /// `RF-CTA-11` — confirmación proporcional a lo irreversible que es.
-  ///
-  /// No basta un «¿seguro?»: se enseña **qué** se va a perder, con el número de
-  /// ejemplares, y hay que escribir una palabra. Un diálogo de dos botones se
-  /// acepta sin leerlo, y esto no tiene vuelta atrás ni copia.
-  Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref, int birdCount) async {
-    final l10n = AppL10n.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-
-    final confirmed = await showCpDialog<bool>(
-      context: context,
-      builder: (dialogContext) => _DeleteAccountDialog(birdCount: birdCount),
-    );
-    if (confirmed != true) return;
-
-    if (await ref.read(settingsViewModelProvider).deleteAccount()) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.accountDeleteDone)));
     }
   }
 
@@ -173,7 +152,7 @@ class SettingsView extends ConsumerWidget {
           ListTile(
             leading: Icon(Icons.delete_forever_outlined, color: theme.colorScheme.error),
             title: Text(l10n.accountDelete, style: TextStyle(color: theme.colorScheme.error)),
-            onTap: () => _confirmDeleteAccount(context, ref, settings.birdCount),
+            onTap: () => context.push(Routes.deleteAccount),
           ),
           const SizedBox(height: AppSpacing.xl),
         ],
@@ -281,62 +260,4 @@ class _SectionHeader extends StatelessWidget {
     padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs),
     child: Text(text.toUpperCase(), style: AppTypography.sectionLabel(context)),
   );
-}
-
-/// Confirmación del borrado de cuenta.
-///
-/// El botón solo se habilita al escribir la palabra exacta. Es fricción a
-/// propósito: lo que hay detrás no se puede deshacer.
-class _DeleteAccountDialog extends StatefulWidget {
-  const _DeleteAccountDialog({required this.birdCount});
-
-  final int birdCount;
-
-  @override
-  State<_DeleteAccountDialog> createState() => _DeleteAccountDialogState();
-}
-
-class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
-  String _typed = '';
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppL10n.of(context);
-    final theme = Theme.of(context);
-    final word = l10n.accountDeleteConfirmWord;
-
-    return AlertDialog(
-      title: Text(l10n.accountDeleteTitle),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.accountDeleteMessage(widget.birdCount)),
-          const SizedBox(height: AppSpacing.md),
-          CpTextField(
-            label: l10n.accountDeleteConfirmHint,
-            autofocus: true,
-            textCapitalization: TextCapitalization.characters,
-            onChanged: (value) => setState(() => _typed = value),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l10n.commonCancel),
-        ),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: theme.colorScheme.error,
-            foregroundColor: theme.colorScheme.onError,
-          ),
-          onPressed: _typed.trim().toUpperCase() == word.toUpperCase()
-              ? () => Navigator.of(context).pop(true)
-              : null,
-          child: Text(l10n.accountDelete),
-        ),
-      ],
-    );
-  }
 }

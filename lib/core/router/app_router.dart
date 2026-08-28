@@ -31,6 +31,7 @@ import '../../features/payroll/view/employee_form_view.dart';
 import '../../features/payroll/view/payment_form_view.dart';
 import '../../features/payroll/view/payroll_view.dart';
 import '../../features/pedigree/view/pedigree_view.dart';
+import '../../features/settings/view/delete_account_view.dart';
 import '../../features/settings/view/profile_view.dart';
 import '../../features/settings/view/settings_view.dart';
 import '../../features/settings/view/support_view.dart';
@@ -155,6 +156,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       _page(Routes.profile, (context, state) => const ProfileView()),
       _page(Routes.support, (context, state) => const SupportView()),
+      _page(Routes.deleteAccount, (context, state) => const DeleteAccountView()),
       _page(Routes.accounting, (context, state) => const AccountingView()),
       _page(Routes.transactionNew, (context, state) => const TransactionFormView()),
 

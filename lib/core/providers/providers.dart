@@ -55,6 +55,7 @@ import '../db/daos/transactions_dao.dart';
 import '../db/daos/weights_dao.dart';
 import '../domain/bird_traits.dart';
 import '../domain/sex.dart';
+import '../export/backup_service.dart';
 import '../export/exporters.dart';
 import '../media/photo_service.dart';
 import '../media/photo_sync.dart';
@@ -241,6 +242,11 @@ final currentOwnerIdProvider = Provider<String>((ref) {
 /// guardia del router lo consulta para decidir si toca la configuración
 /// inicial, así que distinguir «no hay» de «aún no sé» importa: con `null` no
 /// se mueve al usuario de sitio.
+/// «Descargar mis datos» — pantalla 25.
+final backupServiceProvider = Provider<BackupService>(
+  (ref) => BackupService(database: ref.watch(appDatabaseProvider)),
+);
+
 /// Exportación a PDF — `RF-PED-08`, `RF-CON-07`, `RF-NOM-04`.
 final exportersProvider = Provider<Exporters>((ref) => const Exporters());
 

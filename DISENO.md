@@ -32,7 +32,6 @@ envío. Copiar el texto tal cual hace fallar la compilación.
 | 14 | **Tutoriales** | Lista de vídeos con duración y nivel (Básico/Intermedio/Pro) + tarjeta de soporte |
 | 15 | **Soporte WhatsApp** | Número, horario, tiempo de respuesta, botón a WhatsApp y correo |
 | 19 | **Pagos y facturación** | Plan actual, método de pago, próximo cobro, historial, cancelar. Dice que en la app se cobra por la tienda |
-| 25 | **Eliminar cuenta** | Pantalla completa, no diálogo. Enumera qué se borra y ofrece **descargar los datos antes** |
 | 29 | **Reporte por categoría** | Detalle histórico de una categoría contable, con exportación propia |
 | — | **Hoja «Agregar registro»** | Tres caminos: nacimiento (marca física, sin placa aún), ave individual, camada |
 | — | **Drawer** | Secciones: Membresía · Mi gallera · Mi cuenta · Ayuda · Información. Insignia con solicitudes pendientes |
@@ -66,7 +65,7 @@ No se puede copiar sin decidir antes, porque contradice la especificación:
 
 ## Orden recomendado
 
-1. **Sin decisiones** — Mi perfil, Soporte, Drawer, Eliminar cuenta a pantalla completa.
+1. **Sin decisiones** — ✅ Mi perfil, Soporte, Drawer y Eliminar cuenta a pantalla completa. Quedan: reporte por categoría, costo de empleomanía en contabilidad, exportar nómina del mes, coordinar por WhatsApp, y la hoja «agregar registro».
 2. **Campos nuevos que no chocan** — ✅ **hecho**.
 3. **Requieren tu decisión** — la tabla de arriba.
 4. **Módulos enteros** — Tutoriales y Pagos necesitan contenido y cuentas de tienda.

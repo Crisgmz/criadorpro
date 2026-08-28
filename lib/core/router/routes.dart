@@ -47,6 +47,10 @@ abstract final class Routes {
   /// Pantalla 15 — Soporte.
   static const String support = '/account/support';
 
+  /// Pantalla 25 — Eliminar cuenta. A pantalla completa y no en un diálogo: no
+  /// cabía la lista de lo que se pierde ni el respaldo.
+  static const String deleteAccount = '/account/delete';
+
   /// Solicitud de encuentro a un criadero concreto. El destinatario va en la
   /// ruta porque la pantalla no existe sin él.
   static String meetingRequestFor(String ownerId) => '/community/request/$ownerId';

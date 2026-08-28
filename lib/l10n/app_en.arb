@@ -673,6 +673,24 @@
   "employeeStartDate": "Start date",
   "employeePhotoHint": "Add a photo to identify staff faster. Optional.",
   "settingsWeightUnit": "Weight unit",
+  "deleteAccountTitle": "Delete account",
+  "deleteAccountPermanent": "This cannot be undone",
+  "deleteAccountIntro": "Deleting your account permanently removes:",
+  "deleteAccountBullet1": "Your farm, your {count} records and all the genealogy",
+  "@deleteAccountBullet1": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "deleteAccountBullet2": "Performance evaluations and their photos",
+  "deleteAccountBullet3": "Your public profile and meeting requests",
+  "deleteAccountBullet4": "Your cloud backups",
+  "deleteAccountStoreNote": "Your subscription is cancelled separately in the app store. Download your backup before continuing.",
+  "deleteAccountDownload": "Download my data",
+  "deleteAccountKeep": "Keep my account",
+  "backupDone": "Backup ready: {count} records",
+  "@backupDone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupFailed": "The backup could not be generated.",
   "settingsAdmin": "Administration",
   "payrollTitle": "Payroll",
   "payrollPlanTitle": "Available with Elite",

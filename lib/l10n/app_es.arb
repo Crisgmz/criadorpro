@@ -754,6 +754,24 @@
   "employeeStartDate": "Fecha de entrada",
   "employeePhotoHint": "Agrega una foto para identificar al personal más rápido. Opcional.",
   "settingsWeightUnit": "Unidad de peso",
+  "deleteAccountTitle": "Eliminar cuenta",
+  "deleteAccountPermanent": "Esta acción es permanente",
+  "deleteAccountIntro": "Al eliminar tu cuenta se borra de forma definitiva:",
+  "deleteAccountBullet1": "Tu criadero, tus {count} registros y toda la genealogía",
+  "@deleteAccountBullet1": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "deleteAccountBullet2": "Las evaluaciones de rendimiento y sus fotos",
+  "deleteAccountBullet3": "Tu perfil público y las solicitudes de encuentro",
+  "deleteAccountBullet4": "Tus respaldos en la nube",
+  "deleteAccountStoreNote": "Tu suscripción se cancela por separado en la tienda de apps. Descarga tu respaldo antes de continuar.",
+  "deleteAccountDownload": "Descargar mis datos",
+  "deleteAccountKeep": "Conservar mi cuenta",
+  "backupDone": "Respaldo listo: {count} registros",
+  "@backupDone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupFailed": "No se pudo generar el respaldo.",
   "settingsAdmin": "Administración",
   "payrollTitle": "Empleomanía",
   "payrollPlanTitle": "Disponible con Élite",
